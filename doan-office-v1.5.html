@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DoanOffice — Hệ thống điều hành văn bản Đoàn TNCS Hồ Chí Minh</title>
+<style>
+:root{
+  --doan:#0E5FA8; --doan-deep:#093F6E; --doan-ink:#062B4C;
+  --gold:#F0B429; --gold-soft:#FBE6B2;
+  --paper:#F3F6FA; --card:#FFFFFF; --ink:#1B2B3A; --muted:#5B7186;
+  --line:#DAE4EF; --line-soft:#E9F0F7;
+  --ok:#178A50; --ok-bg:#E4F5EC; --warn:#C97400; --warn-bg:#FCF0DC;
+  --danger:#CC3A3A; --danger-bg:#FBE7E7; --info-bg:#E8F1FB;
+  --r:10px; --shadow:0 1px 2px rgba(9,63,110,.06),0 4px 14px rgba(9,63,110,.07);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-size:15px}
+body{font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:var(--paper);color:var(--ink);line-height:1.5}
+button{font:inherit;cursor:pointer}
+input,select,textarea{font:inherit;color:var(--ink)}
+a{color:var(--doan)}
+
+/* ---------- Login ---------- */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(150deg,var(--doan-ink) 0%,var(--doan-deep) 45%,var(--doan) 100%);position:relative;overflow:hidden}
+.login-wrap::before{content:"";position:absolute;inset:0;opacity:.08;
+  background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><path fill="white" d="M60 18l9.6 22.9 24.8 2-18.9 16.2 5.7 24.2L60 70.4 38.8 83.3l5.7-24.2-18.9-16.2 24.8-2z"/></svg>');
+  background-size:130px}
+.login-card{position:relative;background:var(--card);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.35);
+  width:min(420px,92vw);padding:36px 34px 30px}
+.login-star{width:58px;height:58px;border-radius:50%;background:var(--doan);display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
+.login-card h1{font-size:1.35rem;text-align:center;color:var(--doan-deep);letter-spacing:-.01em}
+.login-card .sub{text-align:center;color:var(--muted);font-size:.85rem;margin:4px 0 22px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:#FBFDFF}
+.field input:focus,.field select:focus,.field textarea:focus{outline:2px solid var(--doan);outline-offset:-1px;border-color:var(--doan)}
+.btn{display:inline-flex;align-items:center;gap:7px;border:none;border-radius:8px;padding:9px 16px;font-weight:600;font-size:.9rem;transition:filter .15s}
+.btn:hover{filter:brightness(1.08)}
+.btn-primary{background:var(--doan);color:#fff}
+.btn-gold{background:var(--gold);color:var(--doan-ink)}
+.btn-ghost{background:transparent;color:var(--doan);border:1px solid var(--line)}
+.btn-ok{background:var(--ok);color:#fff}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-sm{padding:5px 11px;font-size:.8rem;border-radius:7px}
+.btn-block{width:100%;justify-content:center}
+.demo-accounts{margin-top:20px;border-top:1px dashed var(--line);padding-top:14px}
+.demo-accounts p{font-size:.75rem;color:var(--muted);margin-bottom:8px}
+.chip-row{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--paper);border-radius:99px;padding:4px 11px;font-size:.76rem;color:var(--doan-deep)}
+.chip:hover{background:var(--info-bg)}
+.login-err{background:var(--danger-bg);color:var(--danger);border-radius:8px;padding:8px 12px;font-size:.83rem;margin-bottom:12px;display:none}
+
+/* ---------- Shell ---------- */
+.shell{display:grid;grid-template-columns:252px 1fr;min-height:100vh}
+.sidebar{background:linear-gradient(180deg,var(--doan-deep),var(--doan-ink));color:#fff;position:relative;overflow:hidden;display:flex;flex-direction:column}
+.sidebar::after{content:"";position:absolute;bottom:-40px;right:-40px;width:220px;height:220px;opacity:.07;pointer-events:none;
+  background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><path fill="white" d="M60 8l12.4 29.6 32 2.6-24.4 21 7.4 31.2L60 75.6 32.6 92.4 40 61.2 15.6 40.2l32-2.6z"/></svg>');
+  background-size:contain;background-repeat:no-repeat}
+.brand{display:flex;gap:11px;align-items:center;padding:18px 18px 16px;border-bottom:1px solid rgba(255,255,255,.12)}
+.brand-star{width:38px;height:38px;flex:none;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center}
+.brand b{font-size:1.02rem;letter-spacing:.02em;display:block;line-height:1.2}
+.brand span{font-size:.68rem;opacity:.75;text-transform:uppercase;letter-spacing:.08em}
+.nav{padding:12px 10px;flex:1;position:relative;z-index:1}
+.nav h6{font-size:.66rem;text-transform:uppercase;letter-spacing:.1em;opacity:.55;padding:12px 10px 5px}
+.nav a{display:flex;align-items:center;gap:10px;color:#E7EFF8;text-decoration:none;padding:8px 10px;border-radius:8px;font-size:.88rem;margin-bottom:2px}
+.nav a:hover{background:rgba(255,255,255,.09)}
+.nav a.active{background:var(--gold);color:var(--doan-ink);font-weight:600}
+.nav a.active .ico{color:var(--doan-ink)}
+.ico{width:18px;text-align:center;flex:none;opacity:.9}
+.badge{margin-left:auto;background:var(--danger);color:#fff;border-radius:99px;font-size:.68rem;font-weight:700;padding:1px 7px}
+.nav a.active .badge{background:var(--doan-ink);color:var(--gold)}
+.side-foot{padding:12px 16px;font-size:.68rem;opacity:.6;border-top:1px solid rgba(255,255,255,.12);position:relative;z-index:1}
+
+.main{display:flex;flex-direction:column;min-width:0}
+.topbar{background:var(--card);border-bottom:1px solid var(--line);padding:10px 26px;display:flex;align-items:center;gap:14px}
+.topbar .unit{font-weight:700;color:var(--doan-deep);font-size:1.02rem}
+.topbar .unit small{display:block;font-weight:400;color:var(--muted);font-size:.72rem}
+.topbar .spacer{flex:1}
+.userbox{display:flex;align-items:center;gap:9px;font-size:.85rem}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--doan);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.82rem}
+.content{padding:24px 26px 40px;max-width:1220px;width:100%}
+
+.page-head{display:flex;align-items:flex-end;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+.page-head h2{font-size:1.32rem;color:var(--doan-deep);letter-spacing:-.01em}
+.eyebrow{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:2px}
+.page-head .spacer{flex:1}
+
+/* cards / stats */
+.grid-4{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:15px 17px;box-shadow:var(--shadow);cursor:pointer}
+.stat .n{font-size:1.7rem;font-weight:800;letter-spacing:-.02em}
+.stat .l{font-size:.78rem;color:var(--muted);margin-top:2px}
+.stat.blue .n{color:var(--doan)} .stat.green .n{color:var(--ok)} .stat.amber .n{color:var(--warn)} .stat.red .n{color:var(--danger)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:18px}
+.card-h{padding:13px 18px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:10px}
+.card-h h3{font-size:.95rem;color:var(--doan-deep)}
+.card-h .spacer{flex:1}
+.card-b{padding:16px 18px}
+
+/* tabs / tables */
+.tabs{display:flex;gap:2px;border-bottom:2px solid var(--line);margin-bottom:14px;flex-wrap:wrap}
+.tabs button{background:none;border:none;padding:9px 15px;font-size:.86rem;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px;font-weight:500}
+.tabs button.active{color:var(--doan);border-bottom-color:var(--doan);font-weight:700}
+.tabs button .cnt{background:var(--info-bg);color:var(--doan);border-radius:99px;padding:0 7px;font-size:.72rem;margin-left:5px;font-weight:700}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{background:var(--info-bg);color:var(--doan-deep);text-align:left;padding:9px 11px;font-size:.74rem;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+td{padding:10px 11px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+tr.rowlink{cursor:pointer}
+tr.rowlink:hover td{background:#F7FAFE}
+.doc-title{color:var(--doan);font-weight:600}
+.mono{font-family:Consolas,Menlo,monospace;font-size:.8rem;white-space:nowrap}
+.muted{color:var(--muted)} .small{font-size:.78rem}
+.pill{display:inline-block;border-radius:99px;padding:2px 10px;font-size:.72rem;font-weight:700;white-space:nowrap}
+.pill.cho{background:var(--warn-bg);color:var(--warn)}
+.pill.dang{background:var(--info-bg);color:var(--doan)}
+.pill.xong{background:var(--ok-bg);color:var(--ok)}
+.pill.qua{background:var(--danger-bg);color:var(--danger)}
+.pill.role{background:#EEF2F7;color:#41566B}
+.khan-thuong{color:#8CA1B4} .khan-khan{color:var(--gold)} .khan-tk{color:var(--danger)} .khan-ht{color:#E25822;font-weight:700}
+.empty{padding:34px;text-align:center;color:var(--muted);font-size:.88rem}
+
+/* progress */
+.prog{background:var(--line-soft);border-radius:99px;height:8px;overflow:hidden;min-width:90px}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--doan),#2E86D8);border-radius:99px}
+.prog.done i{background:var(--ok)}
+
+/* detail */
+.detail-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:18px;align-items:start}
+@media(max-width:980px){.detail-grid{grid-template-columns:1fr}.shell{grid-template-columns:1fr}.sidebar{display:none}}
+.meta-tbl td{padding:6px 8px;border:none}
+.meta-tbl td:first-child{color:var(--muted);white-space:nowrap;width:130px;font-size:.8rem}
+.timeline{position:relative;margin:6px 0 4px;padding-left:26px}
+.timeline::before{content:"";position:absolute;left:8px;top:6px;bottom:6px;width:2px;background:linear-gradient(var(--gold),var(--doan))}
+.tl-item{position:relative;padding:0 0 16px}
+.tl-item::before{content:"";position:absolute;left:-24px;top:4px;width:12px;height:12px;background:var(--gold);border:2px solid var(--card);border-radius:3px;transform:rotate(45deg);box-shadow:0 0 0 2px var(--gold-soft)}
+.tl-item b{font-size:.85rem;color:var(--doan-deep)}
+.tl-item .when{font-size:.72rem;color:var(--muted)}
+.tl-item .note{font-size:.82rem;margin-top:2px}
+.report-item{border-left:3px solid var(--doan);background:#F8FBFF;border-radius:0 8px 8px 0;padding:9px 12px;margin-bottom:9px}
+.report-item .rp-h{display:flex;gap:8px;align-items:center;font-size:.78rem;color:var(--muted);margin-bottom:3px}
+
+/* compose */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+@media(max-width:760px){.form-grid{grid-template-columns:1fr}}
+.recip-group{border:1px solid var(--line);border-radius:8px;margin-bottom:10px;overflow:hidden}
+.recip-group>h5{background:var(--info-bg);color:var(--doan-deep);font-size:.76rem;text-transform:uppercase;letter-spacing:.06em;padding:7px 12px}
+.recip-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-top:1px solid var(--line-soft);font-size:.86rem}
+.recip-row select{margin-left:auto;padding:3px 8px;border:1px solid var(--line);border-radius:6px;font-size:.78rem}
+.hint{font-size:.75rem;color:var(--muted);margin-top:4px}
+
+/* bar chart */
+.bar-row{display:grid;grid-template-columns:190px 1fr 84px;gap:10px;align-items:center;margin-bottom:9px;font-size:.83rem}
+.bar-track{background:var(--line-soft);border-radius:6px;height:16px;overflow:hidden}
+.bar-fill{height:100%;background:linear-gradient(90deg,var(--doan-deep),var(--doan));border-radius:6px;min-width:2px}
+.bar-fill.gold{background:linear-gradient(90deg,#D99A12,var(--gold))}
+
+.toast{position:fixed;bottom:22px;right:22px;background:var(--doan-ink);color:#fff;padding:11px 18px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.3);font-size:.86rem;opacity:0;transform:translateY(8px);transition:.25s;z-index:99;pointer-events:none}
+.toast.show{opacity:1;transform:none}
+.tag-org{display:inline-block;background:var(--info-bg);color:var(--doan-deep);border-radius:6px;padding:2px 8px;font-size:.76rem;margin:2px 3px 2px 0}
+.tree{list-style:none}
+.tree li{padding:4px 0 4px 18px;border-left:2px solid var(--line);margin-left:8px;position:relative}
+.tree li::before{content:"";position:absolute;left:-2px;top:16px;width:12px;height:2px;background:var(--line)}
+.tree .me{background:var(--gold-soft);border-radius:6px;padding:2px 8px;font-weight:700;color:var(--doan-ink)}
+@media print{.sidebar,.topbar,.no-print{display:none!important}.shell{display:block}.content{max-width:none;padding:0}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+<script>
+/* =====================================================================
+   DoanOffice 1.5 — Hệ thống gửi/nhận & điều hành văn bản các cơ sở Đoàn
+   - 100% chạy trên trình duyệt (HTML + JS thuần), triển khai tĩnh miễn phí
+   - Dữ liệu lưu CỤC BỘ tại máy người dùng (localStorage / IndexedDB-ready)
+   - Bản demo: toàn bộ đơn vị dùng chung kho dữ liệu trình duyệt để mô phỏng
+     máy chủ đồng bộ; bản production thay lớp store bằng Firebase Firestore
+     (gói Spark miễn phí) + Google Drive API cho file đính kèm.
+   ===================================================================== */
+/* ============== CẤU HÌNH TRIỂN KHAI (GIAI ĐOẠN 1.5) ==============
+   Để chạy chế độ DÙNG CHUNG cho nhiều đơn vị: tạo dự án Firebase
+   (xem HUONG-DAN-GIAI-DOAN-1.5.md) rồi dán cấu hình vào đây, ví dụ:
+
+   const FIREBASE_CONFIG = {
+     apiKey: "AIza...", authDomain: "doanoffice-xxx.firebaseapp.com",
+     projectId: "doanoffice-xxx", storageBucket: "doanoffice-xxx.appspot.com",
+     messagingSenderId: "123...", appId: "1:123...:web:abc..."
+   };
+
+   Để null = chạy chế độ DEMO cục bộ (dữ liệu mẫu, lưu trên máy này).
+   ================================================================= */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAIYYVhTosObnmSJvIh2SbVvzSvI_y9lI4",
+  authDomain: "doanoffice-dongthap.firebaseapp.com",
+  projectId: "doanoffice-dongthap",
+  storageBucket: "doanoffice-dongthap.firebasestorage.app",
+  messagingSenderId: "1003949643846",
+  appId: "1:1003949643846:web:5fe24b22e058d4eb8cd247"
+};
+const LOGIN_DOMAIN = "doan-office.app";   // tên đăng nhập + @domain này = email tài khoản Firebase
+const MODE = FIREBASE_CONFIG ? "cloud" : "local";
+const FB = {auth:null, fs:null, unsub:[]};
+const LS_KEY="doanoffice_v1";
+const STAR='<svg width="22" height="22" viewBox="0 0 120 120"><path fill="currentColor" d="M60 8l12.4 29.6 32 2.6-24.4 21 7.4 31.2L60 75.6 32.6 92.4 40 61.2 15.6 40.2l32-2.6z"/></svg>';
+const LOAI={congvan:["CV","Công văn"],kehoach:["KH","Kế hoạch"],thongbao:["TB","Thông báo"],quyetdinh:["QĐ","Quyết định"],baocao:["BC","Báo cáo"],huongdan:["HD","Hướng dẫn"],totrinh:["TTr","Tờ trình"],chuongtrinh:["CTr","Chương trình"]};
+const KHAN={thuong:["Thường","khan-thuong","☆"],khan:["Khẩn","khan-khan","★"],thuongkhan:["Thượng khẩn","khan-tk","★"],hoatoc:["Hỏa tốc","khan-ht","⚑"]};
+const ROLE={XLC:"Xử lý chính",PH:"Phối hợp",XDB:"Xem để biết"};
+
+let DB=null, S={view:"dashboard",tab:"choxuly",outTab:"all",docId:null,statFrom:"",statTo:""};
+
+/* ---------------- store ---------------- */
+function load(){try{DB=JSON.parse(localStorage.getItem(LS_KEY))}catch(e){DB=null}
+  if(!DB||!DB.units){seed()} }
+function save(){localStorage.setItem(LS_KEY,JSON.stringify(DB))}
+function uid(p){return p+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function seed(){
+  const U=(id,name,short,code,user,parent,level)=>({id,name,short,code,user,pass:"123456",parent,level});
+  DB={session:null,seq:{},units:[
+    U("td","Tỉnh đoàn Đồng Tháp","Tỉnh đoàn","TĐĐT","tinhdoan",null,1),
+    U("hcl","Huyện đoàn Cao Lãnh","HĐ Cao Lãnh","HĐCL","hd.caolanh","td",2),
+    U("tsd","Thành đoàn Sa Đéc","TĐ Sa Đéc","TĐSĐ","td.sadec","td",2),
+    U("dkh","Đoàn khối Cơ quan & Doanh nghiệp tỉnh","Đoàn khối CQ-DN","ĐK","doankhoi","td",2),
+    U("xmt","Đoàn xã Mỹ Thọ","Đoàn xã Mỹ Thọ","ĐXMT","dx.mytho","hcl",3),
+    U("xbh","Đoàn xã Bình Hàng Trung","Đoàn xã B.H.Trung","ĐXBHT","dx.bhtrung","hcl",3),
+    U("p1","Đoàn phường 1 Sa Đéc","Đoàn phường 1","ĐP1","dp.phuong1","tsd",3)
+  ],docs:[]};
+  /* --- văn bản mẫu để demo có dữ liệu --- */
+  const now=Date.now(),D=86400000;
+  const mk=(o)=>{DB.docs.push(o)};
+  mk({id:"d1",so:"12/KH-TĐĐT",loai:"kehoach",trichYeu:"Kế hoạch tổ chức Chiến dịch Thanh niên tình nguyện Hè năm 2026",
+    noiDung:"Yêu cầu các huyện, thị, thành đoàn xây dựng kế hoạch triển khai tại địa phương; thành lập đội hình tình nguyện; báo cáo tiến độ hằng tuần về Ban Phong trào Tỉnh đoàn.",
+    from:"td",ngayBH:iso(now-6*D),doKhan:"khan",hanXuLy:iso(now+4*D),yeuCauBaoCao:true,file:{name:"KH12-TNTN-He2026.pdf",size:412000},replyTo:null,
+    recips:[
+      {unit:"hcl",role:"XLC",status:"dangxuly",receivedAt:iso(now-6*D),viewed:true,progress:60,reports:[
+        {time:iso(now-3*D),progress:30,content:"Đã ban hành kế hoạch triển khai của Huyện đoàn, thành lập 05 đội hình tình nguyện."},
+        {time:iso(now-1*D),progress:60,content:"Ra quân tại 8/12 xã, thu hút 420 ĐVTN tham gia; hoàn thành 2 công trình thanh niên."}]},
+      {unit:"tsd",role:"XLC",status:"dangxuly",receivedAt:iso(now-6*D),viewed:true,progress:40,reports:[
+        {time:iso(now-2*D),progress:40,content:"Đã tổ chức lễ ra quân cấp thành phố, triển khai đến 100% cơ sở đoàn trực thuộc."}]},
+      {unit:"dkh",role:"PH",status:"choxuly",receivedAt:iso(now-6*D),viewed:false,progress:0,reports:[]}],
+    audit:[{time:iso(now-6*D),unit:"td",action:"Phát hành văn bản",note:"Gửi 3 đơn vị (kèm giao việc, hạn báo cáo)"},
+      {time:iso(now-6*D),unit:"hcl",action:"Tiếp nhận văn bản",note:""},
+      {time:iso(now-6*D),unit:"tsd",action:"Tiếp nhận văn bản",note:""},
+      {time:iso(now-3*D),unit:"hcl",action:"Báo cáo tiến độ 30%",note:"Đã ban hành kế hoạch triển khai của Huyện đoàn"},
+      {time:iso(now-2*D),unit:"tsd",action:"Báo cáo tiến độ 40%",note:"Đã tổ chức lễ ra quân cấp thành phố"},
+      {time:iso(now-1*D),unit:"hcl",action:"Báo cáo tiến độ 60%",note:"Ra quân tại 8/12 xã"}]});
+  mk({id:"d2",so:"45/CV-TĐĐT",loai:"congvan",trichYeu:"V/v rà soát, cập nhật dữ liệu đoàn viên trên phần mềm quản lý nghiệp vụ",
+    noiDung:"Đề nghị các đơn vị hoàn thành rà soát trước ngày quy định; đơn vị nào chậm trễ chịu trách nhiệm trước Ban Thường vụ Tỉnh đoàn.",
+    from:"td",ngayBH:iso(now-10*D),doKhan:"thuong",hanXuLy:iso(now-2*D),yeuCauBaoCao:true,file:null,replyTo:null,
+    recips:[
+      {unit:"hcl",role:"XLC",status:"daxuly",receivedAt:iso(now-10*D),viewed:true,progress:100,reports:[
+        {time:iso(now-4*D),progress:100,content:"Hoàn thành rà soát 3.214 hồ sơ đoàn viên, đạt 100%."}]},
+      {unit:"tsd",role:"XLC",status:"dangxuly",receivedAt:iso(now-10*D),viewed:true,progress:70,reports:[
+        {time:iso(now-3*D),progress:70,content:"Đã cập nhật 70% dữ liệu, còn 2 phường đang hoàn thiện."}]},
+      {unit:"dkh",role:"XLC",status:"choxuly",receivedAt:iso(now-10*D),viewed:true,progress:0,reports:[]}],
+    audit:[{time:iso(now-10*D),unit:"td",action:"Phát hành văn bản",note:"Gửi 3 đơn vị"},
+      {time:iso(now-4*D),unit:"hcl",action:"Hoàn thành xử lý",note:"Đạt 100%"},
+      {time:iso(now-3*D),unit:"tsd",action:"Báo cáo tiến độ 70%",note:""}]});
+  mk({id:"d3",so:"08/KH-HĐCL",loai:"kehoach",trichYeu:"Triển khai Chiến dịch TNTN Hè 2026 trên địa bàn huyện Cao Lãnh",
+    noiDung:"Cụ thể hóa Kế hoạch số 12/KH-TĐĐT của Tỉnh đoàn. Các đoàn xã đăng ký ít nhất 01 công trình thanh niên; báo cáo về Huyện đoàn trước 17h thứ Sáu hằng tuần.",
+    from:"hcl",ngayBH:iso(now-4*D),doKhan:"khan",hanXuLy:iso(now+3*D),yeuCauBaoCao:true,file:{name:"KH08-HDCL.pdf",size:230000},replyTo:"d1",
+    recips:[
+      {unit:"xmt",role:"XLC",status:"dangxuly",receivedAt:iso(now-4*D),viewed:true,progress:50,reports:[
+        {time:iso(now-1*D),progress:50,content:"Đã ra quân vệ sinh môi trường tuyến kênh Nguyễn Văn Tiếp, 60 ĐVTN tham gia."}]},
+      {unit:"xbh",role:"XLC",status:"choxuly",receivedAt:iso(now-4*D),viewed:false,progress:0,reports:[]}],
+    audit:[{time:iso(now-4*D),unit:"hcl",action:"Phát hành văn bản",note:"Triển khai VB 12/KH-TĐĐT xuống 2 đoàn xã"},
+      {time:iso(now-4*D),unit:"xmt",action:"Tiếp nhận văn bản",note:""},
+      {time:iso(now-1*D),unit:"xmt",action:"Báo cáo tiến độ 50%",note:"Ra quân vệ sinh môi trường"}]});
+  mk({id:"d4",so:"21/BC-HĐCL",loai:"baocao",trichYeu:"Báo cáo kết quả công tác Đoàn và phong trào thanh thiếu nhi tháng 6/2026",
+    noiDung:"Kính gửi Ban Thường vụ Tỉnh đoàn báo cáo kết quả hoạt động tháng 6.",
+    from:"hcl",ngayBH:iso(now-8*D),doKhan:"thuong",hanXuLy:null,yeuCauBaoCao:false,file:{name:"BC21-thang6.docx",size:180000},replyTo:null,
+    recips:[{unit:"td",role:"XDB",status:"daxuly",receivedAt:iso(now-8*D),viewed:true,progress:100,reports:[]}],
+    audit:[{time:iso(now-8*D),unit:"hcl",action:"Phát hành văn bản",note:"Báo cáo lên Tỉnh đoàn"},
+      {time:iso(now-7*D),unit:"td",action:"Tiếp nhận văn bản",note:"Đã tổng hợp"}]});
+  mk({id:"d5",so:"05/TB-TĐSĐ",loai:"thongbao",trichYeu:"Thông báo mời phối hợp tổ chức Ngày hội 'Thiếu nhi vui khỏe' cụm Sa Đéc",
+    noiDung:"Trân trọng kính mời Huyện đoàn Cao Lãnh phối hợp tổ chức và cử lực lượng tham gia.",
+    from:"tsd",ngayBH:iso(now-2*D),doKhan:"thuong",hanXuLy:iso(now+5*D),yeuCauBaoCao:false,file:null,replyTo:null,
+    recips:[{unit:"hcl",role:"PH",status:"choxuly",receivedAt:iso(now-2*D),viewed:false,progress:0,reports:[]}],
+    audit:[{time:iso(now-2*D),unit:"tsd",action:"Phát hành văn bản",note:"Gửi đơn vị ngang cấp phối hợp"}]});
+  DB.seq={ "td:2026":45,"hcl:2026":21,"tsd:2026":5 };
+  save();
+}
+function iso(t){const d=new Date(t);return d.toISOString().slice(0,10)}
+function todayISO(){return iso(Date.now())}
+function fmtD(s){if(!s)return "—";const[y,m,d]=s.split("-");return d+"/"+m+"/"+y}
+function esc(s){return (s??"").toString().replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function unit(id){return DB.units.find(u=>u.id===id)}
+function me(){return unit(DB.session)}
+function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),2600)}
+
+/* ---------------- nghiệp vụ ---------------- */
+function children(uid_){return DB.units.filter(u=>u.parent===uid_)}
+function siblings(u){return DB.units.filter(x=>x.parent===u.parent&&x.id!==u.id&&u.parent!==null)}
+function myInbox(){const m=me();return DB.docs.filter(d=>d.recips.some(r=>r.unit===m.id)).sort((a,b)=>b.ngayBH.localeCompare(a.ngayBH))}
+function myOutbox(){const m=me();return DB.docs.filter(d=>d.from===m.id).sort((a,b)=>b.ngayBH.localeCompare(a.ngayBH))}
+function myRecip(d){return d.recips.find(r=>r.unit===DB.session)}
+function isOverdue(d,r){return d.hanXuLy&&d.hanXuLy<todayISO()&&r.status!=="daxuly"}
+function isDueSoon(d,r){if(!d.hanXuLy||r.status==="daxuly")return false;const diff=(new Date(d.hanXuLy)-new Date(todayISO()))/86400000;return diff>=0&&diff<=3}
+function nextSo(u,loai){const y=new Date().getFullYear(),k=u.id+":"+y;DB.seq[k]=(DB.seq[k]||0)+1;return DB.seq[k]+"/"+LOAI[loai][0]+"-"+u.code}
+function audit(d,action,note){d.audit.push({time:todayISO(),unit:DB.session,action,note:note||""})}
+
+/* ---------------- actions ---------------- */
+async function doLogin(){
+  const uRaw=document.getElementById("lg-u").value.trim(),p=document.getElementById("lg-p").value;
+  const err=document.getElementById("lg-err");
+  if(MODE==="local"){
+    const found=DB.units.find(x=>x.user===uRaw&&x.pass===p);
+    if(!found){err.style.display="block";err.textContent="Sai tên đăng nhập hoặc mật khẩu. Gợi ý: mật khẩu demo là 123456.";return}
+    DB.session=found.id;save();S.view="dashboard";render();return;
+  }
+  const email=uRaw.includes("@")?uRaw:uRaw+"@"+LOGIN_DOMAIN;
+  err.style.display="none";
+  try{await FB.auth.signInWithEmailAndPassword(email,p)}  /* onAuthStateChanged sẽ lo phần còn lại */
+  catch(e){err.style.display="block";
+    err.textContent={"auth/invalid-credential":"Sai tài khoản hoặc mật khẩu.","auth/user-not-found":"Tài khoản chưa được quản trị viên tạo trên Firebase.","auth/wrong-password":"Sai mật khẩu.","auth/too-many-requests":"Nhập sai nhiều lần, thử lại sau ít phút.","auth/network-request-failed":"Không có kết nối mạng."}[e.code]||("Lỗi đăng nhập: "+e.message)}
+}
+function quickLogin(id){DB.session=id;save();S.view="dashboard";render()}
+function logout(){
+  if(MODE==="cloud"){FB.unsub.forEach(f=>f());FB.unsub=[];DB.session=null;FB.auth.signOut();render();return}
+  DB.session=null;save();render();
+}
+function nav(v,extra){S.view=v;if(extra)Object.assign(S,extra);render();window.scrollTo(0,0)}
+/* commit(d): ghi một văn bản đã thay đổi.
+   - local  : lưu toàn bộ DB vào localStorage
+   - cloud  : ghi đúng document đó lên Firestore (các máy khác nhận qua onSnapshot) */
+function commit(d){
+  if(MODE==="local"){save();return}
+  if(!d)return;
+  d.recipIds=d.recips.map(r=>r.unit);
+  const clean=JSON.parse(JSON.stringify(d)); /* loại bỏ undefined — Firestore không nhận */
+  FB.fs.collection("docs").doc(d.id).set(clean).catch(e=>toast("Lỗi đồng bộ: "+e.message));
+}
+function openDoc(id){
+  S.view="detail";S.docId=id;
+  const d=DB.docs.find(x=>x.id===id),r=d&&myRecip(d);
+  if(r&&!r.viewed){r.viewed=true;audit(d,"Xem văn bản","");commit(d)}
+  render();window.scrollTo(0,0);
+}
+function receiveDoc(id){
+  const d=DB.docs.find(x=>x.id===id),r=myRecip(d);if(!r)return;
+  r.status="dangxuly";r.receivedAt=todayISO();audit(d,"Tiếp nhận văn bản","Bắt đầu xử lý");commit(d);toast("Đã tiếp nhận văn bản "+d.so);render();
+}
+function submitReport(id){
+  const d=DB.docs.find(x=>x.id===id),r=myRecip(d);if(!r)return;
+  const p=Math.max(0,Math.min(100,parseInt(document.getElementById("rp-prog").value||"0",10)));
+  const c=document.getElementById("rp-note").value.trim();
+  if(!c){toast("Vui lòng nhập nội dung báo cáo.");return}
+  r.progress=p;if(r.status==="choxuly")r.status="dangxuly";
+  r.reports.push({time:todayISO(),progress:p,content:c});
+  audit(d,"Báo cáo tiến độ "+p+"%",c.slice(0,120));
+  if(p>=100){r.status="daxuly";audit(d,"Hoàn thành xử lý","")}
+  commit(d);toast(p>=100?"Đã hoàn thành xử lý văn bản.":"Đã gửi báo cáo tiến độ "+p+"% lên "+unit(d.from).short);render();
+}
+function markDone(id){
+  const d=DB.docs.find(x=>x.id===id),r=myRecip(d);if(!r)return;
+  r.status="daxuly";r.progress=100;audit(d,"Hoàn thành xử lý","");commit(d);toast("Đã đánh dấu hoàn thành.");render();
+}
+let composeFile=null;
+const FILE_LIMIT_KB = MODE==="cloud"?400:800; /* cloud: chừa chỗ vì Firestore giới hạn ~1MB/document, base64 phình ~37% */
+function onPickFile(inp){
+  const f=inp.files[0];composeFile=null;
+  const lbl=document.getElementById("file-lbl");
+  if(!f){lbl.textContent="Chưa chọn tệp";return}
+  if(f.size>FILE_LIMIT_KB*1024){composeFile={name:f.name,size:f.size,dataUrl:null};
+    lbl.textContent=f.name+" ("+Math.round(f.size/1024)+" KB — vượt "+FILE_LIMIT_KB+"KB nên chỉ lưu tên tệp; hãy đưa tệp lên Google Drive rồi dán liên kết bên dưới)";return}
+  const rd=new FileReader();
+  rd.onload=()=>{composeFile={name:f.name,size:f.size,dataUrl:rd.result};lbl.textContent=f.name+" ("+Math.round(f.size/1024)+" KB)"};
+  rd.readAsDataURL(f);
+}
+async function sendDoc(){
+  const m=me();
+  const loai=document.getElementById("c-loai").value;
+  const trichYeu=document.getElementById("c-ty").value.trim();
+  const noiDung=document.getElementById("c-nd").value.trim();
+  const doKhan=document.getElementById("c-khan").value;
+  const han=document.getElementById("c-han").value||null;
+  const ycbc=document.getElementById("c-ycbc").checked;
+  const replyTo=document.getElementById("c-reply")?document.getElementById("c-reply").value||null:null;
+  const link=(document.getElementById("c-link")?document.getElementById("c-link").value.trim():"")||null;
+  if(!trichYeu){toast("Vui lòng nhập trích yếu văn bản.");return}
+  const recips=[...document.querySelectorAll(".recip-cb:checked")].map(cb=>({
+    unit:cb.value,role:document.getElementById("role-"+cb.value).value,
+    status:"choxuly",receivedAt:todayISO(),viewed:false,progress:0,reports:[]}));
+  if(!recips.length){toast("Chọn ít nhất một nơi nhận.");return}
+  let file=composeFile;
+  if(link){file={name:(composeFile&&composeFile.name)||"Tệp trên Google Drive",size:(composeFile&&composeFile.size)||0,link}}
+  const base={id:uid("d"),loai,trichYeu,noiDung,from:m.id,ngayBH:todayISO(),doKhan,
+    hanXuLy:han,yeuCauBaoCao:ycbc,file,replyTo,recips,recipIds:recips.map(r=>r.unit)};
+  const note="Gửi "+recips.length+" đơn vị"+(ycbc?" (yêu cầu báo cáo kết quả)":"");
+  if(MODE==="cloud"){
+    const btn=document.querySelector(".btn-primary");if(btn)btn.disabled=true;
+    try{
+      const y=new Date().getFullYear(),key=m.id+"_"+y;
+      const so=await FB.fs.runTransaction(async tx=>{           /* transaction: hai người cùng gửi không thể trùng số */
+        const ref=FB.fs.collection("seq").doc(key);
+        const s=await tx.get(ref);const n=(s.exists?s.data().n:0)+1;
+        tx.set(ref,{n});return n+"/"+LOAI[loai][0]+"-"+m.code;});
+      const d={...base,so,audit:[{time:todayISO(),unit:m.id,action:"Phát hành văn bản",note}]};
+      await FB.fs.collection("docs").doc(d.id).set(JSON.parse(JSON.stringify(d)));
+      composeFile=null;toast("Đã phát hành văn bản số "+d.so);nav("vbdi");
+    }catch(e){toast("Lỗi phát hành: "+e.message);if(btn)btn.disabled=false}
+    return;
+  }
+  const d={...base,so:nextSo(m,loai),audit:[{time:todayISO(),unit:m.id,action:"Phát hành văn bản",note}]};
+  DB.docs.push(d);save();composeFile=null;
+  toast("Đã phát hành văn bản số "+d.so);nav("vbdi");
+}
+function downloadFile(id){
+  const d=DB.docs.find(x=>x.id===id);if(!d||!d.file)return;
+  audit(d,d.file.link?"Mở tệp trên Google Drive":"Tải tệp đính kèm",d.file.name);commit(d);
+  if(d.file.link){window.open(d.file.link,"_blank")}
+  else if(d.file.dataUrl){const a=document.createElement("a");a.href=d.file.dataUrl;a.download=d.file.name;a.click()}
+  else toast("Tệp chưa được lưu kèm văn bản. Hãy đề nghị nơi gửi bổ sung liên kết Google Drive.");
+  if(S.view==="detail")render();
+}
+function backupJSON(){
+  const blob=new Blob([JSON.stringify(DB,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download="doanoffice-backup-"+todayISO()+".json";a.click();toast("Đã tải bản sao lưu dữ liệu (JSON).");
+}
+function restoreJSON(inp){
+  const f=inp.files[0];if(!f)return;const rd=new FileReader();
+  rd.onload=()=>{try{const j=JSON.parse(rd.result);if(!j.units||!j.docs)throw 0;DB=j;save();toast("Khôi phục dữ liệu thành công.");render()}catch(e){toast("Tệp sao lưu không hợp lệ.")}};
+  rd.readAsText(f);
+}
+function resetDemo(){if(confirm("Xóa toàn bộ dữ liệu hiện tại và nạp lại dữ liệu mẫu?")){localStorage.removeItem(LS_KEY);load();render()}}
+function exportCSV(rows,name){
+  const csv="\ufeff"+rows.map(r=>r.map(c=>'"'+String(c??"").replace(/"/g,'""')+'"').join(",")).join("\n");
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
+  a.download=name;a.click();toast("Đã xuất tệp "+name);
+}
+
+/* =================== RENDER =================== */
+function render(){
+  const app=document.getElementById("app");
+  if(S.view==="setup"&&MODE==="cloud"&&!DB.session){app.innerHTML=viewSetup();return}
+  if(!DB.session){app.innerHTML=viewLogin();return}
+  S._stale=false;
+  const views={dashboard:viewDashboard,vbden:viewInbox,vbdi:viewOutbox,soan:viewCompose,detail:viewDetail,thongke:viewStats,danhba:viewOrg,hethong:viewSystem};
+  app.innerHTML=shell((views[S.view]||viewDashboard)());
+}
+function viewLogin(){
+  return `<div class="login-wrap"><div class="login-card">
+    <div class="login-star" style="color:var(--gold)">${STAR}</div>
+    <h1>DoanOffice</h1>
+    <div class="sub">Hệ thống gửi – nhận & điều hành văn bản<br>các cơ sở Đoàn TNCS Hồ Chí Minh</div>
+    <div class="login-err" id="lg-err"></div>
+    <div class="field"><label>Tài khoản đơn vị</label><input id="lg-u" placeholder="vd: tinhdoan" autocomplete="username"></div>
+    <div class="field"><label>Mật khẩu</label><input id="lg-p" type="password" placeholder="••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btn btn-primary btn-block" onclick="doLogin()">Đăng nhập</button>
+    ${MODE==="local"?`<div class="demo-accounts"><p>Chế độ demo cục bộ — mật khẩu chung <b>123456</b>, bấm để vào nhanh:</p>
+      <div class="chip-row">${DB.units.map(u=>`<button class="chip" onclick="quickLogin('${u.id}')">${esc(u.short)}</button>`).join("")}</div>
+    </div>`:`<div class="demo-accounts"><p>Hệ thống dùng chung — tài khoản do quản trị viên (Văn phòng cấp bộ Đoàn quản trị) cấp. Quên mật khẩu: liên hệ quản trị viên để đặt lại trên Firebase Console.</p></div>`}
+    </div></div>`;
+}
+function shell(content){
+  const m=me(),inbox=myInbox();
+  const nChoXL=inbox.filter(d=>myRecipOf(d,m.id).status==="choxuly").length;
+  const nQuaHan=inbox.filter(d=>isOverdue(d,myRecipOf(d,m.id))).length;
+  const item=(v,ico,label,badge)=>`<a href="javascript:void(0)" class="${S.view===v?"active":""}" onclick="nav('${v}')">
+     <span class="ico">${ico}</span>${label}${badge?`<span class="badge">${badge}</span>`:""}</a>`;
+  return `<div class="shell">
+   <aside class="sidebar">
+    <div class="brand"><div class="brand-star" style="color:var(--doan-ink)">${STAR}</div>
+      <div><b>DoanOffice</b><span>Điều hành văn bản Đoàn</span></div></div>
+    <nav class="nav">
+      <h6>Nghiệp vụ</h6>
+      ${item("dashboard","▦","Bảng điều hành")}
+      ${item("vbden","⬇","Văn bản đến",nChoXL||"")}
+      ${item("vbdi","⬆","Văn bản đi")}
+      ${item("soan","✎","Soạn & phát hành")}
+      <h6>Theo dõi</h6>
+      ${item("thongke","▤","Báo cáo · Thống kê",nQuaHan?nQuaHan:"")}
+      ${item("danhba","☷","Sơ đồ tổ chức")}
+      <h6>Quản trị</h6>
+      ${item("hethong","⚙","Dữ liệu & sao lưu")}
+    </nav>
+    <div class="side-foot">${MODE==="cloud"?"● Đồng bộ Firestore · offline-first":"Dữ liệu lưu cục bộ trên máy này"}<br>DoanOffice 1.5 · mã nguồn mở</div>
+   </aside>
+   <div class="main">
+    <div class="topbar">
+      <div class="unit">${esc(m.name)}<small>${m.parent?("Trực thuộc: "+esc(unit(m.parent).name)):"Đơn vị cấp cao nhất trong hệ thống"}</small></div>
+      <div class="spacer"></div>
+      <div class="userbox"><div class="avatar">${esc(m.short[0])}</div><span>${esc(m.user)}</span>
+        <button class="btn btn-ghost btn-sm" onclick="logout()">Đăng xuất</button></div>
+    </div>
+    <div class="content">${content}</div>
+   </div></div>`;
+}
+function myRecipOf(d,uid_){return d.recips.find(r=>r.unit===uid_)}
+function statusPill(d,r){
+  if(isOverdue(d,r))return '<span class="pill qua">Quá hạn</span>';
+  return {choxuly:'<span class="pill cho">Chờ xử lý</span>',dangxuly:'<span class="pill dang">Đang xử lý</span>',daxuly:'<span class="pill xong">Đã xử lý</span>'}[r.status];
+}
+function khanCell(k){const[label,cls,sym]=KHAN[k];return `<span class="${cls}" title="Độ khẩn: ${label}">${sym} ${label}</span>`}
+
+/* ---------- Dashboard ---------- */
+function viewDashboard(){
+  const m=me(),inbox=myInbox(),out=myOutbox();
+  const rOf=d=>myRecipOf(d,m.id);
+  const cCho=inbox.filter(d=>rOf(d).status==="choxuly").length;
+  const cDang=inbox.filter(d=>rOf(d).status==="dangxuly").length;
+  const cXong=inbox.filter(d=>rOf(d).status==="daxuly").length;
+  const cQua=inbox.filter(d=>isOverdue(d,rOf(d))).length;
+  const cSap=inbox.filter(d=>isDueSoon(d,rOf(d))).length;
+  const recent=inbox.slice(0,6);
+  const tracking=out.filter(d=>d.yeuCauBaoCao&&d.recips.some(r=>r.status!=="daxuly")).slice(0,5);
+  return `
+  <div class="page-head"><div><div class="eyebrow">Tổng quan hôm nay · ${fmtD(todayISO())}</div><h2>Bảng điều hành</h2></div>
+   <div class="spacer"></div><button class="btn btn-gold" onclick="nav('soan')">✎ Soạn văn bản mới</button></div>
+  <div class="grid-4">
+    <div class="stat amber" onclick="nav('vbden',{tab:'choxuly'})"><div class="n">${cCho}</div><div class="l">Văn bản chờ xử lý</div></div>
+    <div class="stat blue" onclick="nav('vbden',{tab:'dangxuly'})"><div class="n">${cDang}</div><div class="l">Đang xử lý</div></div>
+    <div class="stat red" onclick="nav('vbden',{tab:'quahan'})"><div class="n">${cQua}</div><div class="l">Quá hạn xử lý</div></div>
+    <div class="stat green" onclick="nav('vbden',{tab:'daxuly'})"><div class="n">${cXong}</div><div class="l">Đã hoàn thành</div></div>
+  </div>
+  ${cSap?`<div class="card" style="border-left:4px solid var(--warn)"><div class="card-b small">⏰ Có <b>${cSap}</b> văn bản sắp đến hạn xử lý trong 3 ngày tới. <a href="javascript:void(0)" onclick="nav('vbden',{tab:'sapden'})">Xem ngay</a></div></div>`:""}
+  <div class="detail-grid">
+   <div class="card"><div class="card-h"><h3>Văn bản đến gần đây</h3><div class="spacer"></div>
+     <button class="btn btn-ghost btn-sm" onclick="nav('vbden')">Xem tất cả</button></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Số ký hiệu</th><th>Trích yếu</th><th>Trạng thái</th></tr></thead><tbody>
+    ${recent.length?recent.map(d=>`<tr class="rowlink" onclick="openDoc('${d.id}')">
+      <td class="mono">${esc(d.so)}</td>
+      <td><span class="doc-title">${esc(d.trichYeu)}</span><div class="small muted">${esc(unit(d.from).name)} · ${fmtD(d.ngayBH)} · ${khanCell(d.doKhan)}</div></td>
+      <td>${statusPill(d,rOf(d))}</td></tr>`).join(""):'<tr><td colspan="3" class="empty">Chưa có văn bản đến.</td></tr>'}
+    </tbody></table></div></div>
+   <div class="card"><div class="card-h"><h3>Văn bản đã giao — chờ cấp dưới báo cáo</h3></div>
+    <div class="card-b">
+    ${tracking.length?tracking.map(d=>{
+      const avg=Math.round(d.recips.reduce((s,r)=>s+r.progress,0)/d.recips.length);
+      return `<div style="margin-bottom:13px;cursor:pointer" onclick="openDoc('${d.id}')">
+        <div class="small"><b class="doc-title">${esc(d.so)}</b> — ${esc(d.trichYeu)}</div>
+        <div style="display:flex;gap:9px;align-items:center;margin-top:4px">
+          <div class="prog ${avg>=100?"done":""}" style="flex:1"><i style="width:${avg}%"></i></div>
+          <span class="small muted">${avg}% · hạn ${fmtD(d.hanXuLy)}</span></div></div>`}).join("")
+     :'<div class="empty">Không có văn bản nào đang chờ báo cáo.</div>'}
+    </div></div>
+  </div>`;
+}
+
+/* ---------- Văn bản đến ---------- */
+function viewInbox(){
+  const m=me(),all=myInbox(),rOf=d=>myRecipOf(d,m.id);
+  const buckets={
+    tatca:all,
+    choxuly:all.filter(d=>rOf(d).status==="choxuly"),
+    dangxuly:all.filter(d=>rOf(d).status==="dangxuly"),
+    sapden:all.filter(d=>isDueSoon(d,rOf(d))),
+    quahan:all.filter(d=>isOverdue(d,rOf(d))),
+    daxuly:all.filter(d=>rOf(d).status==="daxuly")};
+  const labels={tatca:"Tất cả",choxuly:"Chờ xử lý",dangxuly:"Đang xử lý",sapden:"Sắp đến hạn",quahan:"Quá hạn",daxuly:"Đã xử lý"};
+  if(!(S.tab in buckets))S.tab="choxuly";
+  const q=(S.q||"").toLowerCase();
+  const rows=buckets[S.tab].filter(d=>!q||d.trichYeu.toLowerCase().includes(q)||d.so.toLowerCase().includes(q));
+  return `
+  <div class="page-head"><div><div class="eyebrow">Sổ đăng ký văn bản đến</div><h2>Văn bản đến</h2></div></div>
+  <div class="card"><div class="card-b">
+  <div class="tabs">${Object.keys(buckets).map(k=>`<button class="${S.tab===k?"active":""}" onclick="S.tab='${k}';render()">${labels[k]}<span class="cnt">${buckets[k].length}</span></button>`).join("")}</div>
+  <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+    <input style="flex:1;min-width:220px;padding:8px 12px;border:1px solid var(--line);border-radius:8px" placeholder="Tìm theo trích yếu / số ký hiệu…" value="${esc(S.q||"")}" oninput="S.q=this.value;render();this.focus();this.setSelectionRange(this.value.length,this.value.length)">
+    <button class="btn btn-ghost btn-sm" onclick="exportInboxCSV()">⬇ Xuất danh sách</button>
+  </div>
+  <div class="tbl-wrap"><table><thead><tr>
+    <th>Số ký hiệu</th><th>Trích yếu</th><th>Vai trò</th><th>Nơi gửi</th><th>Hạn xử lý</th><th>Độ khẩn</th><th>Trạng thái</th></tr></thead><tbody>
+  ${rows.length?rows.map(d=>{const r=rOf(d);return `<tr class="rowlink" onclick="openDoc('${d.id}')">
+    <td class="mono">${esc(d.so)}${r.viewed?"":' <span title="Chưa xem" style="color:var(--danger)">●</span>'}</td>
+    <td><span class="doc-title">${esc(d.trichYeu)}</span><div class="small muted">${LOAI[d.loai][1]} · ban hành ${fmtD(d.ngayBH)}${d.file?' · 📎 '+esc(d.file.name):''}</div></td>
+    <td><span class="pill role">${ROLE[r.role]}</span></td>
+    <td class="small">${esc(unit(d.from).short)}</td>
+    <td class="small ${isOverdue(d,r)?'khan-tk':''}">${fmtD(d.hanXuLy)}</td>
+    <td class="small">${khanCell(d.doKhan)}</td>
+    <td>${statusPill(d,r)}${d.yeuCauBaoCao&&r.status!=="daxuly"?'<div class="small muted">yêu cầu báo cáo</div>':''}</td></tr>`}).join("")
+   :`<tr><td colspan="7" class="empty">Không có văn bản trong mục này.</td></tr>`}
+  </tbody></table></div></div></div>`;
+}
+function exportInboxCSV(){
+  const m=me(),rows=[["Số ký hiệu","Trích yếu","Loại","Nơi gửi","Ngày ban hành","Hạn xử lý","Vai trò","Trạng thái","Tiến độ (%)"]];
+  myInbox().forEach(d=>{const r=myRecipOf(d,m.id);
+    rows.push([d.so,d.trichYeu,LOAI[d.loai][1],unit(d.from).name,fmtD(d.ngayBH),fmtD(d.hanXuLy),ROLE[r.role],
+      isOverdue(d,r)?"Quá hạn":{choxuly:"Chờ xử lý",dangxuly:"Đang xử lý",daxuly:"Đã xử lý"}[r.status],r.progress])});
+  exportCSV(rows,"van-ban-den-"+m.code+".csv");
+}
+
+/* ---------- Văn bản đi ---------- */
+function viewOutbox(){
+  const out=myOutbox();
+  const buckets={all:out,cho:out.filter(d=>d.recips.some(r=>r.status!=="daxuly")),xong:out.filter(d=>d.recips.every(r=>r.status==="daxuly"))};
+  const labels={all:"Tất cả",cho:"Đang theo dõi",xong:"Các nơi nhận đã xử lý xong"};
+  if(!(S.outTab in buckets))S.outTab="all";
+  const rows=buckets[S.outTab];
+  return `
+  <div class="page-head"><div><div class="eyebrow">Sổ đăng ký văn bản đi</div><h2>Văn bản đi</h2></div>
+  <div class="spacer"></div><button class="btn btn-gold" onclick="nav('soan')">✎ Soạn văn bản mới</button></div>
+  <div class="card"><div class="card-b">
+  <div class="tabs">${Object.keys(buckets).map(k=>`<button class="${S.outTab===k?"active":""}" onclick="S.outTab='${k}';render()">${labels[k]}<span class="cnt">${buckets[k].length}</span></button>`).join("")}</div>
+  <div class="tbl-wrap"><table><thead><tr>
+    <th>Số ký hiệu</th><th>Trích yếu</th><th>Nơi nhận</th><th>Ngày BH</th><th>Hạn</th><th>Tiến độ chung</th></tr></thead><tbody>
+  ${rows.length?rows.map(d=>{
+    const avg=Math.round(d.recips.reduce((s,r)=>s+r.progress,0)/d.recips.length);
+    return `<tr class="rowlink" onclick="openDoc('${d.id}')">
+    <td class="mono">${esc(d.so)}</td>
+    <td><span class="doc-title">${esc(d.trichYeu)}</span><div class="small muted">${LOAI[d.loai][1]} · ${khanCell(d.doKhan)}${d.yeuCauBaoCao?" · có giao việc/báo cáo":""}</div></td>
+    <td class="small">${d.recips.map(r=>`<span class="tag-org">${esc(unit(r.unit).short)} <span class="muted">(${ROLE[r.role][0]}${r.role==="XLC"?"LC":r.role==="PH"?"H":"ĐB"})</span></span>`).join("")}</td>
+    <td class="small">${fmtD(d.ngayBH)}</td><td class="small">${fmtD(d.hanXuLy)}</td>
+    <td><div style="display:flex;gap:8px;align-items:center"><div class="prog ${avg>=100?"done":""}"><i style="width:${avg}%"></i></div><span class="small">${avg}%</span></div></td></tr>`}).join("")
+   :'<tr><td colspan="6" class="empty">Chưa phát hành văn bản nào. Bấm “Soạn văn bản mới” để bắt đầu.</td></tr>'}
+  </tbody></table></div></div></div>`;
+}
+
+/* ---------- Soạn & phát hành ---------- */
+function viewCompose(){
+  const m=me();
+  const sup=m.parent?[unit(m.parent)]:[];
+  const sub=children(m.id), sib=siblings(m);
+  const grp=(title,arr,defRole,hint)=>arr.length?`
+    <div class="recip-group"><h5>${title}</h5>
+    ${arr.map(u=>`<label class="recip-row"><input type="checkbox" class="recip-cb" value="${u.id}"> ${esc(u.name)}
+      <select id="role-${u.id}">${Object.entries(ROLE).map(([k,v])=>`<option value="${k}" ${k===defRole?"selected":""}>${v}</option>`).join("")}</select></label>`).join("")}
+    ${hint?`<div class="hint" style="padding:6px 12px 9px">${hint}</div>`:""}</div>`:"";
+  const inboxDocs=myInbox();
+  return `
+  <div class="page-head"><div><div class="eyebrow">Phát hành văn bản điện tử</div><h2>Soạn văn bản</h2></div></div>
+  <div class="detail-grid">
+  <div class="card"><div class="card-h"><h3>Nội dung văn bản</h3></div><div class="card-b">
+    <div class="form-grid">
+      <div class="field"><label>Loại văn bản</label><select id="c-loai">${Object.entries(LOAI).map(([k,v])=>`<option value="${k}">${v[1]} (${v[0]})</option>`).join("")}</select></div>
+      <div class="field"><label>Độ khẩn</label><select id="c-khan">${Object.entries(KHAN).map(([k,v])=>`<option value="${k}">${v[0]}</option>`).join("")}</select></div>
+    </div>
+    <div class="field"><label>Trích yếu nội dung *</label><input id="c-ty" placeholder="V/v …"></div>
+    <div class="field"><label>Nội dung / ý kiến chỉ đạo</label><textarea id="c-nd" rows="5" placeholder="Nội dung chính, yêu cầu thực hiện, phân công…"></textarea></div>
+    <div class="form-grid">
+      <div class="field"><label>Hạn xử lý</label><input id="c-han" type="date" min="${todayISO()}"></div>
+      <div class="field"><label>Trả lời / triển khai văn bản đến</label>
+        <select id="c-reply"><option value="">— Không —</option>
+        ${inboxDocs.map(d=>`<option value="${d.id}">${esc(d.so)} · ${esc(d.trichYeu.slice(0,50))}</option>`).join("")}</select></div>
+    </div>
+    <div class="field"><label>Tệp đính kèm (PDF/Word/Excel)</label>
+      <input type="file" onchange="onPickFile(this)"><div class="hint" id="file-lbl">Chưa chọn tệp · tệp ≤ ${FILE_LIMIT_KB}KB được lưu kèm ngay trong văn bản</div></div>
+    <div class="field"><label>Hoặc dán liên kết Google Drive (tệp lớn)</label>
+      <input id="c-link" placeholder="https://drive.google.com/… (nhớ bật chia sẻ: ai có liên kết đều xem được)"></div>
+    <label style="display:flex;gap:8px;align-items:center;font-size:.88rem;margin:6px 0 14px">
+      <input type="checkbox" id="c-ycbc" checked> Giao việc kèm văn bản — yêu cầu nơi nhận <b>báo cáo tiến độ, kết quả</b> về đơn vị</label>
+    <button class="btn btn-primary" onclick="sendDoc()">📨 Phát hành & gửi văn bản</button>
+    <span class="hint" style="margin-left:10px">Số ký hiệu được cấp tự động theo sổ văn bản đi của đơn vị.</span>
+  </div></div>
+  <div class="card"><div class="card-h"><h3>Nơi nhận</h3></div><div class="card-b">
+    ${grp("Báo cáo lên cấp trên",sup,"XDB","Văn bản báo cáo, tờ trình gửi cấp trên trực tiếp.")}
+    ${grp("Chỉ đạo đơn vị trực thuộc",sub,"XLC","Cấp dưới nhận vai trò Xử lý chính sẽ phải tiếp nhận, xử lý và báo cáo.")}
+    ${grp("Phối hợp đơn vị ngang cấp",sib,"PH","Các đơn vị cùng trực thuộc một cấp trên.")}
+    ${(!sup.length&&!sub.length&&!sib.length)?'<div class="empty">Đơn vị chưa có quan hệ tổ chức nào.</div>':""}
+  </div></div></div>`;
+}
+
+/* ---------- Chi tiết văn bản + truy vết ---------- */
+function viewDetail(){
+  const d=DB.docs.find(x=>x.id===S.docId);
+  if(!d)return '<div class="empty">Không tìm thấy văn bản.</div>';
+  const m=me(),r=myRecip(d),isSender=d.from===m.id;
+  const reply=d.replyTo?DB.docs.find(x=>x.id===d.replyTo):null;
+  const back=isSender&&!r?"vbdi":"vbden";
+  /* khối thao tác của nơi nhận */
+  let actions="";
+  if(r&&r.status==="choxuly"){
+    actions=`<div class="card" style="border-left:4px solid var(--warn)"><div class="card-b">
+      <b>Văn bản đang chờ đơn vị tiếp nhận.</b>
+      <div class="small muted" style="margin:4px 0 10px">Theo quy định văn thư, văn bản đến phải được đăng ký, tiếp nhận và chuyển xử lý ngay trong ngày (văn bản khẩn: ngay khi nhận).</div>
+      <button class="btn btn-primary" onclick="receiveDoc('${d.id}')">✔ Tiếp nhận & bắt đầu xử lý</button></div></div>`;
+  }else if(r&&r.status==="dangxuly"){
+    actions=`<div class="card"><div class="card-h"><h3>Báo cáo tiến độ lên ${esc(unit(d.from).short)}</h3></div><div class="card-b">
+      <div class="form-grid">
+        <div class="field"><label>Tiến độ hoàn thành (%)</label><input id="rp-prog" type="number" min="0" max="100" step="5" value="${r.progress}"></div>
+        <div class="field" style="display:flex;align-items:flex-end;padding-bottom:14px"><div class="prog" style="width:100%"><i style="width:${r.progress}%"></i></div></div>
+      </div>
+      <div class="field"><label>Nội dung báo cáo kết quả *</label><textarea id="rp-note" rows="3" placeholder="Kết quả thực hiện, số liệu, khó khăn – kiến nghị…"></textarea></div>
+      <button class="btn btn-primary" onclick="submitReport('${d.id}')">📤 Gửi báo cáo</button>
+      <button class="btn btn-ok" style="margin-left:8px" onclick="if(confirm('Xác nhận đã hoàn thành xử lý văn bản này?'))markDone('${d.id}')">✔ Hoàn thành xử lý</button>
+    </div></div>`;
+  }else if(r&&r.status==="daxuly"){
+    actions=`<div class="card" style="border-left:4px solid var(--ok)"><div class="card-b">✔ Đơn vị đã <b>hoàn thành xử lý</b> văn bản này${d.yeuCauBaoCao?" và đã gửi báo cáo kết quả.":"."}</div></div>`;
+  }
+  /* bảng theo dõi nơi nhận (dành cho nơi gửi & mọi người xem) */
+  const track=`<div class="card"><div class="card-h"><h3>Theo dõi xử lý tại các nơi nhận</h3>
+    ${isSender?`<div class="spacer"></div><button class="btn btn-ghost btn-sm" onclick="exportDocCSV('${d.id}')">⬇ Xuất CSV</button>`:""}</div>
+   <div class="tbl-wrap"><table><thead><tr><th>Đơn vị</th><th>Vai trò</th><th>Trạng thái</th><th>Tiến độ</th><th>Báo cáo gần nhất</th></tr></thead><tbody>
+   ${d.recips.map(rr=>{const u=unit(rr.unit),last=rr.reports[rr.reports.length-1];
+     return `<tr><td>${esc(u.name)}</td><td><span class="pill role">${ROLE[rr.role]}</span></td>
+     <td>${statusPill(d,rr)}</td>
+     <td><div style="display:flex;gap:8px;align-items:center"><div class="prog ${rr.progress>=100?"done":""}"><i style="width:${rr.progress}%"></i></div><span class="small">${rr.progress}%</span></div></td>
+     <td class="small">${last?esc(last.content)+`<div class="muted">${fmtD(last.time)}</div>`:'<span class="muted">Chưa có báo cáo</span>'}</td></tr>`}).join("")}
+   </tbody></table></div></div>`;
+  const reports=d.recips.filter(rr=>rr.reports.length).map(rr=>rr.reports.map(rp=>({...rp,u:unit(rr.unit)}))).flat()
+    .sort((a,b)=>b.time.localeCompare(a.time));
+  return `
+  <div class="page-head">
+    <div><div class="eyebrow">${LOAI[d.loai][1]} · ${khanCell(d.doKhan)}</div><h2>${esc(d.so)}</h2></div>
+    <div class="spacer"></div>
+    <button class="btn btn-ghost btn-sm no-print" onclick="nav('${back}')">← Quay lại</button>
+    <button class="btn btn-ghost btn-sm no-print" onclick="window.print()">🖨 In phiếu xử lý</button></div>
+  <div class="detail-grid">
+   <div>
+    <div class="card"><div class="card-b">
+     <h3 style="color:var(--doan-deep);margin-bottom:8px">${esc(d.trichYeu)}</h3>
+     <table class="meta-tbl">
+      <tr><td>Cơ quan ban hành</td><td><b>${esc(unit(d.from).name)}</b></td></tr>
+      <tr><td>Ngày ban hành</td><td>${fmtD(d.ngayBH)}</td></tr>
+      <tr><td>Hạn xử lý</td><td>${d.hanXuLy?fmtD(d.hanXuLy):"Không đặt hạn"}</td></tr>
+      <tr><td>Giao việc / báo cáo</td><td>${d.yeuCauBaoCao?"Có — nơi nhận phải báo cáo tiến độ, kết quả":"Không yêu cầu"}</td></tr>
+      ${reply?`<tr><td>Triển khai từ VB</td><td><a href="javascript:void(0)" onclick="openDoc('${reply.id}')">${esc(reply.so)} — ${esc(reply.trichYeu)}</a></td></tr>`:""}
+      <tr><td>Tệp đính kèm</td><td>${d.file?`<a href="javascript:void(0)" onclick="downloadFile('${d.id}')">${d.file.link?"🔗":"📎"} ${esc(d.file.name)}</a> <span class="muted small">(${d.file.link?"Google Drive":Math.round(d.file.size/1024)+" KB"+(d.file.dataUrl?", lưu kèm":"")})</span>`:"Không có"}</td></tr>
+     </table>
+     ${d.noiDung?`<div style="border-top:1px dashed var(--line);margin-top:10px;padding-top:10px;white-space:pre-wrap">${esc(d.noiDung)}</div>`:""}
+    </div></div>
+    ${actions}
+    ${track}
+    ${reports.length?`<div class="card"><div class="card-h"><h3>Báo cáo kết quả từ các đơn vị (${reports.length})</h3></div><div class="card-b">
+      ${reports.map(rp=>`<div class="report-item"><div class="rp-h"><b style="color:var(--doan-deep)">${esc(rp.u.short)}</b> · ${fmtD(rp.time)} · tiến độ <b>${rp.progress}%</b></div>${esc(rp.content)}</div>`).join("")}
+    </div></div>`:""}
+   </div>
+   <div class="card"><div class="card-h"><h3>Truy vết xử lý văn bản</h3></div><div class="card-b">
+    <div class="timeline">
+     ${[...d.audit].reverse().map(a=>`<div class="tl-item"><b>${esc(a.action)}</b>
+       <div class="when">${esc(unit(a.unit)?unit(a.unit).short:"?")} · ${fmtD(a.time)}</div>
+       ${a.note?`<div class="note muted">${esc(a.note)}</div>`:""}</div>`).join("")}
+    </div>
+    <div class="hint">Nhật ký được hệ thống ghi tự động ở mọi thao tác (phát hành, xem, tiếp nhận, báo cáo, tải tệp) và không thể sửa/xóa.</div>
+   </div></div>
+  </div>`;
+}
+function exportDocCSV(id){
+  const d=DB.docs.find(x=>x.id===id);
+  const rows=[["Văn bản",d.so,d.trichYeu],[],["Đơn vị","Vai trò","Trạng thái","Tiến độ (%)","Báo cáo gần nhất","Ngày"]];
+  d.recips.forEach(r=>{const last=r.reports[r.reports.length-1];
+    rows.push([unit(r.unit).name,ROLE[r.role],isOverdue(d,r)?"Quá hạn":{choxuly:"Chờ xử lý",dangxuly:"Đang xử lý",daxuly:"Đã xử lý"}[r.status],r.progress,last?last.content:"",last?fmtD(last.time):""])});
+  exportCSV(rows,"theo-doi-"+d.so.replace(/[\/\\]/g,"-")+".csv");
+}
+
+/* ---------- Thống kê ---------- */
+function viewStats(){
+  const m=me(),from=S.statFrom,to=S.statTo;
+  const inRange=d=>(!from||d.ngayBH>=from)&&(!to||d.ngayBH<=to);
+  const sent=myOutbox().filter(inRange);
+  const inbox=myInbox().filter(inRange);
+  /* Thống kê văn bản mình đã giao cho từng đơn vị cấp dưới */
+  const byUnit={};
+  sent.forEach(d=>d.recips.forEach(r=>{
+    const k=r.unit;byUnit[k]=byUnit[k]||{giao:0,xong:0,dang:0,cho:0,qua:0,progSum:0};
+    const b=byUnit[k];b.giao++;b.progSum+=r.progress;
+    if(isOverdue(d,r))b.qua++;
+    if(r.status==="daxuly")b.xong++;else if(r.status==="dangxuly")b.dang++;else b.cho++;}));
+  const unitRows=Object.entries(byUnit).map(([k,b])=>({u:unit(k),...b,avg:Math.round(b.progSum/b.giao)}))
+    .sort((a,b)=>b.giao-a.giao);
+  const maxGiao=Math.max(1,...unitRows.map(r=>r.giao));
+  /* Thống kê văn bản đến của chính đơn vị */
+  const rOf=d=>myRecipOf(d,m.id);
+  const my={nhan:inbox.length,xong:inbox.filter(d=>rOf(d).status==="daxuly").length,
+    qua:inbox.filter(d=>isOverdue(d,rOf(d))).length,
+    dang:inbox.filter(d=>rOf(d).status==="dangxuly").length};
+  const byLoai={};inbox.forEach(d=>{byLoai[d.loai]=(byLoai[d.loai]||0)+1});
+  const maxLoai=Math.max(1,...Object.values(byLoai));
+  return `
+  <div class="page-head"><div><div class="eyebrow">Tổng hợp tình hình xử lý</div><h2>Báo cáo · Thống kê</h2></div>
+   <div class="spacer"></div>
+   <input type="date" value="${from}" onchange="S.statFrom=this.value;render()" style="padding:7px 10px;border:1px solid var(--line);border-radius:8px">
+   <span class="muted">→</span>
+   <input type="date" value="${to}" onchange="S.statTo=this.value;render()" style="padding:7px 10px;border:1px solid var(--line);border-radius:8px">
+  </div>
+  <div class="grid-4">
+    <div class="stat blue"><div class="n">${my.nhan}</div><div class="l">Văn bản đến (kỳ báo cáo)</div></div>
+    <div class="stat green"><div class="n">${my.xong}</div><div class="l">Đã xử lý xong</div></div>
+    <div class="stat amber"><div class="n">${my.dang}</div><div class="l">Đang xử lý</div></div>
+    <div class="stat red"><div class="n">${my.qua}</div><div class="l">Quá hạn</div></div>
+  </div>
+  <div class="detail-grid">
+  <div class="card"><div class="card-h"><h3>Kết quả thực hiện của các đơn vị được giao việc</h3>
+    <div class="spacer"></div><button class="btn btn-ghost btn-sm" onclick="exportStatsCSV()">⬇ Xuất CSV báo cáo cấp trên</button></div>
+   <div class="tbl-wrap"><table><thead><tr><th>Đơn vị</th><th>Được giao</th><th>Hoàn thành</th><th>Đang XL</th><th>Chưa nhận</th><th>Quá hạn</th><th>Tiến độ TB</th></tr></thead><tbody>
+   ${unitRows.length?unitRows.map(r=>`<tr><td>${esc(r.u.name)}</td><td><b>${r.giao}</b></td>
+     <td style="color:var(--ok)">${r.xong}</td><td>${r.dang}</td><td>${r.cho}</td>
+     <td style="color:${r.qua?"var(--danger)":"inherit"}">${r.qua}</td>
+     <td><div style="display:flex;gap:8px;align-items:center"><div class="prog ${r.avg>=100?"done":""}"><i style="width:${r.avg}%"></i></div><span class="small">${r.avg}%</span></div></td></tr>`).join("")
+    :'<tr><td colspan="7" class="empty">Chưa giao văn bản nào trong kỳ. Số liệu xuất hiện khi đơn vị phát hành văn bản có nơi nhận.</td></tr>'}
+   </tbody></table></div>
+   ${unitRows.length?`<div class="card-b"><div class="eyebrow" style="margin-bottom:8px">Số văn bản đã giao theo đơn vị</div>
+    ${unitRows.map(r=>`<div class="bar-row"><span>${esc(r.u.short)}</span><div class="bar-track"><div class="bar-fill" style="width:${r.giao/maxGiao*100}%"></div></div><span class="small muted">${r.giao} VB · ${r.avg}%</span></div>`).join("")}</div>`:""}
+  </div>
+  <div class="card"><div class="card-h"><h3>Văn bản đến theo loại</h3></div><div class="card-b">
+   ${Object.keys(byLoai).length?Object.entries(byLoai).sort((a,b)=>b[1]-a[1]).map(([k,n])=>
+     `<div class="bar-row"><span>${LOAI[k][1]}</span><div class="bar-track"><div class="bar-fill gold" style="width:${n/maxLoai*100}%"></div></div><span class="small muted">${n}</span></div>`).join("")
+    :'<div class="empty">Chưa có dữ liệu.</div>'}
+   <div class="hint" style="margin-top:10px">Chọn khoảng ngày ở góc trên để lập báo cáo tháng/quý; nút “Xuất CSV” tạo tệp gửi kèm báo cáo lên Đoàn cấp trên.</div>
+  </div></div></div>`;
+}
+function exportStatsCSV(){
+  const m=me();
+  const rows=[["BÁO CÁO TÌNH HÌNH XỬ LÝ VĂN BẢN — "+m.name],["Kỳ báo cáo",(S.statFrom?fmtD(S.statFrom):"Từ đầu")+" đến "+(S.statTo?fmtD(S.statTo):"nay")],[],
+    ["Đơn vị","Được giao","Hoàn thành","Đang xử lý","Chưa tiếp nhận","Quá hạn","Tiến độ TB (%)"]];
+  const from=S.statFrom,to=S.statTo,inRange=d=>(!from||d.ngayBH>=from)&&(!to||d.ngayBH<=to);
+  const byUnit={};
+  myOutbox().filter(inRange).forEach(d=>d.recips.forEach(r=>{
+    const b=byUnit[r.unit]=byUnit[r.unit]||{giao:0,xong:0,dang:0,cho:0,qua:0,progSum:0};
+    b.giao++;b.progSum+=r.progress;if(isOverdue(d,r))b.qua++;
+    if(r.status==="daxuly")b.xong++;else if(r.status==="dangxuly")b.dang++;else b.cho++;}));
+  Object.entries(byUnit).forEach(([k,b])=>rows.push([unit(k).name,b.giao,b.xong,b.dang,b.cho,b.qua,Math.round(b.progSum/b.giao)]));
+  exportCSV(rows,"bao-cao-xu-ly-vb-"+m.code+".csv");
+}
+
+/* ---------- Sơ đồ tổ chức ---------- */
+function viewOrg(){
+  const m=me();
+  const node=u=>`<li><span class="${u.id===m.id?"me":""}">${esc(u.name)}</span>
+    <span class="muted small"> · tài khoản: <span class="mono">${esc(u.user)}</span></span>
+    ${children(u.id).length?`<ul class="tree">${children(u.id).map(node).join("")}</ul>`:""}</li>`;
+  const roots=DB.units.filter(u=>!u.parent);
+  return `
+  <div class="page-head"><div><div class="eyebrow">Phân cấp cơ sở Đoàn</div><h2>Sơ đồ tổ chức</h2></div></div>
+  <div class="card"><div class="card-b">
+    <ul class="tree" style="margin-left:-8px">${roots.map(node).join("")}</ul>
+    <div class="hint" style="margin-top:12px">Quan hệ tổ chức quyết định luồng văn bản: <b>cấp trên → cấp dưới</b> (chỉ đạo, giao việc), <b>cấp dưới → cấp trên</b> (báo cáo, tờ trình), <b>ngang cấp</b> (phối hợp). Đơn vị của bạn được tô vàng.</div>
+  </div></div>`;
+}
+
+/* ---------- Dữ liệu & sao lưu ---------- */
+function viewSystem(){
+  const kb=Math.round((localStorage.getItem(LS_KEY)||"").length/1024);
+  const storeCard=MODE==="cloud"?`
+  <div class="card"><div class="card-h"><h3>Chế độ dùng chung (Firebase)</h3></div><div class="card-b">
+    <p class="small" style="margin-bottom:10px">Hệ thống đang chạy trên <b>Firestore</b>: mọi đơn vị thấy văn bản của mình theo thời gian thực. Firestore tự cache dữ liệu về máy nên <b>mất mạng vẫn tra cứu được</b>; thao tác khi offline sẽ tự đồng bộ khi có mạng lại (Smart Sync).</p>
+    <p class="small" style="margin-bottom:14px">Nút dưới đây tải bản sao lưu phần dữ liệu đơn vị mình nhìn thấy (văn bản đến/đi + truy vết). Sao lưu toàn hệ thống: quản trị viên dùng chức năng Export của Firebase Console, hoặc chạy sao lưu định kỳ theo hướng dẫn triển khai.</p>
+    <button class="btn btn-primary" onclick="backupJSON()">⬇ Tải bản sao lưu (JSON)</button>
+  </div></div>`:`
+  <div class="card"><div class="card-h"><h3>Kho dữ liệu cục bộ</h3></div><div class="card-b">
+    <p class="small" style="margin-bottom:10px">Toàn bộ văn bản, nhật ký truy vết và báo cáo đang lưu <b>ngay trên máy tính này</b> (bộ nhớ trình duyệt), hiện chiếm <b>${kb} KB</b>. Không có mạng vẫn tra cứu được (offline-first).</p>
+    <p class="small" style="margin-bottom:14px">Nên tải bản sao lưu định kỳ và cất lên Google Drive của đơn vị. Tệp sao lưu có thể khôi phục trên bất kỳ máy nào.</p>
+    <button class="btn btn-primary" onclick="backupJSON()">⬇ Tải bản sao lưu (JSON)</button>
+    <label class="btn btn-ghost" style="margin-left:8px">⬆ Khôi phục từ tệp<input type="file" accept=".json" style="display:none" onchange="restoreJSON(this)"></label>
+    <div style="border-top:1px dashed var(--line);margin-top:16px;padding-top:12px">
+      <button class="btn btn-danger btn-sm" onclick="resetDemo()">Xóa dữ liệu & nạp lại bản mẫu</button></div>
+  </div></div>`;
+  return `
+  <div class="page-head"><div><div class="eyebrow">Quản trị</div><h2>Dữ liệu & sao lưu</h2></div></div>
+  <div class="detail-grid">
+  ${storeCard}
+  <div class="card"><div class="card-h"><h3>Triển khai thật (miễn phí 100%)</h3></div><div class="card-b small">
+    <p style="margin-bottom:8px">Bản demo này mô phỏng máy chủ bằng bộ nhớ trình duyệt. Khi triển khai cho nhiều đơn vị dùng chung, giữ nguyên giao diện và thay lớp lưu trữ:</p>
+    <p style="margin-bottom:6px">① <b>GitHub Pages / Cloudflare Pages</b> — phát hành trang web tĩnh, miễn phí, có HTTPS.</p>
+    <p style="margin-bottom:6px">② <b>Firebase Auth + Firestore (gói Spark)</b> — tài khoản đăng nhập từng cơ sở Đoàn và cơ sở dữ liệu văn bản dùng chung, đồng bộ thời gian thực.</p>
+    <p style="margin-bottom:6px">③ <b>Google Drive API</b> — lưu tệp PDF/Word đính kèm (15GB miễn phí mỗi tài khoản đơn vị).</p>
+    <p>④ Bộ nhớ cục bộ (IndexedDB) vẫn giữ vai trò cache để làm việc offline, tự đồng bộ khi có mạng.</p>
+  </div></div></div>`;
+}
+
+/* =================== HẠ TẦNG CLOUD (Firebase) =================== */
+async function boot(){
+  if(MODE==="local"){load();render();return}
+  document.getElementById("app").innerHTML='<div class="login-wrap"><div class="login-card" style="text-align:center"><div class="login-star" style="color:var(--gold)">'+STAR+'</div><h1>DoanOffice</h1><div class="sub">Đang kết nối máy chủ đồng bộ…</div></div></div>';
+  try{await loadFirebaseSDK()}catch(e){
+    document.getElementById("app").innerHTML='<div class="login-wrap"><div class="login-card"><h1>Không tải được Firebase</h1><div class="sub">Kiểm tra kết nối mạng rồi tải lại trang.</div></div></div>';return}
+  firebase.initializeApp(FIREBASE_CONFIG);
+  FB.auth=firebase.auth();FB.fs=firebase.firestore();
+  try{await FB.fs.enablePersistence({synchronizeTabs:true})}catch(e){/* nhiều tab/trình duyệt cũ: vẫn chạy, chỉ mất cache offline */}
+  DB={session:null,units:[],docs:[],seq:{}};
+  FB.auth.onAuthStateChanged(async u=>{
+    FB.unsub.forEach(f=>f());FB.unsub=[];
+    if(!u){DB.session=null;DB.docs=[];render();return}
+    await cloudAfterLogin(u);
+  });
+}
+function loadFirebaseSDK(){
+  const urls=["https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js",
+    "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js",
+    "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"];
+  return urls.reduce((p,u)=>p.then(()=>new Promise((res,rej)=>{
+    const s=document.createElement("script");s.src=u;s.onload=res;
+    s.onerror=()=>rej(new Error("Không tải được "+u));document.head.appendChild(s)})),Promise.resolve());
+}
+async function cloudAfterLogin(user){
+  const uname=(user.email||"").split("@")[0];
+  let snap;
+  try{snap=await FB.fs.collection("units").get()}
+  catch(e){toast("Không đọc được danh sách đơn vị: "+e.message);return}
+  DB.units=snap.docs.map(d=>({id:d.id,...d.data()}));
+  const mine=DB.units.find(x=>x.user===uname);
+  if(!mine){S.view="setup";S.setupUser=uname;render();return}  /* hệ thống chưa khởi tạo hoặc tài khoản chưa gắn đơn vị */
+  DB.session=mine.id;S.view="dashboard";
+  FB.unsub.push(FB.fs.collection("units").onSnapshot(s=>{
+    DB.units=s.docs.map(d=>({id:d.id,...d.data()}));liveRender()}));
+  const apply=s=>{s.docChanges().forEach(ch=>{
+      const d={id:ch.doc.id,...ch.doc.data()};
+      const i=DB.docs.findIndex(x=>x.id===d.id);
+      if(ch.type==="removed"){if(i>=0)DB.docs.splice(i,1)}
+      else if(i>=0)DB.docs[i]=d;else DB.docs.push(d)});
+    liveRender()};
+  FB.unsub.push(FB.fs.collection("docs").where("recipIds","array-contains",mine.id).onSnapshot(apply,e=>toast("Lỗi đồng bộ VB đến: "+e.message)));
+  FB.unsub.push(FB.fs.collection("docs").where("from","==",mine.id).onSnapshot(apply,e=>toast("Lỗi đồng bộ VB đi: "+e.message)));
+  render();
+}
+/* Không vẽ lại đè lên biểu mẫu người dùng đang nhập; dữ liệu mới sẽ hiện khi chuyển trang */
+function liveRender(){if(!DB.session)return;if(["soan","detail"].includes(S.view)){S._stale=true;return}render()}
+/* Màn hình khởi tạo lần đầu: ghi cây đơn vị + bảng tra cứu tài khoản lên Firestore */
+function viewSetup(){
+  const sample=JSON.stringify([
+    {id:"td",name:"Tỉnh đoàn Đồng Tháp",short:"Tỉnh đoàn",code:"TĐĐT",user:"tinhdoan",parent:null,level:1},
+    {id:"hcl",name:"Huyện đoàn Cao Lãnh",short:"HĐ Cao Lãnh",code:"HĐCL",user:"hd.caolanh",parent:"td",level:2},
+    {id:"tsd",name:"Thành đoàn Sa Đéc",short:"TĐ Sa Đéc",code:"TĐSĐ",user:"td.sadec",parent:"td",level:2},
+    {id:"xmt",name:"Đoàn xã Mỹ Thọ",short:"Đoàn xã Mỹ Thọ",code:"ĐXMT",user:"dx.mytho",parent:"hcl",level:3}
+  ],null,1);
+  return `<div class="login-wrap"><div class="login-card" style="width:min(640px,94vw)">
+    <div class="login-star" style="color:var(--gold)">${STAR}</div>
+    <h1>Khởi tạo hệ thống</h1>
+    <div class="sub">Tài khoản <b>${esc(S.setupUser||"")}</b> chưa gắn với đơn vị nào — thường do hệ thống mới, chưa có cây tổ chức.<br>Dán/sửa danh sách đơn vị (JSON) rồi bấm ghi. Trường <b>user</b> phải trùng phần tên trước @ của tài khoản đã tạo trên Firebase Authentication.</div>
+    <div class="field"><textarea id="setup-json" rows="12" style="font-family:Consolas,monospace;font-size:.78rem">${esc(sample)}</textarea></div>
+    <button class="btn btn-primary btn-block" onclick="initUnits()">Ghi cây đơn vị lên Firestore</button>
+    <div class="hint" style="margin-top:10px">Chỉ chạy được khi Firestore đang dùng bộ luật khởi tạo (bootstrap). Khởi tạo xong, thay bằng bộ luật production trong tệp firestore.rules rồi tải lại trang. Đăng xuất: <a href="javascript:void(0)" onclick="logout()">tại đây</a>.</div>
+  </div></div>`;
+}
+async function initUnits(){
+  let arr;
+  try{arr=JSON.parse(document.getElementById("setup-json").value)}catch(e){toast("JSON không hợp lệ: "+e.message);return}
+  if(!Array.isArray(arr)||!arr.length||!arr.every(u=>u.id&&u.name&&u.code&&u.user)){toast("Mỗi đơn vị cần tối thiểu: id, name, short, code, user, parent, level.");return}
+  try{
+    const batch=FB.fs.batch();
+    arr.forEach(u=>{batch.set(FB.fs.collection("units").doc(u.id),JSON.parse(JSON.stringify(u)));
+      batch.set(FB.fs.collection("userIndex").doc(u.user),{unitId:u.id})});
+    await batch.commit();
+    toast("Đã khởi tạo "+arr.length+" đơn vị. Đang vào hệ thống…");
+    await cloudAfterLogin(FB.auth.currentUser);
+  }catch(e){toast("Lỗi ghi Firestore: "+e.message+" — kiểm tra đã áp dụng luật bootstrap chưa.")}
+}
+
+/* ---------- init ---------- */
+boot();
+</script>
+</body>
+</html>
