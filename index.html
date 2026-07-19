@@ -172,7 +172,7 @@ tr.rowlink:hover td{background:#F7FAFE}
 <div class="toast" id="toast"></div>
 <script>
 /* =====================================================================
-   DoanOffice 1.6 — Hệ thống gửi/nhận & điều hành văn bản các cơ sở Đoàn
+   DoanOffice 1.7 — Hệ thống gửi/nhận & điều hành văn bản các cơ sở Đoàn
    - 100% chạy trên trình duyệt (HTML + JS thuần), triển khai tĩnh miễn phí
    - Dữ liệu lưu CỤC BỘ tại máy người dùng (localStorage / IndexedDB-ready)
    - Bản demo: toàn bộ đơn vị dùng chung kho dữ liệu trình duyệt để mô phỏng
@@ -198,7 +198,7 @@ const FIREBASE_CONFIG = {
   storageBucket: "doanoffice-dongthap.firebasestorage.app",
   messagingSenderId: "1003949643846",
   appId: "1:1003949643846:web:5fe24b22e058d4eb8cd247"
-};
+};;
 const LOGIN_DOMAIN = "doan-office.app";   // tên đăng nhập + @domain này = email tài khoản Firebase
 const MODE = FIREBASE_CONFIG ? "cloud" : "local";
 const FB = {auth:null, fs:null, unsub:[]};
@@ -293,6 +293,21 @@ function toast(m){const t=document.getElementById("toast");t.textContent=m;t.cla
 function children(uid_){return DB.units.filter(u=>u.parent===uid_&&!u.deleted)}
 function lockedChildren(uid_){return DB.units.filter(u=>u.parent===uid_&&u.deleted)}
 function siblings(u){return DB.units.filter(x=>x.parent===u.parent&&x.id!==u.id&&u.parent!==null&&!x.deleted)}
+/* chuỗi tổ tiên của một đơn vị (gần gốc trước), suy ra động từ con trỏ parent */
+function chainAnc(u){const a=[];let p=u&&u.parent,g=0;while(p&&g++<12){a.unshift(p);p=(unit(p)||{}).parent}return a}
+/* bossId có phải cấp trên (bất kỳ tầng nào) của u không */
+function managedBy(u,bossId){return chainAnc(u).includes(bossId)}
+function myDescendants(){const m=me();return DB.units.filter(x=>!x.deleted&&x.id!==m.id&&managedBy(x,m.id))}
+function myLockedDescendants(){const m=me();return DB.units.filter(x=>x.deleted&&managedBy(x,m.id))}
+function nowTS(){const d=new Date(),z=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate())+" "+z(d.getHours())+":"+z(d.getMinutes())}
+function fmtTS(t){if(!t)return "—";const[d,h]=t.split(" ");return fmtD(d)+(h?" "+h:"")}
+/* Nhật ký hoạt động: bất biến, ghi ở mọi thao tác quản trị & đăng nhập */
+function orgLog(action,target,note){
+  const e={time:nowTS(),by:DB.session||"",action,target:target||"",note:note||""};
+  if(MODE==="local"){(DB.orgLog=DB.orgLog||[]).push(e);save()}
+  else if(FB.fs){FB.fs.collection("orgLog").add(e).catch(()=>{})}
+  if(Array.isArray(S.logs))S.logs.unshift(e);
+}
 function myInbox(){const m=me();return DB.docs.filter(d=>d.recips.some(r=>r.unit===m.id)).sort((a,b)=>b.ngayBH.localeCompare(a.ngayBH))}
 function myOutbox(){const m=me();return DB.docs.filter(d=>d.from===m.id).sort((a,b)=>b.ngayBH.localeCompare(a.ngayBH))}
 function myRecip(d){return d.recips.find(r=>r.unit===DB.session)}
@@ -309,7 +324,7 @@ async function doLogin(){
     const found=DB.units.find(x=>x.user===uRaw&&x.pass===p);
     if(!found){err.style.display="block";err.textContent="Sai tên đăng nhập hoặc mật khẩu. Gợi ý: mật khẩu demo là 123456.";return}
     if(found.deleted){err.style.display="block";err.textContent="Đơn vị đã bị khóa bởi cấp quản lý trực tiếp. Liên hệ đơn vị cấp trên để khôi phục.";return}
-    DB.session=found.id;save();S.view="dashboard";render();return;
+    DB.session=found.id;save();S.view="dashboard";orgLog("Đăng nhập");render();return;
   }
   const email=uRaw.includes("@")?uRaw:uRaw+"@"+LOGIN_DOMAIN;
   err.style.display="none";
@@ -319,6 +334,8 @@ async function doLogin(){
 }
 function quickLogin(id){DB.session=id;save();S.view="dashboard";render()}
 function logout(){
+  try{sessionStorage.removeItem("do_lg")}catch(e){}
+  S.logs=null;
   if(MODE==="cloud"){FB.unsub.forEach(f=>f());FB.unsub=[];DB.session=null;FB.auth.signOut();render();return}
   DB.session=null;save();render();
 }
@@ -478,7 +495,7 @@ function shell(content){
       <h6>Quản trị</h6>
       ${item("hethong","⚙","Dữ liệu & sao lưu")}
     </nav>
-    <div class="side-foot">${MODE==="cloud"?"● Đồng bộ Firestore · offline-first":"Dữ liệu lưu cục bộ trên máy này"}<br>DoanOffice 1.6 · mã nguồn mở</div>
+    <div class="side-foot">${MODE==="cloud"?"● Đồng bộ Firestore · offline-first":"Dữ liệu lưu cục bộ trên máy này"}<br>DoanOffice 1.7 · mã nguồn mở</div>
    </aside>
    <div class="main">
     <div class="topbar">
@@ -807,10 +824,10 @@ function exportStatsCSV(){
   exportCSV(rows,"bao-cao-xu-ly-vb-"+m.code+".csv");
 }
 
-/* ---------- Sơ đồ tổ chức & quản lý đơn vị ---------- */
+/* ---------- Sơ đồ tổ chức & quản trị theo phân cấp toàn nhánh ---------- */
 function viewOrg(){
   const m=me();
-  const canManage=u=>u.parent===m.id;           /* cấp trên trực tiếp toàn quyền với đơn vị con */
+  const canManage=u=>u.id!==m.id&&managedBy(u,m.id);  /* mọi đơn vị cấp dưới trong nhánh, không riêng cấp trực tiếp */
   const info=u=>[u.diachi,u.dienthoai,u.email].filter(Boolean).map(esc).join(" · ");
   const node=u=>`<li><span class="${u.id===m.id?"me":""}">${esc(u.name)}</span>
     <span class="muted small"> · mã <b>${esc(u.code)}</b> · tài khoản <span class="mono">${esc(u.user)}</span></span>
@@ -820,37 +837,83 @@ function viewOrg(){
     ${info(u)?`<div class="small muted" style="margin-top:1px">${info(u)}</div>`:""}
     ${children(u.id).length?`<ul class="tree">${children(u.id).map(node).join("")}</ul>`:""}</li>`;
   const roots=DB.units.filter(u=>!u.parent&&!u.deleted);
-  const locked=lockedChildren(m.id);
+  const locked=myLockedDescendants();
+  const needMigrate=MODE==="cloud"&&!m.parent&&DB.units.some(u=>!Array.isArray(u.anc));
+  if(S.logs===undefined||S.logs===null){S.logs=false;loadLogs()}  /* nạp nhật ký lần đầu vào trang */
   return `
   <div class="page-head"><div><div class="eyebrow">Phân cấp cơ sở Đoàn</div><h2>Sơ đồ tổ chức</h2></div>
    <div class="spacer"></div>
-   <button class="btn btn-gold" onclick="orgAdd()">＋ Thêm đơn vị trực thuộc</button></div>
+   <button class="btn btn-gold" onclick="orgAdd()">＋ Thêm đơn vị cấp dưới</button></div>
+  ${needMigrate?`<div class="card" style="border-left:4px solid var(--warn)"><div class="card-b small">
+    ⚠ <b>Cần nâng cấp dữ liệu phân cấp (một lần).</b> Để luật bảo mật máy chủ nhận diện quyền quản trị toàn nhánh, mỗi đơn vị cần trường chuỗi cấp trên (anc). 
+    <button class="btn btn-primary btn-sm" style="margin-left:8px" onclick="migrateAnc()">Nâng cấp ngay</button>
+    <span class="muted"> — chỉ đơn vị cấp cao nhất thấy nút này.</span></div></div>`:""}
   <div class="detail-grid">
+  <div>
   <div class="card"><div class="card-b">
     <ul class="tree" style="margin-left:-8px">${roots.map(node).join("")}</ul>
     ${locked.length?`<div style="border-top:1px dashed var(--line);margin-top:14px;padding-top:10px">
-      <div class="eyebrow" style="margin-bottom:6px">Đơn vị trực thuộc đã khóa</div>
+      <div class="eyebrow" style="margin-bottom:6px">Đơn vị đã khóa trong nhánh quản lý</div>
       ${locked.map(u=>`<div class="small" style="margin-bottom:5px"><s class="muted">${esc(u.name)}</s>
+        <span class="muted small">(thuộc ${esc((unit(u.parent)||{}).short||"?")})</span>
         <button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="orgRestore('${u.id}')">↩ Khôi phục</button></div>`).join("")}
     </div>`:""}
-    <div class="hint" style="margin-top:12px">Quyền quản trị theo cây: <b>cấp trên trực tiếp</b> được thêm, sửa, khóa/khôi phục các đơn vị trực thuộc mình; <b>mỗi đơn vị</b> tự sửa thông tin của chính mình. Khóa đơn vị sẽ gỡ khỏi cây và thu hồi quyền đăng nhập nhưng <b>giữ nguyên văn bản, truy vết cũ</b>.</div>
+    <div class="hint" style="margin-top:12px">Quyền quản trị <b>kế thừa theo nhánh</b>: cấp trên được thêm / sửa / khóa / khôi phục / cấp lại mật khẩu cho <b>mọi đơn vị cấp dưới trong nhánh của mình</b> (con, cháu…); mỗi đơn vị tự sửa thông tin của chính mình. Khóa đơn vị giữ nguyên văn bản, truy vết cũ.</div>
   </div></div>
+  <div class="card"><div class="card-h"><h3>Nhật ký hoạt động</h3><div class="spacer"></div>
+    <button class="btn btn-ghost btn-sm" onclick="loadLogs(true)">⟳ Tải lại</button></div>
+   <div class="tbl-wrap"><table><thead><tr><th>Thời điểm</th><th>Đơn vị</th><th>Hoạt động</th><th>Đối tượng / ghi chú</th></tr></thead><tbody>
+   ${S.logs===false?'<tr><td colspan="4" class="empty">Đang tải nhật ký…</td></tr>'
+    :logsVisible().length?logsVisible().slice(0,40).map(e=>`<tr>
+      <td class="small mono">${esc(fmtTS(e.time))}</td>
+      <td class="small">${esc((unit(e.by)||{}).short||e.by||"?")}</td>
+      <td class="small"><b>${esc(e.action)}</b></td>
+      <td class="small muted">${esc((unit(e.target)||{}).short||"")}${e.note?" · "+esc(e.note):""}</td></tr>`).join("")
+    :'<tr><td colspan="4" class="empty">Chưa có hoạt động nào trong nhánh.</td></tr>'}
+   </tbody></table></div>
+   <div class="card-b hint" style="padding-top:8px">Ghi tự động: đăng nhập, tạo/sửa/khóa/khôi phục đơn vị, cấp lại mật khẩu. Nhật ký chỉ được ghi thêm, không sửa/xóa; mỗi đơn vị chỉ thấy hoạt động thuộc nhánh mình.</div>
+  </div>
+  </div>
   ${S.orgEdit?orgEditor():`<div class="card"><div class="card-h"><h3>Hướng dẫn nhanh</h3></div><div class="card-b small">
-    <p style="margin-bottom:8px">Bấm <b>＋ Thêm đơn vị trực thuộc</b> để lập một cơ sở Đoàn cấp dưới: hệ thống tạo luôn tài khoản đăng nhập, cấp mật khẩu ban đầu và gắn vào nhánh của đơn vị bạn.</p>
-    <p style="margin-bottom:8px">Bấm <b>✎ Sửa</b> trên đơn vị con để cập nhật tên, mã ký hiệu, địa chỉ, liên hệ. Bấm <b>✎ Sửa thông tin</b> trên chính đơn vị mình (ô tô vàng) để tự cập nhật hồ sơ đơn vị.</p>
+    <p style="margin-bottom:8px"><b>＋ Thêm đơn vị cấp dưới</b>: chọn được đơn vị cha là chính bạn <i>hoặc bất kỳ đơn vị nào trong nhánh</i> (vd Tỉnh đoàn lập Đoàn xã trực thuộc một Huyện đoàn). Hệ thống tạo luôn tài khoản + mật khẩu ban đầu.</p>
+    <p style="margin-bottom:8px"><b>✎ Sửa</b> trên mọi đơn vị cấp dưới trong nhánh: cập nhật hồ sơ và <b>cấp lại mật khẩu</b> khi đơn vị quên.</p>
     <p>Quan hệ tổ chức quyết định luồng văn bản: cấp trên → cấp dưới (chỉ đạo, giao việc), cấp dưới → cấp trên (báo cáo, tờ trình), ngang cấp (phối hợp).</p>
   </div></div>`}
   </div>`;
+}
+function logsVisible(){
+  if(!Array.isArray(S.logs))return [];
+  const m=me(),ids=new Set([m.id,...DB.units.filter(x=>managedBy(x,m.id)).map(x=>x.id)]);
+  return S.logs.filter(e=>ids.has(e.by)||ids.has(e.target));
+}
+async function loadLogs(force){
+  if(MODE==="local"){S.logs=[...(DB.orgLog||[])].reverse();if(force)render();return}
+  try{const snap=await FB.fs.collection("orgLog").orderBy("time","desc").limit(80).get();
+    S.logs=snap.docs.map(d=>d.data());
+  }catch(e){S.logs=[];toast("Chưa tải được nhật ký: "+e.message)}
+  if(S.view==="danhba")render();
+}
+async function migrateAnc(){
+  const m=me();if(m.parent){toast("Chỉ đơn vị cấp cao nhất thực hiện nâng cấp dữ liệu.");return}
+  try{
+    const batch=FB.fs.batch();let n=0;
+    DB.units.forEach(u=>{u.anc=chainAnc(u);batch.set(FB.fs.collection("units").doc(u.id),JSON.parse(JSON.stringify(u)));n++});
+    await batch.commit();orgLog("Nâng cấp dữ liệu","","Bổ sung chuỗi phân cấp cho "+n+" đơn vị");
+    toast("Đã nâng cấp "+n+" đơn vị. Quyền quản trị toàn nhánh sẵn sàng.");render();
+  }catch(e){toast("Lỗi nâng cấp: "+e.message)}
 }
 function orgEditor(){
   const m=me(),ed=S.orgEdit;
   const isAdd=ed.mode==="add";
   const u=isAdd?{name:"",short:"",code:"",user:"",diachi:"",dienthoai:"",email:""}:unit(ed.target);
   const isSelf=!isAdd&&u.id===m.id;
-  const title=isAdd?"Thêm đơn vị trực thuộc "+esc(m.short):(isSelf?"Sửa thông tin đơn vị mình":"Sửa đơn vị: "+esc(u.short));
+  const parents=[me(),...myDescendants()];
+  const title=isAdd?"Thêm đơn vị cấp dưới":(isSelf?"Sửa thông tin đơn vị mình":"Sửa đơn vị: "+esc(u.short));
   return `<div class="card" style="border-left:4px solid var(--gold)"><div class="card-h"><h3>${title}</h3>
     <div class="spacer"></div><button class="btn btn-ghost btn-sm" onclick="orgCancel()">✕ Đóng</button></div>
    <div class="card-b">
+    ${isAdd?`<div class="field"><label>Trực thuộc đơn vị *</label>
+      <select id="o-parent">${parents.map(p=>`<option value="${p.id}" ${p.id===m.id?"selected":""}>${esc(p.name)}${p.id===m.id?" (đơn vị mình)":""}</option>`).join("")}</select></div>`:""}
     <div class="field"><label>Tên đầy đủ *</label><input id="o-name" value="${esc(u.name)}" placeholder="vd: Chi đoàn cơ sở Bệnh viện …"></div>
     <div class="form-grid">
       <div class="field"><label>Tên gọn</label><input id="o-short" value="${esc(u.short||"")}" placeholder="vd: CĐCS BV Phụ sản"></div>
@@ -860,21 +923,52 @@ function orgEditor(){
       <div class="field"><label>Tài khoản đăng nhập *</label><input id="o-user" placeholder="vd: cd.bvphusan (không dấu)"></div>
       <div class="field"><label>Mật khẩu ban đầu * (≥6 ký tự)</label><input id="o-pass" placeholder="Đơn vị nên đổi sau khi nhận"></div>
     </div>`
-    :`<div class="field"><label>Tài khoản đăng nhập</label><input value="${esc(u.user)}" disabled style="background:var(--line-soft)">
-      <div class="hint">${MODE==="cloud"?"Đổi tài khoản/đặt lại mật khẩu: quản trị viên thao tác trên Firebase Console → Authentication.":"Chế độ demo: đổi mật khẩu ở ô dưới."}</div></div>
-      ${MODE==="local"?`<div class="field"><label>Mật khẩu mới (bỏ trống nếu giữ nguyên)</label><input id="o-pass" placeholder="••••••"></div>`:""}`}
+    :`<div class="field"><label>Tài khoản đăng nhập hiện tại</label><input value="${esc(u.user)}" disabled style="background:var(--line-soft)"></div>`}
     <div class="form-grid">
       <div class="field"><label>Địa chỉ</label><input id="o-diachi" value="${esc(u.diachi||"")}"></div>
       <div class="field"><label>Điện thoại</label><input id="o-sdt" value="${esc(u.dienthoai||"")}"></div>
     </div>
     <div class="field"><label>Email liên hệ</label><input id="o-email" value="${esc(u.email||"")}"></div>
     <button class="btn btn-primary" id="o-save" onclick="orgSave()">${isAdd?"＋ Tạo đơn vị & cấp tài khoản":"💾 Lưu thay đổi"}</button>
+    ${!isAdd?passSection(u,isSelf):""}
    </div></div>`;
+}
+/* --- khối mật khẩu trong form sửa --- */
+function passSection(u,isSelf){
+  if(isSelf){
+    if(MODE==="local")return `<div style="border-top:1px dashed var(--line);margin-top:16px;padding-top:12px">
+      <div class="eyebrow" style="margin-bottom:6px">Mật khẩu</div>
+      <div class="form-grid"><div class="field"><label>Mật khẩu mới (≥6 ký tự)</label><input id="o-mypass" type="password"></div></div>
+      <button class="btn btn-ghost btn-sm" onclick="changeMyPass()">🔑 Đổi mật khẩu của tôi</button></div>`;
+    return `<div style="border-top:1px dashed var(--line);margin-top:16px;padding-top:12px">
+      <div class="eyebrow" style="margin-bottom:6px">Mật khẩu</div>
+      <div class="form-grid"><div class="field"><label>Mật khẩu mới (≥6 ký tự)</label><input id="o-mypass" type="password"></div></div>
+      <button class="btn btn-ghost btn-sm" onclick="changeMyPass()">🔑 Đổi mật khẩu của tôi</button>
+      <div class="hint" style="margin-top:6px">Vì an toàn, Firebase có thể yêu cầu đăng nhập lại trước khi đổi.</div></div>`;
+  }
+  if(MODE==="local")return `<div style="border-top:1px dashed var(--line);margin-top:16px;padding-top:12px">
+      <div class="eyebrow" style="margin-bottom:6px">Cấp lại mật khẩu cho đơn vị</div>
+      <div class="form-grid"><div class="field"><label>Mật khẩu mới (≥6 ký tự)</label><input id="o-resetpass" type="password"></div></div>
+      <button class="btn btn-gold btn-sm" onclick="resetPassLocal('${u.id}')">🔑 Đặt mật khẩu mới</button></div>`;
+  return `<div style="border-top:1px dashed var(--line);margin-top:16px;padding-top:12px">
+      <div class="eyebrow" style="margin-bottom:6px">Cấp lại mật khẩu (đơn vị quên mật khẩu)</div>
+      <div class="small muted" style="margin-bottom:8px">Nền tảng miễn phí không cho đổi thẳng mật khẩu tài khoản khác, nên hệ thống sẽ <b>cấp định danh đăng nhập mới</b> kèm mật khẩu mới; tài khoản cũ lập tức vô hiệu. (Cách khác giữ nguyên tên đăng nhập: đặt lại trên Firebase Console → Authentication.)</div>
+      <div class="form-grid">
+        <div class="field"><label>Tài khoản đăng nhập mới *</label><input id="o-newuser" value="${esc(suggestUser(u.user))}"></div>
+        <div class="field"><label>Mật khẩu mới * (≥6 ký tự)</label><input id="o-newpass"></div>
+      </div>
+      <button class="btn btn-gold btn-sm" onclick="resetAccountCloud('${u.id}')">🔑 Cấp lại tài khoản & mật khẩu</button></div>`;
+}
+function suggestUser(old){
+  const mch=old.match(/^(.*?)(\d*)$/);const base=mch[1],num=mch[2]?parseInt(mch[2],10):1;
+  let cand=base+(num+1);let g=0;
+  while(DB.units.some(x=>x.user===cand)&&g++<20)cand=base+(num+2+g);
+  return cand;
 }
 function orgAdd(){S.orgEdit={mode:"add"};S.view="danhba";render()}
 function orgEdit(id){
   const m=me(),u=unit(id);
-  if(!u||(u.id!==m.id&&u.parent!==m.id)){toast("Chỉ sửa được đơn vị mình hoặc đơn vị trực thuộc.");return}
+  if(!u||(u.id!==m.id&&!managedBy(u,m.id))){toast("Chỉ sửa được đơn vị mình hoặc đơn vị cấp dưới trong nhánh.");return}
   S.orgEdit={mode:"edit",target:id};S.view="danhba";render();
 }
 function orgCancel(){S.orgEdit=null;render()}
@@ -888,45 +982,93 @@ async function orgSave(){
   try{
     if(ed.mode==="edit"){
       const u=unit(ed.target);
-      if(!(u.id===m.id||u.parent===m.id)){toast("Không có quyền sửa đơn vị này.");return}
+      if(!(u.id===m.id||managedBy(u,m.id))){toast("Không có quyền sửa đơn vị này.");return}
       Object.assign(u,{name,short,code},extra);
-      if(MODE==="local"){const p=g("o-pass");if(p){if(p.length<6){toast("Mật khẩu tối thiểu 6 ký tự.");return}u.pass=p}save()}
-      else await FB.fs.collection("units").doc(u.id).set(JSON.parse(JSON.stringify(u)));
+      if(MODE==="local"){save()}
+      else{if(u.id!==m.id)u.anc=chainAnc(u); /* cấp trên sửa: tiện thể bổ sung chuỗi phân cấp */
+        await FB.fs.collection("units").doc(u.id).set(JSON.parse(JSON.stringify(u)))}
+      orgLog("Sửa thông tin đơn vị",u.id,u.id===m.id?"tự cập nhật hồ sơ":"");
       toast("Đã cập nhật thông tin "+u.short);S.orgEdit=null;render();return;
     }
-    /* thêm mới đơn vị trực thuộc */
+    /* thêm mới: đơn vị cha = mình hoặc bất kỳ đơn vị nào trong nhánh */
+    const pid=g("o-parent")||m.id,pu=unit(pid);
+    if(!pu||(pid!==m.id&&!managedBy(pu,m.id))){toast("Đơn vị cha phải là bạn hoặc thuộc nhánh quản lý của bạn.");return}
     const user=g("o-user").toLowerCase().replace(/\s+/g,""),pass=g("o-pass");
     if(!user){toast("Nhập tài khoản đăng nhập cho đơn vị mới.");return}
     if(!/^[a-z0-9._-]+$/.test(user)){toast("Tài khoản chỉ gồm chữ thường không dấu, số, dấu chấm/gạch.");return}
     if(DB.units.some(x=>x.user===user)){toast("Tài khoản “"+user+"” đã được dùng cho đơn vị khác.");return}
     if(!pass||pass.length<6){toast("Mật khẩu ban đầu tối thiểu 6 ký tự.");return}
-    const nu={id:uid("u"),name,short,code,user,parent:m.id,level:(m.level||1)+1,...extra};
+    const nu={id:uid("u"),name,short,code,user,parent:pid,level:(pu.level||1)+1,anc:chainAnc({parent:pid}),...extra};
     if(MODE==="local"){
       nu.pass=pass;DB.units.push(nu);save();
     }else{
-      /* tạo tài khoản Auth bằng app phụ để KHÔNG làm rớt phiên đăng nhập hiện tại */
       try{
         const sec=firebase.apps.find(a=>a.name==="sec")||firebase.initializeApp(FIREBASE_CONFIG,"sec");
         await sec.auth().createUserWithEmailAndPassword(user+"@"+LOGIN_DOMAIN,pass);
         await sec.auth().signOut();
       }catch(e){
         if(e.code!=="auth/email-already-in-use"){toast("Lỗi tạo tài khoản đăng nhập: "+e.message);return}
-        /* tài khoản đã có sẵn trên Auth (tạo trước ở Console) → chỉ cần gắn đơn vị */
       }
       const batch=FB.fs.batch();
       batch.set(FB.fs.collection("units").doc(nu.id),JSON.parse(JSON.stringify(nu)));
       batch.set(FB.fs.collection("userIndex").doc(user),{unitId:nu.id});
       await batch.commit();
-      if(!DB.units.some(x=>x.id===nu.id))DB.units.push(nu); /* hiển thị ngay, snapshot sẽ đồng bộ lại */
+      if(!DB.units.some(x=>x.id===nu.id))DB.units.push(nu);
     }
-    toast("Đã tạo "+short+" — tài khoản: "+user+(MODE==="cloud"?"":" / mật khẩu như đã đặt"));
+    orgLog("Tạo đơn vị",nu.id,"trực thuộc "+pu.short+", tài khoản "+user);
+    toast("Đã tạo "+short+" — tài khoản: "+user);
     S.orgEdit=null;render();
   }catch(e){toast("Lỗi: "+e.message)}
   finally{if(btn)btn.disabled=false}
 }
+/* --- cấp lại mật khẩu --- */
+function resetPassLocal(id){
+  const m=me(),u=unit(id);
+  if(!u||!managedBy(u,m.id)){toast("Chỉ cấp lại mật khẩu cho đơn vị cấp dưới trong nhánh.");return}
+  const p=(document.getElementById("o-resetpass")||{}).value||"";
+  if(p.length<6){toast("Mật khẩu tối thiểu 6 ký tự.");return}
+  u.pass=p;save();orgLog("Cấp lại mật khẩu",u.id,"");
+  toast("Đã đặt mật khẩu mới cho "+u.short+". Hãy gửi mật khẩu cho đơn vị qua kênh an toàn.");
+}
+async function resetAccountCloud(id){
+  const m=me(),u=unit(id);
+  if(!u||!managedBy(u,m.id)){toast("Chỉ cấp lại mật khẩu cho đơn vị cấp dưới trong nhánh.");return}
+  const nuser=((document.getElementById("o-newuser")||{}).value||"").trim().toLowerCase().replace(/\s+/g,"");
+  const npass=(document.getElementById("o-newpass")||{}).value||"";
+  if(!/^[a-z0-9._-]+$/.test(nuser)){toast("Tài khoản mới chỉ gồm chữ thường không dấu, số, dấu chấm/gạch.");return}
+  if(nuser===u.user){toast("Cần một định danh MỚI khác định danh cũ (hạn chế của nền tảng miễn phí).");return}
+  if(DB.units.some(x=>x.user===nuser)){toast("Tài khoản “"+nuser+"” đã được dùng.");return}
+  if(npass.length<6){toast("Mật khẩu mới tối thiểu 6 ký tự.");return}
+  if(!confirm("Cấp lại tài khoản cho "+u.name+"?\n\n• Đăng nhập mới: "+nuser+"\n• Tài khoản cũ ("+u.user+") vô hiệu ngay\n• Văn bản, truy vết giữ nguyên"))return;
+  try{
+    const sec=firebase.apps.find(a=>a.name==="sec")||firebase.initializeApp(FIREBASE_CONFIG,"sec");
+    await sec.auth().createUserWithEmailAndPassword(nuser+"@"+LOGIN_DOMAIN,npass);
+    await sec.auth().signOut();
+  }catch(e){
+    if(e.code!=="auth/email-already-in-use"){toast("Lỗi tạo tài khoản mới: "+e.message);return}
+  }
+  const olduser=u.user;u.user=nuser;u.anc=chainAnc(u);
+  try{
+    const batch=FB.fs.batch();
+    batch.set(FB.fs.collection("units").doc(u.id),JSON.parse(JSON.stringify(u)));
+    batch.delete(FB.fs.collection("userIndex").doc(olduser));
+    batch.set(FB.fs.collection("userIndex").doc(nuser),{unitId:u.id});
+    await batch.commit();
+  }catch(e){u.user=olduser;toast("Lỗi cập nhật hệ thống: "+e.message);render();return}
+  orgLog("Cấp lại mật khẩu",u.id,"tài khoản mới: "+nuser+" (cũ: "+olduser+")");
+  toast("Xong. "+u.short+" đăng nhập bằng “"+nuser+"” với mật khẩu mới. Gợi ý: xóa tài khoản cũ "+olduser+" trên Firebase Console cho gọn.");
+  S.orgEdit=null;render();
+}
+async function changeMyPass(){
+  const p=(document.getElementById("o-mypass")||{}).value||"";
+  if(p.length<6){toast("Mật khẩu tối thiểu 6 ký tự.");return}
+  if(MODE==="local"){me().pass=p;save();orgLog("Đổi mật khẩu","","tự đổi");toast("Đã đổi mật khẩu.");return}
+  try{await FB.auth.currentUser.updatePassword(p);orgLog("Đổi mật khẩu","","tự đổi");toast("Đã đổi mật khẩu. Dùng mật khẩu mới từ lần đăng nhập sau.")}
+  catch(e){toast(e.code==="auth/requires-recent-login"?"Vì an toàn, hãy đăng xuất, đăng nhập lại rồi đổi mật khẩu ngay.":"Lỗi: "+e.message)}
+}
 async function orgLock(id){
   const m=me(),u=unit(id);
-  if(!u||u.parent!==m.id){toast("Chỉ khóa được đơn vị trực thuộc trực tiếp.");return}
+  if(!u||!managedBy(u,m.id)){toast("Chỉ khóa được đơn vị cấp dưới trong nhánh quản lý.");return}
   if(children(id).length){toast("“"+u.short+"” còn "+children(id).length+" đơn vị trực thuộc đang hoạt động — hãy khóa các đơn vị con trước.");return}
   const hasDocs=DB.docs.some(d=>d.from===id||(d.recips||[]).some(r=>r.unit===id));
   if(!confirm("Khóa đơn vị "+u.name+"?\n\n• Gỡ khỏi cây tổ chức, không nhận văn bản mới\n• Thu hồi quyền đăng nhập"+(hasDocs?"\n• Văn bản và truy vết đã phát sinh được GIỮ NGUYÊN":"")+"\n\nCó thể khôi phục bất cứ lúc nào."))return;
@@ -934,27 +1076,31 @@ async function orgLock(id){
   if(MODE==="local"){save()}
   else{
     try{
+      u.anc=chainAnc(u);
       const batch=FB.fs.batch();
       batch.set(FB.fs.collection("units").doc(u.id),JSON.parse(JSON.stringify(u)));
       batch.delete(FB.fs.collection("userIndex").doc(u.user));
       await batch.commit();
     }catch(e){u.deleted=false;toast("Lỗi khóa đơn vị: "+e.message);render();return}
   }
-  toast("Đã khóa "+u.short+". Có thể khôi phục trong mục “Đơn vị trực thuộc đã khóa”.");render();
+  orgLog("Khóa đơn vị",u.id,"");
+  toast("Đã khóa "+u.short+". Có thể khôi phục trong mục “Đơn vị đã khóa”.");render();
 }
 async function orgRestore(id){
   const m=me(),u=unit(id);
-  if(!u||u.parent!==m.id){toast("Chỉ khôi phục được đơn vị trực thuộc trực tiếp.");return}
+  if(!u||!managedBy(u,m.id)){toast("Chỉ khôi phục được đơn vị cấp dưới trong nhánh quản lý.");return}
   u.deleted=false;
   if(MODE==="local"){save()}
   else{
     try{
+      u.anc=chainAnc(u);
       const batch=FB.fs.batch();
       batch.set(FB.fs.collection("units").doc(u.id),JSON.parse(JSON.stringify(u)));
       batch.set(FB.fs.collection("userIndex").doc(u.user),{unitId:u.id});
       await batch.commit();
     }catch(e){u.deleted=true;toast("Lỗi khôi phục: "+e.message);render();return}
   }
+  orgLog("Khôi phục đơn vị",u.id,"");
   toast("Đã khôi phục "+u.short+" — đơn vị đăng nhập lại được ngay.");render();
 }
 
@@ -1025,6 +1171,7 @@ async function cloudAfterLogin(user){
     return;
   }
   DB.session=mine.id;S.view="dashboard";
+  try{if(!sessionStorage.getItem("do_lg")){orgLog("Đăng nhập");sessionStorage.setItem("do_lg","1")}}catch(e){}
   FB.unsub.push(FB.fs.collection("units").onSnapshot(s=>{
     DB.units=s.docs.map(d=>({id:d.id,...d.data()}));liveRender()}));
   const apply=s=>{s.docChanges().forEach(ch=>{
