@@ -172,7 +172,7 @@ tr.rowlink:hover td{background:#F7FAFE}
 <div class="toast" id="toast"></div>
 <script>
 /* =====================================================================
-   DoanOffice 1.7 — Hệ thống gửi/nhận & điều hành văn bản các cơ sở Đoàn
+   DoanOffice 2.0 — Hệ thống gửi/nhận & điều hành văn bản các cơ sở Đoàn
    - 100% chạy trên trình duyệt (HTML + JS thuần), triển khai tĩnh miễn phí
    - Dữ liệu lưu CỤC BỘ tại máy người dùng (localStorage / IndexedDB-ready)
    - Bản demo: toàn bộ đơn vị dùng chung kho dữ liệu trình duyệt để mô phỏng
@@ -198,15 +198,18 @@ const FIREBASE_CONFIG = {
   storageBucket: "doanoffice-dongthap.firebasestorage.app",
   messagingSenderId: "1003949643846",
   appId: "1:1003949643846:web:5fe24b22e058d4eb8cd247"
-};;
+};
 const LOGIN_DOMAIN = "doan-office.app";   // tên đăng nhập + @domain này = email tài khoản Firebase
 const MODE = FIREBASE_CONFIG ? "cloud" : "local";
 const FB = {auth:null, fs:null, unsub:[]};
-const LS_KEY="doanoffice_v1";
+const LS_KEY="doanoffice_v2";
 const STAR='<svg width="22" height="22" viewBox="0 0 120 120"><path fill="currentColor" d="M60 8l12.4 29.6 32 2.6-24.4 21 7.4 31.2L60 75.6 32.6 92.4 40 61.2 15.6 40.2l32-2.6z"/></svg>';
 const LOAI={congvan:["CV","Công văn"],kehoach:["KH","Kế hoạch"],thongbao:["TB","Thông báo"],quyetdinh:["QĐ","Quyết định"],baocao:["BC","Báo cáo"],huongdan:["HD","Hướng dẫn"],totrinh:["TTr","Tờ trình"],chuongtrinh:["CTr","Chương trình"]};
 const KHAN={thuong:["Thường","khan-thuong","☆"],khan:["Khẩn","khan-khan","★"],thuongkhan:["Thượng khẩn","khan-tk","★"],hoatoc:["Hỏa tốc","khan-ht","⚑"]};
 const ROLE={XLC:"Xử lý chính",PH:"Phối hợp",XDB:"Xem để biết"};
+const ROLES={bithu:"Bí thư",phobithu:"Phó Bí thư",uvbch:"Ủy viên BCH",canbo:"Cán bộ",vanthu:"Văn thư"};
+const DSTAT={duthao:"Dự thảo",trinhduyet:"Chờ duyệt",phathanh:"Đã phát hành",thuhoi:"Đã thu hồi"};
+function dstat(d){return d.docStatus||"phathanh"}
 
 let DB=null, S={view:"dashboard",tab:"choxuly",outTab:"all",docId:null,statFrom:"",statTo:""};
 
@@ -278,6 +281,24 @@ function seed(){
     from:"tsd",ngayBH:iso(now-2*D),doKhan:"thuong",hanXuLy:iso(now+5*D),yeuCauBaoCao:false,file:null,replyTo:null,
     recips:[{unit:"hcl",role:"PH",status:"choxuly",receivedAt:iso(now-2*D),viewed:false,progress:0,reports:[]}],
     audit:[{time:iso(now-2*D),unit:"tsd",action:"Phát hành văn bản",note:"Gửi đơn vị ngang cấp phối hợp"}]});
+  DB.units.find(u=>u.id==="td").members=[
+    {id:"m_td1",name:"Trần Minh Khoa",role:"bithu"},
+    {id:"m_td2",name:"Lê Thị Hồng Nhung",role:"phobithu"},
+    {id:"m_td3",name:"Phạm Văn Thới",role:"vanthu"}];
+  DB.units.find(u=>u.id==="hcl").members=[
+    {id:"m_h1",name:"Nguyễn Chí Bảo",role:"bithu"},
+    {id:"m_h2",name:"Võ Ngọc Trân",role:"canbo"},
+    {id:"m_h3",name:"Đỗ Thu Hà",role:"vanthu"}];
+  DB.docs.find(d=>d.id==="d1").comments=[
+    {time:iso(now-2*D)+" 09:15",unit:"hcl",nguoi:"Võ Ngọc Trân · Cán bộ",text:"Tỉnh đoàn cho hỏi: đội hình tình nguyện quốc tế có nằm trong chỉ tiêu của kế hoạch này không ạ?"},
+    {time:iso(now-2*D)+" 10:40",unit:"td",nguoi:"Lê Thị Hồng Nhung · Phó Bí thư",text:"Có tính vào chỉ tiêu chung. Huyện gửi kèm danh sách đội hình trong báo cáo tuần nhé."}];
+  DB.docs.push({id:"d9",so:"",loai:"totrinh",docStatus:"trinhduyet",
+    trichYeu:"Tờ trình xin chủ trương tổ chức Hội trại truyền thống 26/3 cấp huyện năm 2027",
+    noiDung:"Kính trình Thường trực Huyện đoàn xem xét, phê duyệt chủ trương và dự trù kinh phí tổ chức Hội trại.",
+    from:"hcl",ngayBH:iso(now-1*D),doKhan:"thuong",hanXuLy:null,yeuCauBaoCao:false,file:null,replyTo:null,comments:[],
+    recips:[{unit:"td",role:"XDB",status:"choxuly",receivedAt:iso(now-1*D),viewed:false,progress:0,reports:[]}],recipIds:[],
+    audit:[{time:iso(now-1*D),unit:"hcl",action:"Tạo dự thảo",note:"",nguoi:"Võ Ngọc Trân · Cán bộ"},
+      {time:iso(now-1*D),unit:"hcl",action:"Trình duyệt",note:"Trình Thường trực phê duyệt, phát hành",nguoi:"Võ Ngọc Trân · Cán bộ"}]});
   DB.seq={ "td:2026":45,"hcl:2026":21,"tsd:2026":5 };
   save();
 }
@@ -286,6 +307,11 @@ function todayISO(){return iso(Date.now())}
 function fmtD(s){if(!s)return "—";const[y,m,d]=s.split("-");return d+"/"+m+"/"+y}
 function esc(s){return (s??"").toString().replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function unit(id){return DB.units.find(u=>u.id===id)}
+function members(u){return (u&&u.members)||[]}
+function curMember(){const ms=members(me());if(!ms.length)return null;return ms.find(x=>x.id===S.memberId)||null}
+function memberLabel(){const c=curMember();return c?c.name+" · "+ROLES[c.role]:""}
+/* Quyền duyệt/phát hành: Bí thư, Phó Bí thư — đơn vị chưa khai cán bộ thì tài khoản đơn vị toàn quyền */
+function isApprover(){if(!members(me()).length)return true;const c=curMember();return !!c&&(c.role==="bithu"||c.role==="phobithu")}
 function me(){return unit(DB.session)}
 function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),2600)}
 
@@ -308,13 +334,13 @@ function orgLog(action,target,note){
   else if(FB.fs){FB.fs.collection("orgLog").add(e).catch(()=>{})}
   if(Array.isArray(S.logs))S.logs.unshift(e);
 }
-function myInbox(){const m=me();return DB.docs.filter(d=>d.recips.some(r=>r.unit===m.id)).sort((a,b)=>b.ngayBH.localeCompare(a.ngayBH))}
+function myInbox(){const m=me();return DB.docs.filter(d=>["phathanh","thuhoi"].includes(dstat(d))&&d.recips.some(r=>r.unit===m.id)).sort((a,b)=>(b.ngayBH||"").localeCompare(a.ngayBH||""))}
 function myOutbox(){const m=me();return DB.docs.filter(d=>d.from===m.id).sort((a,b)=>b.ngayBH.localeCompare(a.ngayBH))}
 function myRecip(d){return d.recips.find(r=>r.unit===DB.session)}
-function isOverdue(d,r){return d.hanXuLy&&d.hanXuLy<todayISO()&&r.status!=="daxuly"}
-function isDueSoon(d,r){if(!d.hanXuLy||r.status==="daxuly")return false;const diff=(new Date(d.hanXuLy)-new Date(todayISO()))/86400000;return diff>=0&&diff<=3}
+function isOverdue(d,r){return dstat(d)==="phathanh"&&d.hanXuLy&&d.hanXuLy<todayISO()&&r.status!=="daxuly"}
+function isDueSoon(d,r){if(dstat(d)!=="phathanh"||!d.hanXuLy||r.status==="daxuly")return false;const diff=(new Date(d.hanXuLy)-new Date(todayISO()))/86400000;return diff>=0&&diff<=3}
 function nextSo(u,loai){const y=new Date().getFullYear(),k=u.id+":"+y;DB.seq[k]=(DB.seq[k]||0)+1;return DB.seq[k]+"/"+LOAI[loai][0]+"-"+u.code}
-function audit(d,action,note){d.audit.push({time:todayISO(),unit:DB.session,action,note:note||""})}
+function audit(d,action,note){const c=curMember();d.audit.push({time:todayISO(),unit:DB.session,action,note:note||"",nguoi:c?c.name+" · "+ROLES[c.role]:""})}
 
 /* ---------------- actions ---------------- */
 async function doLogin(){
@@ -324,7 +350,7 @@ async function doLogin(){
     const found=DB.units.find(x=>x.user===uRaw&&x.pass===p);
     if(!found){err.style.display="block";err.textContent="Sai tên đăng nhập hoặc mật khẩu. Gợi ý: mật khẩu demo là 123456.";return}
     if(found.deleted){err.style.display="block";err.textContent="Đơn vị đã bị khóa bởi cấp quản lý trực tiếp. Liên hệ đơn vị cấp trên để khôi phục.";return}
-    DB.session=found.id;save();S.view="dashboard";orgLog("Đăng nhập");render();return;
+    DB.session=found.id;save();S.view="dashboard";S.memberId=localStorage.getItem("do_mem_"+found.id)||null;orgLog("Đăng nhập");render();return;
   }
   const email=uRaw.includes("@")?uRaw:uRaw+"@"+LOGIN_DOMAIN;
   err.style.display="none";
@@ -332,21 +358,22 @@ async function doLogin(){
   catch(e){err.style.display="block";
     err.textContent={"auth/invalid-credential":"Sai tài khoản hoặc mật khẩu.","auth/user-not-found":"Tài khoản chưa được quản trị viên tạo trên Firebase.","auth/wrong-password":"Sai mật khẩu.","auth/too-many-requests":"Nhập sai nhiều lần, thử lại sau ít phút.","auth/network-request-failed":"Không có kết nối mạng."}[e.code]||("Lỗi đăng nhập: "+e.message)}
 }
-function quickLogin(id){DB.session=id;save();S.view="dashboard";render()}
+function quickLogin(id){DB.session=id;save();S.view="dashboard";S.memberId=localStorage.getItem("do_mem_"+id)||null;render()}
 function logout(){
   try{sessionStorage.removeItem("do_lg")}catch(e){}
-  S.logs=null;
+  S.logs=null;S.memberId=null;S.bell=false;
   if(MODE==="cloud"){FB.unsub.forEach(f=>f());FB.unsub=[];DB.session=null;FB.auth.signOut();render();return}
   DB.session=null;save();render();
 }
-function nav(v,extra){S.view=v;if(v!=="danhba")S.orgEdit=null;if(extra)Object.assign(S,extra);render();window.scrollTo(0,0)}
+function nav(v,extra){S.view=v;S.bell=false;if(v!=="danhba")S.orgEdit=null;if(v!=="soan")S.draftId=null;if(extra)Object.assign(S,extra);render();window.scrollTo(0,0)}
 /* commit(d): ghi một văn bản đã thay đổi.
    - local  : lưu toàn bộ DB vào localStorage
    - cloud  : ghi đúng document đó lên Firestore (các máy khác nhận qua onSnapshot) */
 function commit(d){
   if(MODE==="local"){save();return}
   if(!d)return;
-  d.recipIds=d.recips.map(r=>r.unit);
+  /* Chỉ văn bản đã phát hành / thu hồi mới công bố recipIds — dự thảo tuyệt đối không lộ sang nơi nhận */
+  d.recipIds=["phathanh","thuhoi"].includes(dstat(d))?d.recips.map(r=>r.unit):[];
   const clean=JSON.parse(JSON.stringify(d)); /* loại bỏ undefined — Firestore không nhận */
   FB.fs.collection("docs").doc(d.id).set(clean).catch(e=>toast("Lỗi đồng bộ: "+e.message));
 }
@@ -387,43 +414,159 @@ function onPickFile(inp){
   rd.onload=()=>{composeFile={name:f.name,size:f.size,dataUrl:rd.result};lbl.textContent=f.name+" ("+Math.round(f.size/1024)+" KB)"};
   rd.readAsDataURL(f);
 }
-async function sendDoc(){
-  const m=me();
-  const loai=document.getElementById("c-loai").value;
-  const trichYeu=document.getElementById("c-ty").value.trim();
-  const noiDung=document.getElementById("c-nd").value.trim();
-  const doKhan=document.getElementById("c-khan").value;
-  const han=document.getElementById("c-han").value||null;
-  const ycbc=document.getElementById("c-ycbc").checked;
-  const replyTo=document.getElementById("c-reply")?document.getElementById("c-reply").value||null:null;
-  const link=(document.getElementById("c-link")?document.getElementById("c-link").value.trim():"")||null;
-  if(!trichYeu){toast("Vui lòng nhập trích yếu văn bản.");return}
+function collectCompose(){
+  const g=id=>{const el=document.getElementById(id);return el?el.value:""};
+  const trichYeu=g("c-ty").trim();
+  if(!trichYeu){toast("Vui lòng nhập trích yếu văn bản.");return null}
   const recips=[...document.querySelectorAll(".recip-cb:checked")].map(cb=>({
     unit:cb.value,role:document.getElementById("role-"+cb.value).value,
     status:"choxuly",receivedAt:todayISO(),viewed:false,progress:0,reports:[]}));
-  if(!recips.length){toast("Chọn ít nhất một nơi nhận.");return}
+  const link=(g("c-link")||"").trim()||null;
   let file=composeFile;
   if(link){file={name:(composeFile&&composeFile.name)||"Tệp trên Google Drive",size:(composeFile&&composeFile.size)||0,link}}
-  const base={id:uid("d"),loai,trichYeu,noiDung,from:m.id,ngayBH:todayISO(),doKhan,
-    hanXuLy:han,yeuCauBaoCao:ycbc,file,replyTo,recips,recipIds:recips.map(r=>r.unit)};
-  const note="Gửi "+recips.length+" đơn vị"+(ycbc?" (yêu cầu báo cáo kết quả)":"");
+  return {loai:g("c-loai"),trichYeu,noiDung:g("c-nd").trim(),doKhan:g("c-khan"),
+    hanXuLy:g("c-han")||null,yeuCauBaoCao:document.getElementById("c-ycbc").checked,
+    replyTo:g("c-reply")||null,file,recips,recipIds:recips.map(r=>r.unit)};
+}
+async function persistNew(d){
+  if(MODE==="local"){DB.docs.push(d);save();return}
+  await FB.fs.collection("docs").doc(d.id).set(JSON.parse(JSON.stringify(d)));
+  if(!DB.docs.some(x=>x.id===d.id))DB.docs.push(d);
+}
+/* Lưu dự thảo (mới hoặc đang sửa) — chưa cấp số, chưa gửi đi đâu */
+async function composeSave(kind){
+  const m=me(),f=collectCompose();if(!f)return;
+  try{
+    let d;
+    if(S.draftId){ /* đang sửa dự thảo */
+      d=DB.docs.find(x=>x.id===S.draftId);
+      if(!d||d.from!==m.id||dstat(d)==="phathanh"){toast("Dự thảo không còn hợp lệ.");return}
+      Object.assign(d,f);delete d.returnNote;
+    }else{
+      d={id:uid("d"),so:"",from:m.id,ngayBH:todayISO(),docStatus:"duthao",comments:[],...f,
+        audit:[{time:todayISO(),unit:m.id,action:"Tạo dự thảo",note:"",nguoi:memberLabel()}]};
+      if(MODE==="local")DB.docs.push(d);
+    }
+    d.recipIds=[]; /* chưa phát hành: không công bố nơi nhận lên máy chủ */
+    if(kind==="trinh"){
+      if(!d.recips.length){toast("Chọn nơi nhận trước khi trình duyệt.");return}
+      d.docStatus="trinhduyet";audit(d,"Trình duyệt","Trình Thường trực phê duyệt, phát hành");
+    }else if(kind==="publish"){
+      if(!isApprover()){toast("Chỉ Bí thư / Phó Bí thư được phát hành trực tiếp.");return}
+      if(!d.recips.length){toast("Chọn ít nhất một nơi nhận.");return}
+      await publishCore(d);composeFile=null;S.draftId=null;nav("vbdi");return;
+    }else{audit(d,"Lưu dự thảo","")}
+    if(MODE==="local"){save()}
+    else if(S.draftId){commit(d)}
+    else{await persistNew(d)}
+    composeFile=null;S.draftId=null;
+    toast(kind==="trinh"?"Đã trình duyệt — chờ Bí thư/Phó Bí thư phê duyệt, phát hành.":"Đã lưu dự thảo.");
+    nav("vbdi",{outTab:kind==="trinh"?"trinh":"duthao"});
+  }catch(e){toast("Lỗi: "+e.message)}
+}
+/* Phát hành: LÚC NÀY mới cấp số ký hiệu theo sổ văn bản đi */
+async function publishCore(d){
+  const m=me();
+  d.recipIds=d.recips.map(r=>r.unit);
   if(MODE==="cloud"){
-    const btn=document.querySelector(".btn-primary");if(btn)btn.disabled=true;
-    try{
-      const y=new Date().getFullYear(),key=m.id+"_"+y;
-      const so=await FB.fs.runTransaction(async tx=>{           /* transaction: hai người cùng gửi không thể trùng số */
-        const ref=FB.fs.collection("seq").doc(key);
-        const s=await tx.get(ref);const n=(s.exists?s.data().n:0)+1;
-        tx.set(ref,{n});return n+"/"+LOAI[loai][0]+"-"+m.code;});
-      const d={...base,so,audit:[{time:todayISO(),unit:m.id,action:"Phát hành văn bản",note}]};
-      await FB.fs.collection("docs").doc(d.id).set(JSON.parse(JSON.stringify(d)));
-      composeFile=null;toast("Đã phát hành văn bản số "+d.so);nav("vbdi");
-    }catch(e){toast("Lỗi phát hành: "+e.message);if(btn)btn.disabled=false}
-    return;
-  }
-  const d={...base,so:nextSo(m,loai),audit:[{time:todayISO(),unit:m.id,action:"Phát hành văn bản",note}]};
-  DB.docs.push(d);save();composeFile=null;
-  toast("Đã phát hành văn bản số "+d.so);nav("vbdi");
+    const y=new Date().getFullYear(),key=m.id+"_"+y;
+    const so=await FB.fs.runTransaction(async tx=>{
+      const ref=FB.fs.collection("seq").doc(key);
+      const sn=await tx.get(ref);const n=(sn.exists?sn.data().n:0)+1;
+      tx.set(ref,{n});return n+"/"+LOAI[d.loai][0]+"-"+m.code;});
+    d.so=so;
+  }else{d.so=nextSo(m,d.loai)}
+  d.ngayBH=todayISO();d.docStatus="phathanh";delete d.returnNote;
+  d.recips.forEach(r=>{r.receivedAt=todayISO()});
+  audit(d,"Phát hành văn bản","Gửi "+d.recips.length+" đơn vị"+(d.yeuCauBaoCao?" (yêu cầu báo cáo kết quả)":""));
+  if(MODE==="local"){if(!DB.docs.some(x=>x.id===d.id))DB.docs.push(d);save()}
+  else{await FB.fs.collection("docs").doc(d.id).set(JSON.parse(JSON.stringify(d)));
+    if(!DB.docs.some(x=>x.id===d.id))DB.docs.push(d)}
+  toast("Đã phát hành văn bản số "+d.so);
+}
+async function approvePublish(id){
+  const d=DB.docs.find(x=>x.id===id);
+  if(!d||d.from!==DB.session||dstat(d)!=="trinhduyet"){toast("Văn bản không ở trạng thái chờ duyệt.");return}
+  if(!isApprover()){toast("Chỉ Bí thư / Phó Bí thư được phê duyệt, phát hành.");return}
+  audit(d,"Phê duyệt","Đồng ý phát hành");
+  try{await publishCore(d);render()}catch(e){toast("Lỗi phát hành: "+e.message)}
+}
+function returnDraft(id){
+  const d=DB.docs.find(x=>x.id===id);
+  if(!d||d.from!==DB.session||dstat(d)!=="trinhduyet")return;
+  if(!isApprover()){toast("Chỉ Bí thư / Phó Bí thư được trả lại dự thảo.");return}
+  const note=prompt("Lý do trả lại / yêu cầu chỉnh sửa:","");if(note===null)return;
+  d.docStatus="duthao";d.returnNote=note||"Yêu cầu chỉnh sửa";
+  audit(d,"Trả lại dự thảo",d.returnNote);commit(d);if(MODE==="local")save();
+  toast("Đã trả lại dự thảo cho người soạn.");render();
+}
+async function deleteDraft(id){
+  const d=DB.docs.find(x=>x.id===id);
+  if(!d||d.from!==DB.session||dstat(d)!=="duthao"){toast("Chỉ xóa được dự thảo chưa trình.");return}
+  if(!confirm("Xóa dự thảo “"+(d.trichYeu||"")+"”?"))return;
+  if(MODE==="cloud"){try{await FB.fs.collection("docs").doc(id).delete()}catch(e){toast("Lỗi xóa: "+e.message);return}}
+  DB.docs=DB.docs.filter(x=>x.id!==id);if(MODE==="local")save();
+  toast("Đã xóa dự thảo.");render();
+}
+function editDraft(id){S.draftId=id;nav("soan")}
+function recallDoc(id){
+  const d=DB.docs.find(x=>x.id===id);
+  if(!d||d.from!==DB.session||dstat(d)!=="phathanh")return;
+  if(!isApprover()){toast("Chỉ Bí thư / Phó Bí thư được thu hồi văn bản.");return}
+  const note=prompt("Lý do thu hồi văn bản "+d.so+":","");if(note===null)return;
+  d.docStatus="thuhoi";audit(d,"Thu hồi văn bản",note||"");commit(d);if(MODE==="local")save();
+  toast("Đã thu hồi văn bản "+d.so+". Các nơi nhận không thể xử lý tiếp.");render();
+}
+function extendDeadline(id){
+  const d=DB.docs.find(x=>x.id===id);
+  if(!d||d.from!==DB.session||dstat(d)!=="phathanh")return;
+  const v=prompt("Gia hạn xử lý đến ngày (YYYY-MM-DD):",d.hanXuLy||todayISO());
+  if(!v)return;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(v)){toast("Định dạng ngày: YYYY-MM-DD, ví dụ 2026-08-15.");return}
+  const cu=d.hanXuLy;d.hanXuLy=v;
+  audit(d,"Gia hạn xử lý","Hạn mới "+fmtD(v)+(cu?" (hạn cũ "+fmtD(cu)+")":""));
+  commit(d);if(MODE==="local")save();
+  toast("Đã gia hạn đến "+fmtD(v)+".");render();
+}
+function assignLead(id){
+  const d=DB.docs.find(x=>x.id===id),r=myRecip(d);if(!r)return;
+  const sel=document.getElementById("as-mem");if(!sel||!sel.value)return;
+  const mem=members(me()).find(x=>x.id===sel.value);if(!mem)return;
+  r.assignee=mem.name+" · "+ROLES[mem.role];
+  audit(d,"Phân công chủ trì",r.assignee);commit(d);if(MODE==="local")save();
+  toast("Đã phân công "+mem.name+" chủ trì xử lý.");render();
+}
+function addComment(id){
+  const d=DB.docs.find(x=>x.id===id);if(!d)return;
+  const m=me();
+  if(d.from!==m.id&&!myRecip(d)){toast("Chỉ nơi gửi và nơi nhận được trao đổi trên văn bản.");return}
+  const el=document.getElementById("cm-text");const t=(el?el.value:"").trim();
+  if(!t){toast("Nhập nội dung trao đổi.");return}
+  (d.comments=d.comments||[]).push({time:nowTS(),unit:m.id,nguoi:memberLabel(),text:t});
+  commit(d);if(MODE==="local")save();render();
+}
+/* -------- Trung tâm thông báo trong app -------- */
+function notifItems(){
+  const m=me(),out=[],rOf=d=>myRecipOf(d,m.id);
+  myInbox().forEach(d=>{const r=rOf(d);
+    if(dstat(d)!=="phathanh")return;
+    if(!r.viewed)out.push({t:"Văn bản mới chưa xem",d,w:0});
+    else if(isOverdue(d,r))out.push({t:"QUÁ HẠN xử lý (hạn "+fmtD(d.hanXuLy)+")",d,w:2});
+    else if(isDueSoon(d,r))out.push({t:"Sắp đến hạn "+fmtD(d.hanXuLy),d,w:1});});
+  myOutbox().forEach(d=>{
+    if(dstat(d)==="trinhduyet"&&isApprover())out.push({t:"Dự thảo chờ bạn phê duyệt",d,w:1});
+    if(dstat(d)==="duthao"&&d.returnNote)out.push({t:"Dự thảo bị trả lại: "+d.returnNote,d,w:1});});
+  return out.sort((a,b)=>b.w-a.w);
+}
+function tryBrowserNotify(){
+  try{
+    if(sessionStorage.getItem("do_nt"))return;sessionStorage.setItem("do_nt","1");
+    const urgent=notifItems().filter(x=>x.w===2).length;
+    if(!urgent||typeof Notification==="undefined")return;
+    const fire=()=>new Notification("DoanOffice — "+me().short,{body:"Có "+urgent+" văn bản QUÁ HẠN xử lý."});
+    if(Notification.permission==="granted")fire();
+    else if(Notification.permission!=="denied")Notification.requestPermission().then(p=>{if(p==="granted")fire()});
+  }catch(e){}
 }
 function downloadFile(id){
   const d=DB.docs.find(x=>x.id===id);if(!d||!d.file)return;
@@ -455,6 +598,7 @@ function render(){
   const app=document.getElementById("app");
   if(S.view==="setup"&&MODE==="cloud"&&!DB.session){app.innerHTML=viewSetup();return}
   if(!DB.session){app.innerHTML=viewLogin();return}
+  if(members(me()).length&&!curMember()){app.innerHTML=viewPickMember();return}
   S._stale=false;
   const views={dashboard:viewDashboard,vbden:viewInbox,vbdi:viewOutbox,soan:viewCompose,detail:viewDetail,thongke:viewStats,danhba:viewOrg,hethong:viewSystem};
   app.innerHTML=shell((views[S.view]||viewDashboard)());
@@ -473,9 +617,34 @@ function viewLogin(){
     </div>`:`<div class="demo-accounts"><p>Hệ thống dùng chung — tài khoản do quản trị viên (Văn phòng cấp bộ Đoàn quản trị) cấp. Quên mật khẩu: liên hệ quản trị viên để đặt lại trên Firebase Console.</p></div>`}
     </div></div>`;
 }
+function bellHtml(){
+  const items=notifItems(),n=items.length;
+  return `<div style="position:relative">
+    <button class="btn btn-ghost btn-sm" style="position:relative" onclick="S.bell=!S.bell;render()">🔔
+      ${n?`<span class="badge" style="position:absolute;top:-6px;right:-8px">${n}</span>`:""}</button>
+    ${S.bell?`<div style="position:absolute;right:0;top:38px;width:340px;max-height:380px;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);z-index:50">
+      <div style="padding:9px 13px;border-bottom:1px solid var(--line-soft)"><b class="small" style="color:var(--doan-deep)">Thông báo · Nhắc hạn</b></div>
+      ${items.length?items.slice(0,15).map(x=>`<div class="small" style="padding:9px 13px;border-bottom:1px solid var(--line-soft);cursor:pointer" onclick="S.bell=false;openDoc('${x.d.id}')">
+        <span style="color:${x.w===2?"var(--danger)":x.w===1?"var(--warn)":"var(--doan)"}">●</span> ${esc(x.t)}
+        <div class="muted">${esc(x.d.so||"(dự thảo)")} — ${esc(x.d.trichYeu.slice(0,60))}</div></div>`).join("")
+       :'<div class="empty" style="padding:18px">Không có việc cần chú ý. Tuyệt!</div>'}
+    </div>`:""}</div>`;
+}
+function viewPickMember(){
+  const m=me();
+  return `<div class="login-wrap"><div class="login-card">
+    <div class="login-star" style="color:var(--gold)">${STAR}</div>
+    <h1 style="font-size:1.15rem">${esc(m.name)}</h1>
+    <div class="sub">Bạn là ai trong đơn vị? Mọi thao tác, phê duyệt, truy vết sẽ ghi đích danh.</div>
+    ${members(m).map(x=>`<button class="btn btn-ghost btn-block" style="margin-bottom:8px;justify-content:flex-start" onclick="selectMember('${x.id}')">
+      <span class="avatar" style="width:26px;height:26px;font-size:.7rem">${esc(x.name[0])}</span> ${esc(x.name)} <span class="muted small" style="margin-left:auto">${ROLES[x.role]}</span></button>`).join("")}
+    <div class="hint" style="text-align:center;margin-top:10px"><a href="javascript:void(0)" onclick="logout()">← Đăng xuất</a></div>
+  </div></div>`;
+}
+function selectMember(id){S.memberId=id;try{localStorage.setItem("do_mem_"+DB.session,id)}catch(e){}orgLog("Bắt đầu phiên làm việc","",(members(me()).find(x=>x.id===id)||{}).name||"");render()}
 function shell(content){
   const m=me(),inbox=myInbox();
-  const nChoXL=inbox.filter(d=>myRecipOf(d,m.id).status==="choxuly").length;
+  const nChoXL=inbox.filter(d=>dstat(d)==="phathanh"&&myRecipOf(d,m.id).status==="choxuly").length;
   const nQuaHan=inbox.filter(d=>isOverdue(d,myRecipOf(d,m.id))).length;
   const item=(v,ico,label,badge)=>`<a href="javascript:void(0)" class="${S.view===v?"active":""}" onclick="nav('${v}')">
      <span class="ico">${ico}</span>${label}${badge?`<span class="badge">${badge}</span>`:""}</a>`;
@@ -495,13 +664,16 @@ function shell(content){
       <h6>Quản trị</h6>
       ${item("hethong","⚙","Dữ liệu & sao lưu")}
     </nav>
-    <div class="side-foot">${MODE==="cloud"?"● Đồng bộ Firestore · offline-first":"Dữ liệu lưu cục bộ trên máy này"}<br>DoanOffice 1.7 · mã nguồn mở</div>
+    <div class="side-foot">${MODE==="cloud"?"● Đồng bộ Firestore · offline-first":"Dữ liệu lưu cục bộ trên máy này"}<br>DoanOffice 2.0 · mã nguồn mở</div>
    </aside>
    <div class="main">
     <div class="topbar">
       <div class="unit">${esc(m.name)}<small>${m.parent?("Trực thuộc: "+esc(unit(m.parent).name)):"Đơn vị cấp cao nhất trong hệ thống"}</small></div>
       <div class="spacer"></div>
-      <div class="userbox"><div class="avatar">${esc(m.short[0])}</div><span>${esc(m.user)}</span>
+      ${bellHtml()}
+      <div class="userbox"><div class="avatar">${esc(m.short[0])}</div>
+        <span>${curMember()?esc(curMember().name)+' <span class="muted small">('+ROLES[curMember().role]+')</span>':esc(m.user)}</span>
+        ${members(m).length?`<button class="btn btn-ghost btn-sm" title="Đổi vai làm việc" onclick="S.memberId=null;localStorage.removeItem('do_mem_'+DB.session);render()">⇄ Vai</button>`:""}
         <button class="btn btn-ghost btn-sm" onclick="logout()">Đăng xuất</button></div>
     </div>
     <div class="content">${content}</div>
@@ -509,6 +681,7 @@ function shell(content){
 }
 function myRecipOf(d,uid_){return d.recips.find(r=>r.unit===uid_)}
 function statusPill(d,r){
+  if(dstat(d)==="thuhoi")return '<span class="pill role">Đã thu hồi</span>';
   if(isOverdue(d,r))return '<span class="pill qua">Quá hạn</span>';
   return {choxuly:'<span class="pill cho">Chờ xử lý</span>',dangxuly:'<span class="pill dang">Đang xử lý</span>',daxuly:'<span class="pill xong">Đã xử lý</span>'}[r.status];
 }
@@ -516,6 +689,7 @@ function khanCell(k){const[label,cls,sym]=KHAN[k];return `<span class="${cls}" t
 
 /* ---------- Dashboard ---------- */
 function viewDashboard(){
+  tryBrowserNotify();
   const m=me(),inbox=myInbox(),out=myOutbox();
   const rOf=d=>myRecipOf(d,m.id);
   const cCho=inbox.filter(d=>rOf(d).status==="choxuly").length;
@@ -601,76 +775,108 @@ function exportInboxCSV(){
   exportCSV(rows,"van-ban-den-"+m.code+".csv");
 }
 
-/* ---------- Văn bản đi ---------- */
+/* ---------- Văn bản đi (v2.0: dự thảo → duyệt → phát hành) ---------- */
 function viewOutbox(){
   const out=myOutbox();
-  const buckets={all:out,cho:out.filter(d=>d.recips.some(r=>r.status!=="daxuly")),xong:out.filter(d=>d.recips.every(r=>r.status==="daxuly"))};
-  const labels={all:"Tất cả",cho:"Đang theo dõi",xong:"Các nơi nhận đã xử lý xong"};
+  const pub=out.filter(d=>dstat(d)==="phathanh");
+  const buckets={
+    duthao:out.filter(d=>dstat(d)==="duthao"),
+    trinh:out.filter(d=>dstat(d)==="trinhduyet"),
+    all:pub,
+    cho:pub.filter(d=>d.recips.some(r=>r.status!=="daxuly")),
+    xong:pub.filter(d=>d.recips.every(r=>r.status==="daxuly")),
+    thuhoi:out.filter(d=>dstat(d)==="thuhoi")};
+  const labels={duthao:"Dự thảo",trinh:"Chờ duyệt",all:"Đã phát hành",cho:"Đang theo dõi",xong:"Đã xử lý xong",thuhoi:"Đã thu hồi"};
   if(!(S.outTab in buckets))S.outTab="all";
   const rows=buckets[S.outTab];
+  const draftMode=["duthao","trinh"].includes(S.outTab);
   return `
   <div class="page-head"><div><div class="eyebrow">Sổ đăng ký văn bản đi</div><h2>Văn bản đi</h2></div>
-  <div class="spacer"></div><button class="btn btn-gold" onclick="nav('soan')">✎ Soạn văn bản mới</button></div>
+  <div class="spacer"></div><button class="btn btn-gold" onclick="S.draftId=null;nav('soan')">✎ Soạn văn bản mới</button></div>
   <div class="card"><div class="card-b">
   <div class="tabs">${Object.keys(buckets).map(k=>`<button class="${S.outTab===k?"active":""}" onclick="S.outTab='${k}';render()">${labels[k]}<span class="cnt">${buckets[k].length}</span></button>`).join("")}</div>
   <div class="tbl-wrap"><table><thead><tr>
-    <th>Số ký hiệu</th><th>Trích yếu</th><th>Nơi nhận</th><th>Ngày BH</th><th>Hạn</th><th>Tiến độ chung</th></tr></thead><tbody>
+    <th>Số ký hiệu</th><th>Trích yếu</th><th>Nơi nhận</th><th>Ngày</th><th>Hạn</th><th>${draftMode?"Thao tác":"Tiến độ chung"}</th></tr></thead><tbody>
   ${rows.length?rows.map(d=>{
-    const avg=Math.round(d.recips.reduce((s,r)=>s+r.progress,0)/d.recips.length);
+    const avg=d.recips.length?Math.round(d.recips.reduce((s2,r)=>s2+r.progress,0)/d.recips.length):0;
     return `<tr class="rowlink" onclick="openDoc('${d.id}')">
-    <td class="mono">${esc(d.so)}</td>
-    <td><span class="doc-title">${esc(d.trichYeu)}</span><div class="small muted">${LOAI[d.loai][1]} · ${khanCell(d.doKhan)}${d.yeuCauBaoCao?" · có giao việc/báo cáo":""}</div></td>
-    <td class="small">${d.recips.map(r=>`<span class="tag-org">${esc(unit(r.unit).short)} <span class="muted">(${ROLE[r.role][0]}${r.role==="XLC"?"LC":r.role==="PH"?"H":"ĐB"})</span></span>`).join("")}</td>
+    <td class="mono">${d.so?esc(d.so):'<span class="muted">(chưa cấp số)</span>'}</td>
+    <td><span class="doc-title">${esc(d.trichYeu)}</span>
+      <div class="small muted">${LOAI[d.loai][1]} · ${khanCell(d.doKhan)}${d.yeuCauBaoCao?" · có giao việc/báo cáo":""}${d.returnNote?` · <span style="color:var(--danger)">bị trả lại: ${esc(d.returnNote)}</span>`:""}</div></td>
+    <td class="small">${d.recips.map(r=>`<span class="tag-org">${esc((unit(r.unit)||{}).short||"?")}</span>`).join("")||'<span class="muted">—</span>'}</td>
     <td class="small">${fmtD(d.ngayBH)}</td><td class="small">${fmtD(d.hanXuLy)}</td>
-    <td><div style="display:flex;gap:8px;align-items:center"><div class="prog ${avg>=100?"done":""}"><i style="width:${avg}%"></i></div><span class="small">${avg}%</span></div></td></tr>`}).join("")
-   :'<tr><td colspan="6" class="empty">Chưa phát hành văn bản nào. Bấm “Soạn văn bản mới” để bắt đầu.</td></tr>'}
-  </tbody></table></div></div></div>`;
+    <td onclick="event.stopPropagation()">
+    ${dstat(d)==="duthao"?`<button class="btn btn-ghost btn-sm" onclick="editDraft('${d.id}')">✎ Sửa</button>
+      <button class="btn btn-primary btn-sm" onclick="(async()=>{S.draftId='${d.id}';nav('soan')})()">📨 Trình / Phát hành</button>
+      <button class="btn btn-sm" style="background:var(--danger-bg);color:var(--danger)" onclick="deleteDraft('${d.id}')">🗑</button>`
+    :dstat(d)==="trinhduyet"?(isApprover()
+      ?`<button class="btn btn-ok btn-sm" onclick="approvePublish('${d.id}')">✔ Duyệt & phát hành</button>
+        <button class="btn btn-ghost btn-sm" onclick="returnDraft('${d.id}')">↩ Trả lại</button>`
+      :'<span class="pill cho">Chờ Bí thư/PBT duyệt</span>')
+    :dstat(d)==="thuhoi"?'<span class="pill role">Đã thu hồi</span>'
+    :`<div style="display:flex;gap:8px;align-items:center"><div class="prog ${avg>=100?"done":""}"><i style="width:${avg}%"></i></div><span class="small">${avg}%</span></div>`}
+    </td></tr>`}).join("")
+   :`<tr><td colspan="6" class="empty">${draftMode?"Không có dự thảo nào ở mục này.":"Chưa có văn bản. Bấm “Soạn văn bản mới” để bắt đầu."}</td></tr>`}
+  </tbody></table></div>
+  <div class="hint" style="margin-top:8px">Quy trình: <b>Dự thảo</b> (cán bộ soạn) → <b>Trình duyệt</b> → Bí thư/Phó Bí thư <b>phê duyệt & phát hành</b> (lúc này mới cấp số ký hiệu) → theo dõi xử lý. Văn bản phát hành sai có thể <b>thu hồi</b> trong trang chi tiết.</div>
+  </div></div>`;
 }
-
-/* ---------- Soạn & phát hành ---------- */
+/* ---------- Soạn văn bản (v2.0: dự thảo & phê duyệt) ---------- */
 function viewCompose(){
   const m=me();
-  const sup=m.parent?[unit(m.parent)]:[];
+  const dr=S.draftId?DB.docs.find(x=>x.id===S.draftId):null;
+  const v=k=>dr?esc(dr[k]||""):"";
+  const chk=id=>dr&&dr.recips.some(r=>r.unit===id);
+  const rl=id=>{const r=dr&&dr.recips.find(x=>x.unit===id);return r?r.role:null};
+  const sup=m.parent&&unit(m.parent)&&!unit(m.parent).deleted?[unit(m.parent)]:[];
   const sub=children(m.id), sib=siblings(m);
   const grp=(title,arr,defRole,hint)=>arr.length?`
     <div class="recip-group"><h5>${title}</h5>
-    ${arr.map(u=>`<label class="recip-row"><input type="checkbox" class="recip-cb" value="${u.id}"> ${esc(u.name)}
-      <select id="role-${u.id}">${Object.entries(ROLE).map(([k,v])=>`<option value="${k}" ${k===defRole?"selected":""}>${v}</option>`).join("")}</select></label>`).join("")}
+    ${arr.map(u=>`<label class="recip-row"><input type="checkbox" class="recip-cb" value="${u.id}" ${chk(u.id)?"checked":""}> ${esc(u.name)}
+      <select id="role-${u.id}">${Object.entries(ROLE).map(([k,vv])=>`<option value="${k}" ${(rl(u.id)||defRole)===k?"selected":""}>${vv}</option>`).join("")}</select></label>`).join("")}
     ${hint?`<div class="hint" style="padding:6px 12px 9px">${hint}</div>`:""}</div>`:"";
   const inboxDocs=myInbox();
   return `
-  <div class="page-head"><div><div class="eyebrow">Phát hành văn bản điện tử</div><h2>Soạn văn bản</h2></div></div>
+  <div class="page-head"><div><div class="eyebrow">${dr?"Đang sửa dự thảo"+(dr.returnNote?" (bị trả lại)":""):"Soạn thảo văn bản điện tử"}</div><h2>${dr?"Sửa dự thảo":"Soạn văn bản"}</h2></div>
+   ${dr?`<div class="spacer"></div><button class="btn btn-ghost btn-sm" onclick="S.draftId=null;nav('vbdi',{outTab:'duthao'})">✕ Hủy sửa</button>`:""}</div>
+  ${dr&&dr.returnNote?`<div class="card" style="border-left:4px solid var(--danger)"><div class="card-b small">↩ <b>Dự thảo bị trả lại:</b> ${esc(dr.returnNote)}</div></div>`:""}
   <div class="detail-grid">
-  <div class="card"><div class="card-h"><h3>Nội dung văn bản</h3></div><div class="card-b">
+  <div class="card"><div class="card-h"><h3>Nội dung văn bản</h3>${memberLabel()?`<div class="spacer"></div><span class="small muted">Người soạn: ${esc(memberLabel())}</span>`:""}</div><div class="card-b">
     <div class="form-grid">
-      <div class="field"><label>Loại văn bản</label><select id="c-loai">${Object.entries(LOAI).map(([k,v])=>`<option value="${k}">${v[1]} (${v[0]})</option>`).join("")}</select></div>
-      <div class="field"><label>Độ khẩn</label><select id="c-khan">${Object.entries(KHAN).map(([k,v])=>`<option value="${k}">${v[0]}</option>`).join("")}</select></div>
+      <div class="field"><label>Loại văn bản</label><select id="c-loai">${Object.entries(LOAI).map(([k,vv])=>`<option value="${k}" ${dr&&dr.loai===k?"selected":""}>${vv[1]} (${vv[0]})</option>`).join("")}</select></div>
+      <div class="field"><label>Độ khẩn</label><select id="c-khan">${Object.entries(KHAN).map(([k,vv])=>`<option value="${k}" ${dr&&dr.doKhan===k?"selected":""}>${vv[0]}</option>`).join("")}</select></div>
     </div>
-    <div class="field"><label>Trích yếu nội dung *</label><input id="c-ty" placeholder="V/v …"></div>
-    <div class="field"><label>Nội dung / ý kiến chỉ đạo</label><textarea id="c-nd" rows="5" placeholder="Nội dung chính, yêu cầu thực hiện, phân công…"></textarea></div>
+    <div class="field"><label>Trích yếu nội dung *</label><input id="c-ty" value="${v("trichYeu")}" placeholder="V/v …"></div>
+    <div class="field"><label>Nội dung / ý kiến chỉ đạo</label><textarea id="c-nd" rows="5" placeholder="Nội dung chính, yêu cầu thực hiện, phân công…">${v("noiDung")}</textarea></div>
     <div class="form-grid">
-      <div class="field"><label>Hạn xử lý</label><input id="c-han" type="date" min="${todayISO()}"></div>
+      <div class="field"><label>Hạn xử lý</label><input id="c-han" type="date" value="${dr&&dr.hanXuLy?dr.hanXuLy:""}"></div>
       <div class="field"><label>Trả lời / triển khai văn bản đến</label>
         <select id="c-reply"><option value="">— Không —</option>
-        ${inboxDocs.map(d=>`<option value="${d.id}">${esc(d.so)} · ${esc(d.trichYeu.slice(0,50))}</option>`).join("")}</select></div>
+        ${inboxDocs.map(d=>`<option value="${d.id}" ${dr&&dr.replyTo===d.id?"selected":""}>${esc(d.so)} · ${esc(d.trichYeu.slice(0,50))}</option>`).join("")}</select></div>
     </div>
     <div class="field"><label>Tệp đính kèm (PDF/Word/Excel)</label>
-      <input type="file" onchange="onPickFile(this)"><div class="hint" id="file-lbl">Chưa chọn tệp · tệp ≤ ${FILE_LIMIT_KB}KB được lưu kèm ngay trong văn bản</div></div>
+      <input type="file" onchange="onPickFile(this)"><div class="hint" id="file-lbl">${dr&&dr.file?("Đang có: "+esc(dr.file.name)+" — chọn tệp mới để thay"):"Chưa chọn tệp · tệp ≤ "+FILE_LIMIT_KB+"KB được lưu kèm ngay trong văn bản"}</div></div>
     <div class="field"><label>Hoặc dán liên kết Google Drive (tệp lớn)</label>
-      <input id="c-link" placeholder="https://drive.google.com/… (nhớ bật chia sẻ: ai có liên kết đều xem được)"></div>
+      <input id="c-link" value="${dr&&dr.file&&dr.file.link?esc(dr.file.link):""}" placeholder="https://drive.google.com/… (nhớ bật chia sẻ: ai có liên kết đều xem được)"></div>
     <label style="display:flex;gap:8px;align-items:center;font-size:.88rem;margin:6px 0 14px">
-      <input type="checkbox" id="c-ycbc" checked> Giao việc kèm văn bản — yêu cầu nơi nhận <b>báo cáo tiến độ, kết quả</b> về đơn vị</label>
-    <button class="btn btn-primary" onclick="sendDoc()">📨 Phát hành & gửi văn bản</button>
-    <span class="hint" style="margin-left:10px">Số ký hiệu được cấp tự động theo sổ văn bản đi của đơn vị.</span>
+      <input type="checkbox" id="c-ycbc" ${dr?(dr.yeuCauBaoCao?"checked":""):"checked"}> Giao việc kèm văn bản — yêu cầu nơi nhận <b>báo cáo tiến độ, kết quả</b> về đơn vị</label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="composeSave('draft')">💾 Lưu dự thảo</button>
+      ${isApprover()
+        ?`<button class="btn btn-primary" onclick="composeSave('publish')">📨 Phát hành & gửi ngay</button>`
+        :`<button class="btn btn-primary" onclick="composeSave('trinh')">📮 Trình Bí thư / PBT duyệt</button>`}
+    </div>
+    <div class="hint" style="margin-top:8px">${isApprover()
+      ?"Bạn có quyền phê duyệt nên được phát hành trực tiếp; số ký hiệu cấp tự động lúc phát hành."
+      :"Vai "+(curMember()?ROLES[curMember().role]:"cán bộ")+" soạn và trình; Bí thư / Phó Bí thư sẽ phê duyệt, phát hành (khi đó văn bản mới được cấp số và gửi đi)."}</div>
   </div></div>
   <div class="card"><div class="card-h"><h3>Nơi nhận</h3></div><div class="card-b">
     ${grp("Báo cáo lên cấp trên",sup,"XDB","Văn bản báo cáo, tờ trình gửi cấp trên trực tiếp.")}
     ${grp("Chỉ đạo đơn vị trực thuộc",sub,"XLC","Cấp dưới nhận vai trò Xử lý chính sẽ phải tiếp nhận, xử lý và báo cáo.")}
     ${grp("Phối hợp đơn vị ngang cấp",sib,"PH","Các đơn vị cùng trực thuộc một cấp trên.")}
-    ${(!sup.length&&!sub.length&&!sib.length)?'<div class="empty">Đơn vị chưa có quan hệ tổ chức nào.</div>':""}
+    ${grp("Lưu hành nội bộ",[m],"XLC","Văn bản nội bộ: gửi cho chính đơn vị để phân công cán bộ xử lý, theo dõi như văn bản đến.")}
   </div></div></div>`;
 }
-
 /* ---------- Chi tiết văn bản + truy vết ---------- */
 function viewDetail(){
   const d=DB.docs.find(x=>x.id===S.docId);
@@ -678,14 +884,25 @@ function viewDetail(){
   const m=me(),r=myRecip(d),isSender=d.from===m.id;
   const reply=d.replyTo?DB.docs.find(x=>x.id===d.replyTo):null;
   const back=isSender&&!r?"vbdi":"vbden";
+  const st=dstat(d);
   /* khối thao tác của nơi nhận */
   let actions="";
-  if(r&&r.status==="choxuly"){
+  if(st==="thuhoi"){
+    actions=`<div class="card" style="border-left:4px solid var(--danger)"><div class="card-b">
+      ⛔ <b>Văn bản đã bị thu hồi</b> bởi nơi ban hành — không xử lý, không căn cứ thực hiện. Chi tiết lý do xem tại Truy vết.</div></div>`;
+  }else if(st!=="phathanh"&&isSender){
+    actions=`<div class="card" style="border-left:4px solid var(--warn)"><div class="card-b">
+      📝 Văn bản đang ở trạng thái <b>${DSTAT[st]}</b> — chưa cấp số, chưa gửi tới nơi nhận.
+      ${st==="duthao"?`<button class="btn btn-primary btn-sm" style="margin-left:8px" onclick="editDraft('${d.id}')">✎ Tiếp tục soạn</button>`:""}
+      ${st==="trinhduyet"&&isApprover()?`<button class="btn btn-ok btn-sm" style="margin-left:8px" onclick="approvePublish('${d.id}')">✔ Duyệt & phát hành</button>
+        <button class="btn btn-ghost btn-sm" onclick="returnDraft('${d.id}')">↩ Trả lại</button>`:""}
+    </div></div>`;
+  }else if(r&&r.status==="choxuly"){
     actions=`<div class="card" style="border-left:4px solid var(--warn)"><div class="card-b">
       <b>Văn bản đang chờ đơn vị tiếp nhận.</b>
       <div class="small muted" style="margin:4px 0 10px">Theo quy định văn thư, văn bản đến phải được đăng ký, tiếp nhận và chuyển xử lý ngay trong ngày (văn bản khẩn: ngay khi nhận).</div>
       <button class="btn btn-primary" onclick="receiveDoc('${d.id}')">✔ Tiếp nhận & bắt đầu xử lý</button></div></div>`;
-  }else if(r&&r.status==="dangxuly"){
+  }else if(r&&r.status==="dangxuly"&&st==="phathanh"){
     actions=`<div class="card"><div class="card-h"><h3>Báo cáo tiến độ lên ${esc(unit(d.from).short)}</h3></div><div class="card-b">
       <div class="form-grid">
         <div class="field"><label>Tiến độ hoàn thành (%)</label><input id="rp-prog" type="number" min="0" max="100" step="5" value="${r.progress}"></div>
@@ -695,15 +912,39 @@ function viewDetail(){
       <button class="btn btn-primary" onclick="submitReport('${d.id}')">📤 Gửi báo cáo</button>
       <button class="btn btn-ok" style="margin-left:8px" onclick="if(confirm('Xác nhận đã hoàn thành xử lý văn bản này?'))markDone('${d.id}')">✔ Hoàn thành xử lý</button>
     </div></div>`;
-  }else if(r&&r.status==="daxuly"){
+  }else if(r&&r.status==="daxuly"&&st==="phathanh"){
     actions=`<div class="card" style="border-left:4px solid var(--ok)"><div class="card-b">✔ Đơn vị đã <b>hoàn thành xử lý</b> văn bản này${d.yeuCauBaoCao?" và đã gửi báo cáo kết quả.":"."}</div></div>`;
   }
+  /* thanh điều hành của nơi ban hành */
+  const senderBar=(isSender&&st==="phathanh")?`<div class="card"><div class="card-b" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <span class="small muted">Điều hành văn bản:</span>
+    <button class="btn btn-ghost btn-sm" onclick="extendDeadline('${d.id}')">🕓 Gia hạn xử lý</button>
+    ${isApprover()?`<button class="btn btn-sm" style="background:var(--danger-bg);color:var(--danger)" onclick="recallDoc('${d.id}')">⛔ Thu hồi văn bản</button>`:""}
+  </div></div>`:"";
+  /* phân công chủ trì nội bộ cho nơi nhận */
+  const assignBox=(r&&st==="phathanh"&&members(me()).length&&r.status!=="daxuly")?`<div class="card"><div class="card-b" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <span class="small"><b>Phân công chủ trì:</b> ${r.assignee?esc(r.assignee):'<span class="muted">chưa phân công</span>'}</span>
+    <select id="as-mem" style="padding:5px 9px;border:1px solid var(--line);border-radius:7px;font-size:.82rem">
+      <option value="">— Chọn cán bộ —</option>
+      ${members(me()).map(x=>`<option value="${x.id}">${esc(x.name)} (${ROLES[x.role]})</option>`).join("")}</select>
+    <button class="btn btn-ghost btn-sm" onclick="assignLead('${d.id}')">Phân công</button>
+  </div></div>`:"";
+  /* trao đổi trên văn bản */
+  const cmts=d.comments||[];
+  const commentBox=(isSender||r)?`<div class="card"><div class="card-h"><h3>Trao đổi trên văn bản (${cmts.length})</h3></div><div class="card-b">
+    ${cmts.length?cmts.map(c=>`<div class="report-item" style="border-left-color:var(--gold)">
+      <div class="rp-h"><b style="color:var(--doan-deep)">${esc((unit(c.unit)||{}).short||"?")}</b>${c.nguoi?" · "+esc(c.nguoi):""} · ${esc(fmtTS(c.time))}</div>${esc(c.text)}</div>`).join("")
+     :'<div class="small muted" style="margin-bottom:8px">Chưa có trao đổi nào.</div>'}
+    ${st!=="thuhoi"?`<div style="display:flex;gap:8px;margin-top:8px">
+      <input id="cm-text" style="flex:1;padding:8px 12px;border:1px solid var(--line);border-radius:8px" placeholder="Trao đổi với nơi gửi/nơi nhận… (Enter để gửi)" onkeydown="if(event.key==='Enter')addComment('${d.id}')">
+      <button class="btn btn-primary btn-sm" onclick="addComment('${d.id}')">Gửi</button></div>`:""}
+  </div></div>`:"";
   /* bảng theo dõi nơi nhận (dành cho nơi gửi & mọi người xem) */
   const track=`<div class="card"><div class="card-h"><h3>Theo dõi xử lý tại các nơi nhận</h3>
     ${isSender?`<div class="spacer"></div><button class="btn btn-ghost btn-sm" onclick="exportDocCSV('${d.id}')">⬇ Xuất CSV</button>`:""}</div>
    <div class="tbl-wrap"><table><thead><tr><th>Đơn vị</th><th>Vai trò</th><th>Trạng thái</th><th>Tiến độ</th><th>Báo cáo gần nhất</th></tr></thead><tbody>
    ${d.recips.map(rr=>{const u=unit(rr.unit),last=rr.reports[rr.reports.length-1];
-     return `<tr><td>${esc(u.name)}</td><td><span class="pill role">${ROLE[rr.role]}</span></td>
+     return `<tr><td>${esc(u.name)}${rr.assignee?`<div class="small muted">Chủ trì: ${esc(rr.assignee)}</div>`:""}</td><td><span class="pill role">${ROLE[rr.role]}</span></td>
      <td>${statusPill(d,rr)}</td>
      <td><div style="display:flex;gap:8px;align-items:center"><div class="prog ${rr.progress>=100?"done":""}"><i style="width:${rr.progress}%"></i></div><span class="small">${rr.progress}%</span></div></td>
      <td class="small">${last?esc(last.content)+`<div class="muted">${fmtD(last.time)}</div>`:'<span class="muted">Chưa có báo cáo</span>'}</td></tr>`}).join("")}
@@ -712,7 +953,7 @@ function viewDetail(){
     .sort((a,b)=>b.time.localeCompare(a.time));
   return `
   <div class="page-head">
-    <div><div class="eyebrow">${LOAI[d.loai][1]} · ${khanCell(d.doKhan)}</div><h2>${esc(d.so)}</h2></div>
+    <div><div class="eyebrow">${LOAI[d.loai][1]} · ${khanCell(d.doKhan)}${st!=="phathanh"?` · <span style="color:${st==="thuhoi"?"var(--danger)":"var(--warn)"}">${DSTAT[st]}</span>`:""}</div><h2>${d.so?esc(d.so):"(Chưa cấp số)"}</h2></div>
     <div class="spacer"></div>
     <button class="btn btn-ghost btn-sm no-print" onclick="nav('${back}')">← Quay lại</button>
     <button class="btn btn-ghost btn-sm no-print" onclick="window.print()">🖨 In phiếu xử lý</button></div>
@@ -731,15 +972,18 @@ function viewDetail(){
      ${d.noiDung?`<div style="border-top:1px dashed var(--line);margin-top:10px;padding-top:10px;white-space:pre-wrap">${esc(d.noiDung)}</div>`:""}
     </div></div>
     ${actions}
-    ${track}
+    ${senderBar}
+    ${assignBox}
+    ${st==="phathanh"||st==="thuhoi"?track:""}
     ${reports.length?`<div class="card"><div class="card-h"><h3>Báo cáo kết quả từ các đơn vị (${reports.length})</h3></div><div class="card-b">
       ${reports.map(rp=>`<div class="report-item"><div class="rp-h"><b style="color:var(--doan-deep)">${esc(rp.u.short)}</b> · ${fmtD(rp.time)} · tiến độ <b>${rp.progress}%</b></div>${esc(rp.content)}</div>`).join("")}
     </div></div>`:""}
+    ${commentBox}
    </div>
    <div class="card"><div class="card-h"><h3>Truy vết xử lý văn bản</h3></div><div class="card-b">
     <div class="timeline">
      ${[...d.audit].reverse().map(a=>`<div class="tl-item"><b>${esc(a.action)}</b>
-       <div class="when">${esc(unit(a.unit)?unit(a.unit).short:"?")} · ${fmtD(a.time)}</div>
+       <div class="when">${esc(unit(a.unit)?unit(a.unit).short:"?")}${a.nguoi?" · "+esc(a.nguoi):""} · ${fmtD(a.time)}</div>
        ${a.note?`<div class="note muted">${esc(a.note)}</div>`:""}</div>`).join("")}
     </div>
     <div class="hint">Nhật ký được hệ thống ghi tự động ở mọi thao tác (phát hành, xem, tiếp nhận, báo cáo, tải tệp) và không thể sửa/xóa.</div>
@@ -930,8 +1174,53 @@ function orgEditor(){
     </div>
     <div class="field"><label>Email liên hệ</label><input id="o-email" value="${esc(u.email||"")}"></div>
     <button class="btn btn-primary" id="o-save" onclick="orgSave()">${isAdd?"＋ Tạo đơn vị & cấp tài khoản":"💾 Lưu thay đổi"}</button>
+    ${!isAdd?memberSection(u):""}
     ${!isAdd?passSection(u,isSelf):""}
    </div></div>`;
+}
+/* --- quản lý cán bộ của đơn vị (III: Bí thư, Phó BT, UV BCH, cán bộ, văn thư) --- */
+function memberSection(u){
+  const ms=members(u);
+  return `<div style="border-top:1px dashed var(--line);margin-top:16px;padding-top:12px">
+    <div class="eyebrow" style="margin-bottom:6px">Cán bộ của đơn vị (${ms.length})</div>
+    ${ms.length?ms.map(x=>`<div class="small" style="display:flex;gap:8px;align-items:center;margin-bottom:5px">
+      <span class="avatar" style="width:24px;height:24px;font-size:.68rem">${esc(x.name[0])}</span>
+      <b>${esc(x.name)}</b> <span class="muted">· ${ROLES[x.role]}</span>
+      <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="delMember('${u.id}','${x.id}')">🗑</button></div>`).join("")
+     :'<div class="small muted" style="margin-bottom:6px">Chưa khai cán bộ — tài khoản đơn vị dùng toàn quyền. Khai cán bộ để phê duyệt/truy vết đích danh và phân công nội bộ.</div>'}
+    <div class="form-grid" style="margin-top:8px">
+      <div class="field"><label>Họ tên cán bộ</label><input id="mb-name" placeholder="vd: Nguyễn Văn A"></div>
+      <div class="field"><label>Chức danh</label><select id="mb-role">${Object.entries(ROLES).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select></div>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="addMember('${u.id}')">＋ Thêm cán bộ</button>
+    <div class="hint" style="margin-top:6px">Sau đăng nhập, cán bộ chọn vai làm việc; chỉ Bí thư/Phó Bí thư được phê duyệt, phát hành, thu hồi văn bản.</div>
+  </div>`;
+}
+async function saveUnitDoc(u){
+  if(MODE==="local"){save();return}
+  await FB.fs.collection("units").doc(u.id).set(JSON.parse(JSON.stringify(u)));
+}
+async function addMember(unitId){
+  const m=me(),u=unit(unitId);
+  if(!u||(u.id!==m.id&&!managedBy(u,m.id))){toast("Không có quyền.");return}
+  const name=((document.getElementById("mb-name")||{}).value||"").trim();
+  const role=(document.getElementById("mb-role")||{}).value||"canbo";
+  if(!name){toast("Nhập họ tên cán bộ.");return}
+  (u.members=u.members||[]).push({id:uid("m"),name,role});
+  try{await saveUnitDoc(u)}catch(e){u.members.pop();toast("Lỗi lưu: "+e.message);return}
+  orgLog("Thêm cán bộ",u.id,name+" · "+ROLES[role]);
+  toast("Đã thêm "+name+" ("+ROLES[role]+")");render();
+}
+async function delMember(unitId,mid){
+  const m=me(),u=unit(unitId);
+  if(!u||(u.id!==m.id&&!managedBy(u,m.id))){toast("Không có quyền.");return}
+  const x=members(u).find(t=>t.id===mid);if(!x)return;
+  if(!confirm("Gỡ cán bộ "+x.name+" khỏi danh sách? (Truy vết cũ ghi đích danh vẫn giữ nguyên)"))return;
+  u.members=u.members.filter(t=>t.id!==mid);
+  try{await saveUnitDoc(u)}catch(e){u.members.push(x);toast("Lỗi lưu: "+e.message);return}
+  if(u.id===DB.session&&S.memberId===mid){S.memberId=null;try{localStorage.removeItem("do_mem_"+u.id)}catch(e){}}
+  orgLog("Gỡ cán bộ",u.id,x.name);
+  toast("Đã gỡ "+x.name+".");render();
 }
 /* --- khối mật khẩu trong form sửa --- */
 function passSection(u,isSelf){
@@ -1171,6 +1460,7 @@ async function cloudAfterLogin(user){
     return;
   }
   DB.session=mine.id;S.view="dashboard";
+  S.memberId=localStorage.getItem("do_mem_"+mine.id)||null;
   try{if(!sessionStorage.getItem("do_lg")){orgLog("Đăng nhập");sessionStorage.setItem("do_lg","1")}}catch(e){}
   FB.unsub.push(FB.fs.collection("units").onSnapshot(s=>{
     DB.units=s.docs.map(d=>({id:d.id,...d.data()}));liveRender()}));
