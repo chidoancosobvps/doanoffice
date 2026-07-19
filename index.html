@@ -172,7 +172,7 @@ tr.rowlink:hover td{background:#F7FAFE}
 <div class="toast" id="toast"></div>
 <script>
 /* =====================================================================
-   DoanOffice 2.0 — Hệ thống gửi/nhận & điều hành văn bản các cơ sở Đoàn
+   DoanOffice 2.5 — Hệ thống gửi/nhận & điều hành văn bản các cơ sở Đoàn
    - 100% chạy trên trình duyệt (HTML + JS thuần), triển khai tĩnh miễn phí
    - Dữ liệu lưu CỤC BỘ tại máy người dùng (localStorage / IndexedDB-ready)
    - Bản demo: toàn bộ đơn vị dùng chung kho dữ liệu trình duyệt để mô phỏng
@@ -204,7 +204,9 @@ const MODE = FIREBASE_CONFIG ? "cloud" : "local";
 const FB = {auth:null, fs:null, unsub:[]};
 const LS_KEY="doanoffice_v2";
 const STAR='<svg width="22" height="22" viewBox="0 0 120 120"><path fill="currentColor" d="M60 8l12.4 29.6 32 2.6-24.4 21 7.4 31.2L60 75.6 32.6 92.4 40 61.2 15.6 40.2l32-2.6z"/></svg>';
-const LOAI={congvan:["CV","Công văn"],kehoach:["KH","Kế hoạch"],thongbao:["TB","Thông báo"],quyetdinh:["QĐ","Quyết định"],baocao:["BC","Báo cáo"],huongdan:["HD","Hướng dẫn"],totrinh:["TTr","Tờ trình"],chuongtrinh:["CTr","Chương trình"]};
+const LOAI={congvan:["CV","Công văn"],kehoach:["KH","Kế hoạch"],thongbao:["TB","Thông báo"],quyetdinh:["QĐ","Quyết định"],baocao:["BC","Báo cáo"],huongdan:["HD","Hướng dẫn"],totrinh:["TTr","Tờ trình"],chuongtrinh:["CTr","Chương trình"],nghiquyet:["NQ","Nghị quyết"],giaymoi:["GM","Giấy mời"],bienban:["BB","Biên bản"]};
+/* Kho mẫu văn bản đặc thù của Đoàn (khung thể thức theo hướng dẫn văn bản của Đoàn) */
+const TEMPLATES={"kehoach": {"ten": "Kế hoạch hoạt động/phong trào", "ty": "Kế hoạch tổ chức [tên hoạt động] năm [năm]", "nd": "Thực hiện Chương trình công tác Đoàn và phong trào thanh thiếu nhi năm [năm]; căn cứ [văn bản chỉ đạo của cấp trên],\nBan Thường vụ [tên đơn vị] xây dựng Kế hoạch tổ chức [tên hoạt động] như sau:\n\nI. MỤC ĐÍCH, YÊU CẦU\n1. Mục đích: …\n2. Yêu cầu: thiết thực, an toàn, tiết kiệm, thu hút đông đảo ĐVTN tham gia.\n\nII. THỜI GIAN, ĐỊA ĐIỂM\n- Thời gian: …\n- Địa điểm: …\n\nIII. NỘI DUNG, HÌNH THỨC\n1. …\n2. …\n\nIV. KINH PHÍ\n…\n\nV. TỔ CHỨC THỰC HIỆN\n1. Đối với [đơn vị chủ trì]: …\n2. Đối với các cơ sở Đoàn trực thuộc: xây dựng kế hoạch triển khai; báo cáo kết quả về [đầu mối] trước ngày …"}, "nghiquyet": {"ten": "Nghị quyết của BCH/BTV", "ty": "Nghị quyết Hội nghị Ban Chấp hành [tên đơn vị] lần thứ [số], khóa [khóa]", "nd": "Hội nghị Ban Chấp hành [tên đơn vị] lần thứ [số], khóa [khóa] họp ngày [ngày], sau khi thảo luận,\n\nQUYẾT NGHỊ:\n\n1. Thông qua …\n2. Giao Ban Thường vụ …\n3. Các đồng chí Ủy viên BCH, các cơ sở Đoàn trực thuộc chịu trách nhiệm triển khai thực hiện Nghị quyết này."}, "chuongtrinh": {"ten": "Chương trình công tác năm", "ty": "Chương trình công tác Đoàn và phong trào thanh thiếu nhi năm [năm]", "nd": "I. CHỦ ĐỀ CÔNG TÁC NĂM\n\"…\"\n\nII. MỘT SỐ CHỈ TIÊU CƠ BẢN\n1. Kết nạp … đoàn viên mới.\n2. Thực hiện … công trình, phần việc thanh niên.\n3. …\n\nIII. NHIỆM VỤ, GIẢI PHÁP TRỌNG TÂM\n1. Công tác tuyên truyền, giáo dục: …\n2. Phong trào hành động cách mạng: …\n3. Công tác xây dựng tổ chức Đoàn, Đoàn tham gia xây dựng Đảng: …\n\nIV. TỔ CHỨC THỰC HIỆN\n…"}, "giaymoi": {"ten": "Giấy mời họp/hoạt động", "ty": "Giấy mời dự [tên cuộc họp/hoạt động]", "nd": "Kính gửi: [Đơn vị/đồng chí được mời]\n\nBan Thường vụ [tên đơn vị] trân trọng kính mời đồng chí/đơn vị tham dự [tên cuộc họp/hoạt động]:\n1. Thời gian: … giờ …, ngày … tháng … năm …\n2. Địa điểm: …\n3. Thành phần: …\n4. Nội dung: …\n\nRất mong đồng chí/đơn vị sắp xếp tham dự đúng thành phần, thời gian nêu trên./."}, "baocao": {"ten": "Báo cáo kết quả công tác", "ty": "Báo cáo kết quả công tác Đoàn và phong trào thanh thiếu nhi [kỳ báo cáo]", "nd": "I. KHÁI QUÁT TÌNH HÌNH\n…\n\nII. KẾT QUẢ THỰC HIỆN\n1. Công tác tuyên truyền, giáo dục: …\n2. Các phong trào hành động cách mạng: …\n3. Công tác tổ chức xây dựng Đoàn: …\n(Số liệu so với chỉ tiêu được giao: …)\n\nIII. ĐÁNH GIÁ CHUNG\n1. Ưu điểm: …\n2. Hạn chế, nguyên nhân: …\n\nIV. PHƯƠNG HƯỚNG KỲ TỚI\n…\n\nV. KIẾN NGHỊ, ĐỀ XUẤT\n…"}, "totrinh": {"ten": "Tờ trình xin chủ trương", "ty": "Tờ trình về việc [nội dung xin chủ trương]", "nd": "Kính gửi: [Cấp có thẩm quyền]\n\nCăn cứ …;\nXét yêu cầu nhiệm vụ công tác Đoàn năm [năm],\nBan Thường vụ [tên đơn vị] kính trình [cấp trên] xem xét, cho chủ trương về việc [nội dung], cụ thể:\n1. Sự cần thiết: …\n2. Nội dung, quy mô: …\n3. Thời gian, địa điểm: …\n4. Kinh phí dự kiến: …\n\nKính trình [cấp trên] xem xét, quyết định./."}, "bienban": {"ten": "Biên bản họp", "ty": "Biên bản họp [tên cuộc họp]", "nd": "Thời gian: … giờ …, ngày … tháng … năm …\nĐịa điểm: …\nChủ trì: …  |  Thư ký: …\nThành phần: … (có mặt …/…, vắng …)\n\nNỘI DUNG\n1. …\n2. …\n\nKẾT LUẬN\n1. …\n2. …\n\nCuộc họp kết thúc lúc … giờ cùng ngày. Biên bản được thông qua với sự nhất trí của các thành viên dự họp./."}, "thongbao": {"ten": "Thông báo", "ty": "Thông báo về việc [nội dung]", "nd": "Ban Thường vụ [tên đơn vị] thông báo đến các cơ sở Đoàn trực thuộc:\n1. …\n2. …\n\nĐề nghị các đơn vị nghiêm túc triển khai thực hiện./."}};
 const KHAN={thuong:["Thường","khan-thuong","☆"],khan:["Khẩn","khan-khan","★"],thuongkhan:["Thượng khẩn","khan-tk","★"],hoatoc:["Hỏa tốc","khan-ht","⚑"]};
 const ROLE={XLC:"Xử lý chính",PH:"Phối hợp",XDB:"Xem để biết"};
 const ROLES={bithu:"Bí thư",phobithu:"Phó Bí thư",uvbch:"Ủy viên BCH",canbo:"Cán bộ",vanthu:"Văn thư"};
@@ -215,7 +217,8 @@ let DB=null, S={view:"dashboard",tab:"choxuly",outTab:"all",docId:null,statFrom:
 
 /* ---------------- store ---------------- */
 function load(){try{DB=JSON.parse(localStorage.getItem(LS_KEY))}catch(e){DB=null}
-  if(!DB||!DB.units){seed()} }
+  if(!DB||!DB.units){seed()}
+  DB.targets=DB.targets||[];DB.events=DB.events||[]; }
 function save(){localStorage.setItem(LS_KEY,JSON.stringify(DB))}
 function uid(p){return p+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function seed(){
@@ -299,6 +302,14 @@ function seed(){
     recips:[{unit:"td",role:"XDB",status:"choxuly",receivedAt:iso(now-1*D),viewed:false,progress:0,reports:[]}],recipIds:[],
     audit:[{time:iso(now-1*D),unit:"hcl",action:"Tạo dự thảo",note:"",nguoi:"Võ Ngọc Trân · Cán bộ"},
       {time:iso(now-1*D),unit:"hcl",action:"Trình duyệt",note:"Trình Thường trực phê duyệt, phát hành",nguoi:"Võ Ngọc Trân · Cán bộ"}]});
+  DB.targets=[
+   {id:"t1",from:"td",unit:"hcl",ten:"Kết nạp đoàn viên mới",donvi:"đoàn viên",giao:500,dat:342,ky:"Năm 2026",updated:iso(now-2*D),logs:[{time:iso(now-2*D),dat:342,nguoi:"Đỗ Thu Hà · Văn thư"}]},
+   {id:"t2",from:"td",unit:"tsd",ten:"Kết nạp đoàn viên mới",donvi:"đoàn viên",giao:400,dat:198,ky:"Năm 2026",updated:iso(now-5*D),logs:[]},
+   {id:"t3",from:"td",unit:"hcl",ten:"Công trình thanh niên cấp huyện",donvi:"công trình",giao:12,dat:7,ky:"Năm 2026",updated:iso(now-3*D),logs:[]},
+   {id:"t4",from:"hcl",unit:"xmt",ten:"Ngày hoạt động tình nguyện",donvi:"ngày",giao:24,dat:15,ky:"Năm 2026",updated:iso(now-1*D),logs:[]}];
+  DB.events=[
+   {id:"e1",from:"td",title:"Họp giao ban công tác Đoàn quý III",date:iso(now+2*D),time:"08:00",diaDiem:"Hội trường Tỉnh đoàn",loai:"hop",moi:["hcl","tsd","dkh"],note:"Thành phần: Bí thư các huyện, thị, thành đoàn"},
+   {id:"e2",from:"hcl",title:"Ra quân Chiến dịch TNTN Hè đợt 2",date:iso(now+4*D),time:"06:30",diaDiem:"UBND xã Mỹ Thọ",loai:"chiendich",moi:["xmt","xbh"],note:"Mang cờ Đoàn, áo xanh tình nguyện"}];
   DB.seq={ "td:2026":45,"hcl:2026":21,"tsd:2026":5 };
   save();
 }
@@ -335,6 +346,12 @@ function orgLog(action,target,note){
   if(Array.isArray(S.logs))S.logs.unshift(e);
 }
 function myInbox(){const m=me();return DB.docs.filter(d=>["phathanh","thuhoi"].includes(dstat(d))&&d.recips.some(r=>r.unit===m.id)).sort((a,b)=>(b.ngayBH||"").localeCompare(a.ngayBH||""))}
+function myTargets(){return (DB.targets||[]).filter(t=>t.from===DB.session)}
+function myAssignedTargets(){return (DB.targets||[]).filter(t=>t.unit===DB.session)}
+function kpiPct(t){return t.giao>0?Math.min(100,Math.round(t.dat/t.giao*100)):0}
+function myEvents(){const m=DB.session;return (DB.events||[]).filter(e=>e.from===m||(e.moi||[]).includes(m))}
+function vbHash(d){let h=5381;const str=(d.so||"")+"|"+(d.trichYeu||"")+"|"+(d.ngayBH||"")+"|"+d.from;
+  for(let i=0;i<str.length;i++)h=((h<<5)+h+str.charCodeAt(i))>>>0;return h.toString(36).toUpperCase().slice(0,6)}
 function myOutbox(){const m=me();return DB.docs.filter(d=>d.from===m.id).sort((a,b)=>b.ngayBH.localeCompare(a.ngayBH))}
 function myRecip(d){return d.recips.find(r=>r.unit===DB.session)}
 function isOverdue(d,r){return dstat(d)==="phathanh"&&d.hanXuLy&&d.hanXuLy<todayISO()&&r.status!=="daxuly"}
@@ -413,6 +430,14 @@ function onPickFile(inp){
   const rd=new FileReader();
   rd.onload=()=>{composeFile={name:f.name,size:f.size,dataUrl:rd.result};lbl.textContent=f.name+" ("+Math.round(f.size/1024)+" KB)"};
   rd.readAsDataURL(f);
+}
+function applyTemplate(k){
+  const t=TEMPLATES[k];if(!t)return;
+  const ty=document.getElementById("c-ty"),nd=document.getElementById("c-nd"),lo=document.getElementById("c-loai");
+  if((ty.value.trim()||nd.value.trim())&&!confirm("Thay nội dung đang soạn bằng khung mẫu “"+t.ten+"”?"))return;
+  if(LOAI[k])lo.value=k;
+  ty.value=t.ty;nd.value=t.nd;
+  toast("Đã đổ khung mẫu — điền vào các chỗ [ … ].");
 }
 function collectCompose(){
   const g=id=>{const el=document.getElementById(id);return el?el.value:""};
@@ -600,8 +625,23 @@ function render(){
   if(!DB.session){app.innerHTML=viewLogin();return}
   if(members(me()).length&&!curMember()){app.innerHTML=viewPickMember();return}
   S._stale=false;
-  const views={dashboard:viewDashboard,vbden:viewInbox,vbdi:viewOutbox,soan:viewCompose,detail:viewDetail,thongke:viewStats,danhba:viewOrg,hethong:viewSystem};
+  const views={dashboard:viewDashboard,vbden:viewInbox,vbdi:viewOutbox,soan:viewCompose,detail:viewDetail,thongke:viewStats,danhba:viewOrg,hethong:viewSystem,chitieu:viewTargets,lich:viewCalendar};
   app.innerHTML=shell((views[S.view]||viewDashboard)());
+  if(S.pendingDoc){const pid=S.pendingDoc;
+    if(DB.docs.some(x=>x.id===pid)){S.pendingDoc=null;setTimeout(()=>openDoc(pid),0)}}
+  if(S.qr&&S.view==="detail")renderQR();
+}
+function renderQR(){
+  const box=document.getElementById("qrbox");if(!box)return;
+  const d=DB.docs.find(x=>x.id===S.qr);if(!d)return;
+  const text=(location.origin&&location.origin!=="null"?location.origin+location.pathname:"")+"#vb="+d.id;
+  const draw=()=>{try{box.innerHTML="";new QRCode(box,{text,width:142,height:142,correctLevel:QRCode.CorrectLevel.M})}catch(e){box.innerHTML='<span class="small mono" style="word-break:break-all;padding:6px">'+esc(text)+'</span>'}};
+  if(typeof QRCode!=="undefined"){draw();return}
+  const sc=document.createElement("script");
+  sc.src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";
+  sc.onload=draw;
+  sc.onerror=()=>{box.innerHTML='<span class="small mono" style="word-break:break-all;padding:6px">'+esc(text)+'</span>'};
+  document.head.appendChild(sc);
 }
 function viewLogin(){
   return `<div class="login-wrap"><div class="login-card">
@@ -660,11 +700,13 @@ function shell(content){
       ${item("soan","✎","Soạn & phát hành")}
       <h6>Theo dõi</h6>
       ${item("thongke","▤","Báo cáo · Thống kê",nQuaHan?nQuaHan:"")}
+      ${item("chitieu","◎","Chỉ tiêu · KPI")}
+      ${item("lich","▦","Lịch công tác")}
       ${item("danhba","☷","Sơ đồ tổ chức")}
       <h6>Quản trị</h6>
       ${item("hethong","⚙","Dữ liệu & sao lưu")}
     </nav>
-    <div class="side-foot">${MODE==="cloud"?"● Đồng bộ Firestore · offline-first":"Dữ liệu lưu cục bộ trên máy này"}<br>DoanOffice 2.0 · mã nguồn mở</div>
+    <div class="side-foot">${MODE==="cloud"?"● Đồng bộ Firestore · offline-first":"Dữ liệu lưu cục bộ trên máy này"}<br>DoanOffice 2.5 · mã nguồn mở</div>
    </aside>
    <div class="main">
     <div class="topbar">
@@ -842,6 +884,10 @@ function viewCompose(){
   ${dr&&dr.returnNote?`<div class="card" style="border-left:4px solid var(--danger)"><div class="card-b small">↩ <b>Dự thảo bị trả lại:</b> ${esc(dr.returnNote)}</div></div>`:""}
   <div class="detail-grid">
   <div class="card"><div class="card-h"><h3>Nội dung văn bản</h3>${memberLabel()?`<div class="spacer"></div><span class="small muted">Người soạn: ${esc(memberLabel())}</span>`:""}</div><div class="card-b">
+    <div class="field"><label>Dùng mẫu văn bản của Đoàn</label>
+      <select id="c-tpl" onchange="applyTemplate(this.value)"><option value="">— Soạn tự do —</option>
+      ${Object.entries(TEMPLATES).map(([k,t])=>`<option value="${k}">${t.ten}</option>`).join("")}</select>
+      <div class="hint">Chọn mẫu để đổ khung thể thức (mục đích – yêu cầu, nội dung, tổ chức thực hiện…) rồi điền vào chỗ [ … ].</div></div>
     <div class="form-grid">
       <div class="field"><label>Loại văn bản</label><select id="c-loai">${Object.entries(LOAI).map(([k,vv])=>`<option value="${k}" ${dr&&dr.loai===k?"selected":""}>${vv[1]} (${vv[0]})</option>`).join("")}</select></div>
       <div class="field"><label>Độ khẩn</label><select id="c-khan">${Object.entries(KHAN).map(([k,vv])=>`<option value="${k}" ${dr&&dr.doKhan===k?"selected":""}>${vv[0]}</option>`).join("")}</select></div>
@@ -941,7 +987,9 @@ function viewDetail(){
   </div></div>`:"";
   /* bảng theo dõi nơi nhận (dành cho nơi gửi & mọi người xem) */
   const track=`<div class="card"><div class="card-h"><h3>Theo dõi xử lý tại các nơi nhận</h3>
-    ${isSender?`<div class="spacer"></div><button class="btn btn-ghost btn-sm" onclick="exportDocCSV('${d.id}')">⬇ Xuất CSV</button>`:""}</div>
+    ${isSender?`<div class="spacer"></div>
+      ${me().parent?`<button class="btn btn-gold btn-sm" onclick="buildSummaryReport('${d.id}')">🧾 Tổng hợp báo cáo trình cấp trên</button>`:""}
+      <button class="btn btn-ghost btn-sm" onclick="exportDocCSV('${d.id}')">⬇ Xuất CSV</button>`:""}</div>
    <div class="tbl-wrap"><table><thead><tr><th>Đơn vị</th><th>Vai trò</th><th>Trạng thái</th><th>Tiến độ</th><th>Báo cáo gần nhất</th></tr></thead><tbody>
    ${d.recips.map(rr=>{const u=unit(rr.unit),last=rr.reports[rr.reports.length-1];
      return `<tr><td>${esc(u.name)}${rr.assignee?`<div class="small muted">Chủ trì: ${esc(rr.assignee)}</div>`:""}</td><td><span class="pill role">${ROLE[rr.role]}</span></td>
@@ -956,7 +1004,14 @@ function viewDetail(){
     <div><div class="eyebrow">${LOAI[d.loai][1]} · ${khanCell(d.doKhan)}${st!=="phathanh"?` · <span style="color:${st==="thuhoi"?"var(--danger)":"var(--warn)"}">${DSTAT[st]}</span>`:""}</div><h2>${d.so?esc(d.so):"(Chưa cấp số)"}</h2></div>
     <div class="spacer"></div>
     <button class="btn btn-ghost btn-sm no-print" onclick="nav('${back}')">← Quay lại</button>
+    ${st!=="duthao"&&st!=="trinhduyet"?`<button class="btn btn-ghost btn-sm no-print" onclick="S.qr=S.qr==='${d.id}'?null:'${d.id}';render()">▦ Mã QR</button>`:""}
     <button class="btn btn-ghost btn-sm no-print" onclick="window.print()">🖨 In phiếu xử lý</button></div>
+  ${S.qr===d.id?`<div class="card"><div class="card-b" style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
+    <div id="qrbox" style="width:150px;height:150px;flex:none;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:8px;background:#fff"><span class="small muted">Đang tạo…</span></div>
+    <div class="small"><b>Xác thực văn bản ${esc(d.so)}</b>
+      <div class="muted" style="margin:4px 0">Quét mã để mở đúng văn bản này trên hệ thống (yêu cầu đăng nhập). In kèm phiếu xử lý để đối chiếu bản giấy – bản điện tử.</div>
+      <div>Mã kiểm tra: <span class="mono" style="background:var(--info-bg);padding:2px 8px;border-radius:6px"><b>${vbHash(d)}</b></span> <span class="muted">(khớp với mã hiển thị trên hệ thống là văn bản hợp lệ${dstat(d)==="thuhoi"?" — LƯU Ý: văn bản này ĐÃ THU HỒI":""})</span></div>
+    </div></div></div>`:""}
   <div class="detail-grid">
    <div>
     <div class="card"><div class="card-b">
@@ -1393,6 +1448,205 @@ async function orgRestore(id){
   toast("Đã khôi phục "+u.short+" — đơn vị đăng nhập lại được ngay.");render();
 }
 
+/* ---------- Chỉ tiêu · KPI (đặc thù Đoàn) ---------- */
+function viewTargets(){
+  const m=me();
+  const given=myTargets(),mine=myAssignedTargets();
+  if(!S.ctTab)S.ctTab=mine.length&&!given.length?"duocgiao":"giao";
+  const subs=myDescendants();
+  /* KPI tổng hợp theo đơn vị (phần mình giao) */
+  const byU={};given.forEach(t=>{(byU[t.unit]=byU[t.unit]||[]).push(t)});
+  const kpiRows=Object.entries(byU).map(([u,ts])=>({u:unit(u),ts,
+    kpi:Math.round(ts.reduce((a,t)=>a+kpiPct(t),0)/ts.length)})).sort((a,b)=>b.kpi-a.kpi);
+  return `
+  <div class="page-head"><div><div class="eyebrow">Giao chỉ tiêu & theo dõi KPI theo đơn vị</div><h2>Chỉ tiêu · KPI</h2></div></div>
+  <div class="card"><div class="card-b">
+  <div class="tabs">
+    <button class="${S.ctTab==="giao"?"active":""}" onclick="S.ctTab='giao';render()">Chỉ tiêu tôi giao<span class="cnt">${given.length}</span></button>
+    <button class="${S.ctTab==="duocgiao"?"active":""}" onclick="S.ctTab='duocgiao';render()">Được cấp trên giao<span class="cnt">${mine.length}</span></button>
+  </div>
+  ${S.ctTab==="giao"?`
+    ${subs.length?`<div class="recip-group" style="margin-bottom:14px"><h5>Giao chỉ tiêu mới</h5><div style="padding:10px 12px">
+      <div class="form-grid">
+        <div class="field"><label>Đơn vị nhận chỉ tiêu</label><select id="gt-unit">${subs.map(u=>`<option value="${u.id}">${esc(u.name)}</option>`).join("")}</select></div>
+        <div class="field"><label>Kỳ</label><input id="gt-ky" value="Năm ${new Date().getFullYear()}"></div>
+      </div>
+      <div class="form-grid">
+        <div class="field"><label>Tên chỉ tiêu *</label><input id="gt-ten" placeholder="vd: Kết nạp đoàn viên mới"></div>
+        <div class="field" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><span><label style="display:block;font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Số giao *</label><input id="gt-so" type="number" min="1" style="width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:8px"></span>
+        <span><label style="display:block;font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Đơn vị tính</label><input id="gt-dv" placeholder="đoàn viên, công trình…" style="width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:8px"></span></div>
+      </div>
+      <button class="btn btn-gold btn-sm" onclick="giveTarget()">＋ Giao chỉ tiêu</button></div></div>`
+     :'<div class="hint" style="margin-bottom:12px">Đơn vị chưa có cấp dưới trong nhánh để giao chỉ tiêu.</div>'}
+    ${kpiRows.length?`<div class="eyebrow" style="margin:4px 0 8px">KPI tổng hợp theo đơn vị</div>
+      ${kpiRows.map(r=>`<div class="bar-row"><span>${esc(r.u.short)}</span><div class="bar-track"><div class="bar-fill ${r.kpi>=80?"":"gold"}" style="width:${r.kpi}%"></div></div><span class="small muted"><b>${r.kpi}%</b> · ${r.ts.length} chỉ tiêu</span></div>`).join("")}`:""}
+    <div class="tbl-wrap" style="margin-top:10px"><table><thead><tr><th>Đơn vị</th><th>Chỉ tiêu</th><th>Kỳ</th><th>Giao</th><th>Đạt</th><th>KPI</th><th></th></tr></thead><tbody>
+    ${given.length?given.map(t=>`<tr><td>${esc((unit(t.unit)||{}).short||"?")}</td>
+      <td>${esc(t.ten)}<div class="small muted">cập nhật ${fmtD(t.updated)}</div></td>
+      <td class="small">${esc(t.ky)}</td><td><b>${t.giao}</b> ${esc(t.donvi||"")}</td><td>${t.dat}</td>
+      <td><div style="display:flex;gap:8px;align-items:center"><div class="prog ${kpiPct(t)>=100?"done":""}"><i style="width:${kpiPct(t)}%"></i></div><span class="small">${kpiPct(t)}%</span></div></td>
+      <td><button class="btn btn-ghost btn-sm" onclick="delTarget('${t.id}')">🗑</button></td></tr>`).join("")
+     :'<tr><td colspan="7" class="empty">Chưa giao chỉ tiêu nào.</td></tr>'}
+    </tbody></table></div>
+    <div style="margin-top:10px"><button class="btn btn-ghost btn-sm" onclick="exportKpiCSV()">⬇ Xuất bảng KPI (CSV)</button></div>`
+  :`
+    <div class="tbl-wrap"><table><thead><tr><th>Cấp giao</th><th>Chỉ tiêu</th><th>Kỳ</th><th>Giao</th><th>Kết quả đạt</th><th>KPI</th></tr></thead><tbody>
+    ${mine.length?mine.map(t=>`<tr><td class="small">${esc((unit(t.from)||{}).short||"?")}</td>
+      <td>${esc(t.ten)}</td><td class="small">${esc(t.ky)}</td><td><b>${t.giao}</b> ${esc(t.donvi||"")}</td>
+      <td><div style="display:flex;gap:8px;align-items:center">
+        <input id="ut-${t.id}" type="number" min="0" value="${t.dat}" style="width:90px;padding:6px 9px;border:1px solid var(--line);border-radius:7px">
+        <button class="btn btn-primary btn-sm" onclick="updateTarget('${t.id}')">Cập nhật</button></div>
+        <div class="small muted" style="margin-top:3px">lần cuối ${fmtD(t.updated)}${t.logs&&t.logs.length&&t.logs[t.logs.length-1].nguoi?" · "+esc(t.logs[t.logs.length-1].nguoi):""}</div></td>
+      <td><div style="display:flex;gap:8px;align-items:center"><div class="prog ${kpiPct(t)>=100?"done":""}"><i style="width:${kpiPct(t)}%"></i></div><span class="small">${kpiPct(t)}%</span></div></td></tr>`).join("")
+     :'<tr><td colspan="6" class="empty">Cấp trên chưa giao chỉ tiêu nào cho đơn vị.</td></tr>'}
+    </tbody></table></div>
+    <div class="hint" style="margin-top:8px">Cập nhật số liệu thường xuyên — cấp trên nhìn thấy KPI của đơn vị theo thời gian thực và dùng làm căn cứ đánh giá thi đua.</div>`}
+  </div></div>`;
+}
+async function commitTarget(t){
+  if(MODE==="local"){save();return}
+  await FB.fs.collection("targets").doc(t.id).set(JSON.parse(JSON.stringify(t)));
+}
+async function giveTarget(){
+  const m=me(),g=id=>{const el=document.getElementById(id);return el?el.value.trim():""};
+  const uId=g("gt-unit"),ten=g("gt-ten"),so=parseInt(g("gt-so")||"0",10),dv=g("gt-dv"),ky=g("gt-ky")||("Năm "+new Date().getFullYear());
+  const u=unit(uId);
+  if(!u||!managedBy(u,m.id)){toast("Chỉ giao chỉ tiêu cho đơn vị trong nhánh quản lý.");return}
+  if(!ten||!(so>0)){toast("Nhập tên chỉ tiêu và số giao (>0).");return}
+  const t={id:uid("t"),from:m.id,unit:uId,ten,donvi:dv,giao:so,dat:0,ky,updated:todayISO(),logs:[]};
+  (DB.targets=DB.targets||[]).push(t);
+  try{await commitTarget(t)}catch(e){DB.targets.pop();toast("Lỗi lưu: "+e.message);return}
+  orgLog("Giao chỉ tiêu",uId,ten+": "+so+" "+(dv||"")+" ("+ky+")");
+  toast("Đã giao “"+ten+"” cho "+u.short+".");render();
+}
+async function updateTarget(id){
+  const t=(DB.targets||[]).find(x=>x.id===id);
+  if(!t||t.unit!==DB.session){toast("Chỉ đơn vị được giao mới cập nhật kết quả.");return}
+  const v=parseInt((document.getElementById("ut-"+id)||{}).value||"0",10);
+  if(!(v>=0)){toast("Số liệu không hợp lệ.");return}
+  const cu=t.dat;t.dat=v;t.updated=todayISO();
+  (t.logs=t.logs||[]).push({time:todayISO(),dat:v,nguoi:memberLabel()});
+  try{await commitTarget(t)}catch(e){t.dat=cu;toast("Lỗi lưu: "+e.message);return}
+  orgLog("Cập nhật chỉ tiêu",t.from,t.ten+": đạt "+v+"/"+t.giao);
+  toast("Đã cập nhật “"+t.ten+"”: "+v+"/"+t.giao+" ("+kpiPct(t)+"%).");render();
+}
+async function delTarget(id){
+  const t=(DB.targets||[]).find(x=>x.id===id);
+  if(!t||t.from!==DB.session){toast("Chỉ cấp giao được thu hồi chỉ tiêu.");return}
+  if(!confirm("Thu hồi chỉ tiêu “"+t.ten+"” của "+((unit(t.unit)||{}).short||"?")+"?"))return;
+  if(MODE==="cloud"){try{await FB.fs.collection("targets").doc(id).delete()}catch(e){toast("Lỗi: "+e.message);return}}
+  DB.targets=DB.targets.filter(x=>x.id!==id);if(MODE==="local")save();
+  orgLog("Thu hồi chỉ tiêu",t.unit,t.ten);toast("Đã thu hồi chỉ tiêu.");render();
+}
+function exportKpiCSV(){
+  const m=me(),rows=[["BẢNG KPI CHỈ TIÊU — "+m.name],[],["Đơn vị","Chỉ tiêu","Kỳ","Giao","Đạt","KPI (%)","Cập nhật"]];
+  myTargets().forEach(t=>rows.push([(unit(t.unit)||{}).name||"?",t.ten,t.ky,t.giao+" "+(t.donvi||""),t.dat,kpiPct(t),fmtD(t.updated)]));
+  exportCSV(rows,"kpi-chi-tieu-"+m.code+".csv");
+}
+
+/* ---------- Lịch công tác · chiến dịch ---------- */
+function viewCalendar(){
+  const m=me();
+  const EVL={hop:["Họp","var(--doan)"],hoatdong:["Hoạt động","var(--ok)"],chiendich:["Chiến dịch","var(--gold)"],khac:["Khác","#8CA1B4"],han:["Hạn xử lý VB","var(--danger)"]};
+  const evs=myEvents().map(e=>({...e,virt:false}));
+  const dls=myInbox().filter(d=>dstat(d)==="phathanh"&&d.hanXuLy&&myRecipOf(d,m.id).status!=="daxuly")
+    .map(d=>({virt:true,id:"dl"+d.id,date:d.hanXuLy,time:"17:00",title:"Hạn xử lý "+d.so+" — "+d.trichYeu,loai:"han",docId:d.id}));
+  const today=todayISO();
+  let all=[...evs,...dls].sort((a,b)=>(a.date+(a.time||"")).localeCompare(b.date+(b.time||"")));
+  if(!S.calPast)all=all.filter(e=>e.date>=today);
+  const byDate={};all.forEach(e=>{(byDate[e.date]=byDate[e.date]||[]).push(e)});
+  const invitees=[...(m.parent&&unit(m.parent)&&!unit(m.parent).deleted?[unit(m.parent)]:[]),...children(m.id),...siblings(m)];
+  return `
+  <div class="page-head"><div><div class="eyebrow">Lịch họp, hoạt động, chiến dịch & hạn xử lý</div><h2>Lịch công tác</h2></div>
+   <div class="spacer"></div>
+   <label class="small" style="display:flex;align-items:center;gap:6px"><input type="checkbox" ${S.calPast?"checked":""} onchange="S.calPast=this.checked;render()"> Hiện lịch đã qua</label></div>
+  <div class="detail-grid">
+  <div class="card"><div class="card-b">
+   ${Object.keys(byDate).length?Object.entries(byDate).map(([dt,items])=>`
+     <div style="margin-bottom:14px">
+      <div class="eyebrow" style="margin-bottom:6px;color:${dt===today?"var(--danger)":"var(--gold)"}">${dt===today?"HÔM NAY · ":""}${fmtD(dt)}</div>
+      ${items.map(e=>`<div class="report-item" style="border-left-color:${EVL[e.loai][1]};${e.virt?"cursor:pointer":""}" ${e.virt?`onclick="openDoc('${e.docId}')"`:""}>
+        <div class="rp-h"><b style="color:${EVL[e.loai][1]}">${EVL[e.loai][0]}</b> · ${e.time||""}${e.diaDiem?" · "+esc(e.diaDiem):""}
+          ${!e.virt&&e.from!==m.id?` · <span class="muted">mời bởi ${esc((unit(e.from)||{}).short||"?")}</span>`:""}
+          ${!e.virt&&e.from===m.id?`<button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="delEvent('${e.id}')">🗑</button>`:""}</div>
+        ${esc(e.title)}${e.note?`<div class="small muted" style="margin-top:2px">${esc(e.note)}</div>`:""}
+        ${!e.virt&&(e.moi||[]).length?`<div class="small" style="margin-top:3px">${e.moi.map(x=>`<span class="tag-org">${esc((unit(x)||{}).short||"?")}</span>`).join("")}</div>`:""}
+      </div>`).join("")}
+     </div>`).join("")
+    :'<div class="empty">Không có lịch nào sắp tới. Hạn xử lý văn bản đến sẽ tự hiện tại đây.</div>'}
+  </div></div>
+  <div class="card"><div class="card-h"><h3>Thêm lịch công tác</h3></div><div class="card-b">
+    <div class="field"><label>Nội dung *</label><input id="ev-title" placeholder="vd: Họp BCH mở rộng"></div>
+    <div class="form-grid">
+      <div class="field"><label>Ngày *</label><input id="ev-date" type="date" value="${today}"></div>
+      <div class="field"><label>Giờ</label><input id="ev-time" type="time" value="08:00"></div>
+    </div>
+    <div class="form-grid">
+      <div class="field"><label>Địa điểm</label><input id="ev-place"></div>
+      <div class="field"><label>Loại</label><select id="ev-loai"><option value="hop">Họp</option><option value="hoatdong">Hoạt động</option><option value="chiendich">Chiến dịch</option><option value="khac">Khác</option></select></div>
+    </div>
+    <div class="field"><label>Ghi chú / thành phần</label><input id="ev-note"></div>
+    ${invitees.length?`<div class="recip-group"><h5>Mời đơn vị (lịch hiện bên phía họ)</h5>
+      ${invitees.map(u=>`<label class="recip-row"><input type="checkbox" class="ev-cb" value="${u.id}"> ${esc(u.name)}</label>`).join("")}</div>`:""}
+    <button class="btn btn-primary" onclick="addEvent()">＋ Thêm vào lịch</button>
+  </div></div></div>`;
+}
+async function addEvent(){
+  const m=me(),g=id=>{const el=document.getElementById(id);return el?el.value.trim():""};
+  const title=g("ev-title"),date=g("ev-date");
+  if(!title||!date){toast("Nhập nội dung và ngày.");return}
+  const e={id:uid("e"),from:m.id,title,date,time:g("ev-time"),diaDiem:g("ev-place"),
+    loai:g("ev-loai")||"khac",note:g("ev-note"),moi:[...document.querySelectorAll(".ev-cb:checked")].map(c=>c.value)};
+  (DB.events=DB.events||[]).push(e);
+  if(MODE==="local"){save()}
+  else{try{await FB.fs.collection("events").doc(e.id).set(JSON.parse(JSON.stringify(e)))}
+    catch(err){DB.events.pop();toast("Lỗi lưu: "+err.message);return}}
+  orgLog("Thêm lịch công tác","",title+" ("+fmtD(date)+")");
+  toast("Đã thêm lịch “"+title+"”"+(e.moi.length?" và mời "+e.moi.length+" đơn vị.":"."));render();
+}
+async function delEvent(id){
+  const e=(DB.events||[]).find(x=>x.id===id);
+  if(!e||e.from!==DB.session)return;
+  if(!confirm("Xóa lịch “"+e.title+"”?"))return;
+  if(MODE==="cloud"){try{await FB.fs.collection("events").doc(id).delete()}catch(err){toast("Lỗi: "+err.message);return}}
+  DB.events=DB.events.filter(x=>x.id!==id);if(MODE==="local")save();
+  toast("Đã xóa lịch.");render();
+}
+/* ---------- Tổng hợp báo cáo nhiều đơn vị → dự thảo báo cáo cấp trên ---------- */
+async function buildSummaryReport(id){
+  const m=me(),d=DB.docs.find(x=>x.id===id);
+  if(!d||d.from!==m.id)return;
+  const avg=d.recips.length?Math.round(d.recips.reduce((a,r)=>a+r.progress,0)/d.recips.length):0;
+  const stTxt={choxuly:"chưa tiếp nhận",dangxuly:"đang thực hiện",daxuly:"đã hoàn thành"};
+  const L=[];
+  L.push("Kính gửi: "+(m.parent?(unit(m.parent)||{}).name:"[Cấp trên]"));
+  L.push("");
+  L.push("Thực hiện Văn bản số "+d.so+" ngày "+fmtD(d.ngayBH)+" về \""+d.trichYeu+"\", "+m.name+" báo cáo kết quả triển khai tại các đơn vị trực thuộc như sau:");
+  L.push("");
+  L.push("I. KẾT QUẢ THỰC HIỆN CỦA CÁC ĐƠN VỊ");
+  d.recips.forEach((r,i)=>{
+    const u=unit(r.unit)||{name:"?"};const last=r.reports[r.reports.length-1];
+    L.push((i+1)+". "+u.name+": "+stTxt[r.status]+", tiến độ "+r.progress+"%."+(last?" Kết quả nổi bật: "+last.content:""));});
+  L.push("");
+  L.push("II. ĐÁNH GIÁ CHUNG");
+  L.push("- Tiến độ hoàn thành bình quân toàn nhánh: "+avg+"%. "+(d.recips.filter(r=>r.status==="daxuly").length)+"/"+d.recips.length+" đơn vị đã hoàn thành.");
+  L.push("- Ưu điểm: …");
+  L.push("- Hạn chế, nguyên nhân: …");
+  L.push("");
+  L.push("III. KIẾN NGHỊ, ĐỀ XUẤT");
+  L.push("…");
+  const nd=L.join("\n");
+  const sup=m.parent?unit(m.parent):null;
+  const draft={id:uid("d"),so:"",from:m.id,ngayBH:todayISO(),docStatus:"duthao",comments:[],
+    loai:"baocao",trichYeu:"Báo cáo kết quả thực hiện "+d.so+" ("+d.trichYeu.slice(0,60)+")",
+    noiDung:nd,doKhan:"thuong",hanXuLy:null,yeuCauBaoCao:false,replyTo:d.id,file:null,
+    recips:sup&&!sup.deleted?[{unit:sup.id,role:"XDB",status:"choxuly",receivedAt:todayISO(),viewed:false,progress:0,reports:[]}]:[],
+    recipIds:[],audit:[{time:todayISO(),unit:m.id,action:"Tạo dự thảo",note:"Tổng hợp tự động từ báo cáo của "+d.recips.length+" đơn vị (VB "+d.so+")",nguoi:memberLabel()}]};
+  try{await persistNew(draft)}catch(e){toast("Lỗi tạo dự thảo: "+e.message);return}
+  S.draftId=draft.id;
+  toast("Đã tổng hợp thành dự thảo báo cáo — rà soát, bổ sung đánh giá rồi trình/phát hành.");
+  nav("soan");S.draftId=draft.id;render();
+}
 /* ---------- Dữ liệu & sao lưu ---------- */
 function viewSystem(){
   const kb=Math.round((localStorage.getItem(LS_KEY)||"").length/1024);
@@ -1472,10 +1726,21 @@ async function cloudAfterLogin(user){
     liveRender()};
   FB.unsub.push(FB.fs.collection("docs").where("recipIds","array-contains",mine.id).onSnapshot(apply,e=>toast("Lỗi đồng bộ VB đến: "+e.message)));
   FB.unsub.push(FB.fs.collection("docs").where("from","==",mine.id).onSnapshot(apply,e=>toast("Lỗi đồng bộ VB đi: "+e.message)));
+  DB.targets=DB.targets||[];DB.events=DB.events||[];
+  const applyCol=(arr)=>s2=>{s2.docChanges().forEach(ch=>{
+      const d={id:ch.doc.id,...ch.doc.data()};
+      const i=arr.findIndex(x=>x.id===d.id);
+      if(ch.type==="removed"){if(i>=0)arr.splice(i,1)}
+      else if(i>=0)arr[i]=d;else arr.push(d)});
+    liveRender()};
+  FB.unsub.push(FB.fs.collection("targets").where("from","==",mine.id).onSnapshot(applyCol(DB.targets),()=>{}));
+  FB.unsub.push(FB.fs.collection("targets").where("unit","==",mine.id).onSnapshot(applyCol(DB.targets),()=>{}));
+  FB.unsub.push(FB.fs.collection("events").where("from","==",mine.id).onSnapshot(applyCol(DB.events),()=>{}));
+  FB.unsub.push(FB.fs.collection("events").where("moi","array-contains",mine.id).onSnapshot(applyCol(DB.events),()=>{}));
   render();
 }
 /* Không vẽ lại đè lên biểu mẫu người dùng đang nhập; dữ liệu mới sẽ hiện khi chuyển trang */
-function liveRender(){if(!DB.session)return;if(["soan","detail"].includes(S.view)||(S.view==="danhba"&&S.orgEdit)){S._stale=true;return}render()}
+function liveRender(){if(!DB.session)return;if(["soan","detail","chitieu","lich"].includes(S.view)||(S.view==="danhba"&&S.orgEdit)){S._stale=true;return}render()}
 /* Màn hình khởi tạo lần đầu: ghi cây đơn vị + bảng tra cứu tài khoản lên Firestore */
 function viewSetup(){
   const sample=JSON.stringify([
@@ -1508,6 +1773,7 @@ async function initUnits(){
 }
 
 /* ---------- init ---------- */
+try{const h=(location.hash||"").match(/#vb=([A-Za-z0-9]+)/);if(h)S.pendingDoc=h[1]}catch(e){}
 boot();
 </script>
 </body>
