@@ -172,7 +172,7 @@ tr.rowlink:hover td{background:#F7FAFE}
 <div class="toast" id="toast"></div>
 <script>
 /* =====================================================================
-   DoanOffice 2.5 — Hệ thống gửi/nhận & điều hành văn bản các cơ sở Đoàn
+   DoanOffice 3.0 — Hệ thống gửi/nhận & điều hành văn bản các cơ sở Đoàn
    - 100% chạy trên trình duyệt (HTML + JS thuần), triển khai tĩnh miễn phí
    - Dữ liệu lưu CỤC BỘ tại máy người dùng (localStorage / IndexedDB-ready)
    - Bản demo: toàn bộ đơn vị dùng chung kho dữ liệu trình duyệt để mô phỏng
@@ -218,7 +218,7 @@ let DB=null, S={view:"dashboard",tab:"choxuly",outTab:"all",docId:null,statFrom:
 /* ---------------- store ---------------- */
 function load(){try{DB=JSON.parse(localStorage.getItem(LS_KEY))}catch(e){DB=null}
   if(!DB||!DB.units){seed()}
-  DB.targets=DB.targets||[];DB.events=DB.events||[]; }
+  DB.targets=DB.targets||[];DB.events=DB.events||[];DB.library=DB.library||[]; }
 function save(){localStorage.setItem(LS_KEY,JSON.stringify(DB))}
 function uid(p){return p+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function seed(){
@@ -307,6 +307,9 @@ function seed(){
    {id:"t2",from:"td",unit:"tsd",ten:"Kết nạp đoàn viên mới",donvi:"đoàn viên",giao:400,dat:198,ky:"Năm 2026",updated:iso(now-5*D),logs:[]},
    {id:"t3",from:"td",unit:"hcl",ten:"Công trình thanh niên cấp huyện",donvi:"công trình",giao:12,dat:7,ky:"Năm 2026",updated:iso(now-3*D),logs:[]},
    {id:"t4",from:"hcl",unit:"xmt",ten:"Ngày hoạt động tình nguyện",donvi:"ngày",giao:24,dat:15,ky:"Năm 2026",updated:iso(now-1*D),logs:[]}];
+  DB.library=[
+   {id:"lb1",from:"td",ten:"Bộ nhận diện Chiến dịch TNTN Hè 2026 (logo, backdrop, avatar)",cat:"maus",link:"https://drive.google.com/drive/folders/vi-du",note:"Dùng thống nhất toàn tỉnh",time:iso(now-8*D),shareTo:["hcl","tsd","dkh"]},
+   {id:"lb2",from:"td",ten:"Mẫu hồ sơ kết nạp đoàn viên (đầy đủ biểu mẫu)",cat:"maus",link:"https://drive.google.com/drive/folders/vi-du-2",note:"",time:iso(now-20*D),shareTo:["hcl","tsd","dkh"]}];
   DB.events=[
    {id:"e1",from:"td",title:"Họp giao ban công tác Đoàn quý III",date:iso(now+2*D),time:"08:00",diaDiem:"Hội trường Tỉnh đoàn",loai:"hop",moi:["hcl","tsd","dkh"],note:"Thành phần: Bí thư các huyện, thị, thành đoàn"},
    {id:"e2",from:"hcl",title:"Ra quân Chiến dịch TNTN Hè đợt 2",date:iso(now+4*D),time:"06:30",diaDiem:"UBND xã Mỹ Thọ",loai:"chiendich",moi:["xmt","xbh"],note:"Mang cờ Đoàn, áo xanh tình nguyện"}];
@@ -625,7 +628,7 @@ function render(){
   if(!DB.session){app.innerHTML=viewLogin();return}
   if(members(me()).length&&!curMember()){app.innerHTML=viewPickMember();return}
   S._stale=false;
-  const views={dashboard:viewDashboard,vbden:viewInbox,vbdi:viewOutbox,soan:viewCompose,detail:viewDetail,thongke:viewStats,danhba:viewOrg,hethong:viewSystem,chitieu:viewTargets,lich:viewCalendar};
+  const views={dashboard:viewDashboard,vbden:viewInbox,vbdi:viewOutbox,soan:viewCompose,detail:viewDetail,thongke:viewStats,danhba:viewOrg,hethong:viewSystem,chitieu:viewTargets,lich:viewCalendar,timkiem:viewSearch,kho:viewLibrary};
   app.innerHTML=shell((views[S.view]||viewDashboard)());
   if(S.pendingDoc){const pid=S.pendingDoc;
     if(DB.docs.some(x=>x.id===pid)){S.pendingDoc=null;setTimeout(()=>openDoc(pid),0)}}
@@ -698,15 +701,17 @@ function shell(content){
       ${item("vbden","⬇","Văn bản đến",nChoXL||"")}
       ${item("vbdi","⬆","Văn bản đi")}
       ${item("soan","✎","Soạn & phát hành")}
+      ${item("timkiem","⌕","Tìm kiếm toàn văn")}
       <h6>Theo dõi</h6>
       ${item("thongke","▤","Báo cáo · Thống kê",nQuaHan?nQuaHan:"")}
       ${item("chitieu","◎","Chỉ tiêu · KPI")}
       ${item("lich","▦","Lịch công tác")}
+      ${item("kho","🗀","Kho tài liệu")}
       ${item("danhba","☷","Sơ đồ tổ chức")}
       <h6>Quản trị</h6>
       ${item("hethong","⚙","Dữ liệu & sao lưu")}
     </nav>
-    <div class="side-foot">${MODE==="cloud"?"● Đồng bộ Firestore · offline-first":"Dữ liệu lưu cục bộ trên máy này"}<br>DoanOffice 2.5 · mã nguồn mở</div>
+    <div class="side-foot">${MODE==="cloud"?"● Đồng bộ Firestore · offline-first":"Dữ liệu lưu cục bộ trên máy này"}<br>DoanOffice 3.0 · mã nguồn mở</div>
    </aside>
    <div class="main">
     <div class="topbar">
@@ -912,6 +917,11 @@ function viewCompose(){
         ?`<button class="btn btn-primary" onclick="composeSave('publish')">📨 Phát hành & gửi ngay</button>`
         :`<button class="btn btn-primary" onclick="composeSave('trinh')">📮 Trình Bí thư / PBT duyệt</button>`}
     </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+      <button class="btn btn-ghost btn-sm" id="ai-draft-btn" onclick="aiDraft()">✨ AI soạn giúp</button>
+      <button class="btn btn-ghost btn-sm" id="ai-sug-btn" onclick="aiSuggest()">✨ AI gợi ý nơi nhận & hạn</button>
+    </div>
+    <div class="small" id="ai-sug-out" style="margin-top:6px"></div>
     <div class="hint" style="margin-top:8px">${isApprover()
       ?"Bạn có quyền phê duyệt nên được phát hành trực tiếp; số ký hiệu cấp tự động lúc phát hành."
       :"Vai "+(curMember()?ROLES[curMember().role]:"cán bộ")+" soạn và trình; Bí thư / Phó Bí thư sẽ phê duyệt, phát hành (khi đó văn bản mới được cấp số và gửi đi)."}</div>
@@ -1026,6 +1036,15 @@ function viewDetail(){
      </table>
      ${d.noiDung?`<div style="border-top:1px dashed var(--line);margin-top:10px;padding-top:10px;white-space:pre-wrap">${esc(d.noiDung)}</div>`:""}
     </div></div>
+    ${(st==="phathanh"||st==="thuhoi")&&(isSender||r)?`<div class="card"><div class="card-b" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <span class="small muted">Công cụ:</span>
+      <button class="btn btn-ghost btn-sm" id="ai-sum-btn" onclick="aiSummarize('${d.id}')">✨ Tóm tắt AI</button>
+      ${d.file&&d.file.dataUrl&&d.file.dataUrl.startsWith("data:image")?`<button class="btn btn-ghost btn-sm" onclick="ocrDoc('${d.id}')">🔎 OCR tệp scan</button>`:""}
+      <span class="small" id="ocr-doc-status" style="color:var(--warn)"></span>
+      ${S.aiOut&&S.aiOut.id===d.id?`</div><div class="card-b" style="border-top:1px dashed var(--line);white-space:pre-wrap;background:#FFFDF4">✨ <b>Tóm tắt AI</b> <span class="small muted">(tham khảo — đối chiếu văn bản gốc)</span>
+${esc(S.aiOut.text)}`:""}
+      ${d.ocrText?`</div><div class="card-b" style="border-top:1px dashed var(--line)"><div class="eyebrow" style="margin-bottom:4px">Nội dung OCR (đã lập chỉ mục tìm kiếm)</div><div class="small" style="white-space:pre-wrap;max-height:180px;overflow:auto">${esc(d.ocrText)}</div>`:""}
+    </div></div>`:""}
     ${actions}
     ${senderBar}
     ${assignBox}
@@ -1647,6 +1666,223 @@ async function buildSummaryReport(id){
   toast("Đã tổng hợp thành dự thảo báo cáo — rà soát, bổ sung đánh giá rồi trình/phát hành.");
   nav("soan");S.draftId=draft.id;render();
 }
+/* ============ GIAI ĐOẠN 3.0 — TÌM KIẾM TOÀN VĂN ============ */
+function searchCorpus(){
+  const seen=new Set(),out=[];
+  [...myInbox(),...myOutbox()].forEach(d=>{if(!seen.has(d.id)){seen.add(d.id);out.push(d)}});
+  return out;
+}
+function viewSearch(){
+  const q=(S.sq||"").trim().toLowerCase();
+  let res=[];
+  if(q){
+    searchCorpus().forEach(d=>{
+      const fields=[["Số ký hiệu",d.so],["Trích yếu",d.trichYeu],["Nội dung",d.noiDung],["OCR",d.ocrText]];
+      (d.comments||[]).forEach(c=>fields.push(["Trao đổi",c.text]));
+      d.recips.forEach(r=>(r.reports||[]).forEach(rp=>fields.push(["Báo cáo",rp.content])));
+      for(const[label,val]of fields){
+        if(val&&val.toLowerCase().includes(q)){
+          const i=val.toLowerCase().indexOf(q);
+          const snip=val.slice(Math.max(0,i-55),i+q.length+70);
+          res.push({d,label,snip});break;}}});
+  }
+  return `
+  <div class="page-head"><div><div class="eyebrow">Tìm trong trích yếu · nội dung · báo cáo · trao đổi · OCR</div><h2>Tìm kiếm toàn văn</h2></div></div>
+  <div class="card"><div class="card-b">
+    <input style="width:100%;padding:11px 14px;border:2px solid var(--doan);border-radius:10px;font-size:1rem" placeholder="Nhập từ khóa… (vd: tình nguyện, kết nạp, 12/KH)"
+      value="${esc(S.sq||"")}" oninput="S.sq=this.value;render();this.focus();this.setSelectionRange(this.value.length,this.value.length)">
+    ${q?`<div class="small muted" style="margin:10px 0 4px">Tìm thấy <b>${res.length}</b> văn bản khớp “${esc(S.sq)}”.</div>
+    ${res.map(x=>`<div class="report-item" style="cursor:pointer" onclick="openDoc('${x.d.id}')">
+      <div class="rp-h"><b style="color:var(--doan-deep)">${esc(x.d.so||"(dự thảo)")}</b> · ${esc((unit(x.d.from)||{}).short||"?")} · ${fmtD(x.d.ngayBH)} · khớp ở <b>${x.label}</b></div>
+      <span class="doc-title">${esc(x.d.trichYeu)}</span>
+      <div class="small muted" style="margin-top:2px">…${esc(x.snip)}…</div></div>`).join("")||'<div class="empty">Không có kết quả. Thử từ khóa khác hoặc chạy OCR cho tệp scan để tìm được trong ảnh.</div>'}`
+    :'<div class="hint" style="margin-top:10px">Tìm cùng lúc trong mọi văn bản đơn vị gửi/nhận: số ký hiệu, trích yếu, nội dung, báo cáo của cấp dưới, trao đổi và cả nội dung đã OCR từ ảnh scan.</div>'}
+  </div></div>
+  <div class="card"><div class="card-h"><h3>OCR — Trích xuất chữ từ ảnh scan (tiếng Việt)</h3></div><div class="card-b">
+    <div class="small muted" style="margin-bottom:10px">Chọn ảnh chụp/scan công văn (JPG/PNG). Toàn bộ nhận dạng chạy ngay trên máy bạn (Tesseract.js) — không gửi đi đâu, miễn phí. Lần đầu sẽ tải bộ nhận dạng tiếng Việt (~vài chục giây).</div>
+    <input type="file" accept="image/*" onchange="ocrPickFile(this)">
+    <div class="small" id="ocr-status" style="margin:8px 0;color:var(--warn)"></div>
+    <textarea id="ocr-out" rows="8" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:.85rem" placeholder="Kết quả OCR hiện tại đây — sao chép vào văn bản hoặc dùng để tìm kiếm."></textarea>
+  </div></div>`;
+}
+/* ---------- OCR engine (nạp Tesseract.js khi cần) ---------- */
+function loadTesseract(){
+  if(typeof Tesseract!=="undefined")return Promise.resolve();
+  return new Promise((res,rej)=>{
+    const sc=document.createElement("script");
+    sc.src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.0/tesseract.min.js";
+    sc.onload=res;sc.onerror=()=>rej(new Error("Không tải được Tesseract.js — cần kết nối mạng."));
+    document.head.appendChild(sc);});
+}
+async function runOCR(imgSrc,statusEl){
+  const st=t=>{if(statusEl)statusEl.textContent=t};
+  st("Đang nạp bộ nhận dạng…");
+  await loadTesseract();
+  const r=await Tesseract.recognize(imgSrc,"vie",{logger:m=>{
+    if(m.status==="recognizing text")st("Đang nhận dạng… "+Math.round((m.progress||0)*100)+"%");
+    else st(m.status||"…");}});
+  st("");return (r.data.text||"").trim();
+}
+function ocrPickFile(inp){
+  const f=inp.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=async()=>{
+    const stEl=document.getElementById("ocr-status"),out=document.getElementById("ocr-out");
+    try{const text=await runOCR(rd.result,stEl);out.value=text;toast("OCR xong: "+text.length+" ký tự.")}
+    catch(e){if(stEl)stEl.textContent="";toast("Lỗi OCR: "+e.message)}};
+  rd.readAsDataURL(f);
+}
+async function ocrDoc(id){
+  const d=DB.docs.find(x=>x.id===id);
+  if(!d||!d.file||!d.file.dataUrl||!d.file.dataUrl.startsWith("data:image")){toast("Chỉ OCR được tệp ảnh lưu kèm văn bản.");return}
+  const stEl=document.getElementById("ocr-doc-status");
+  try{
+    const text=await runOCR(d.file.dataUrl,stEl);
+    d.ocrText=text;audit(d,"OCR trích xuất nội dung",text.length+" ký tự");
+    commit(d);if(MODE==="local")save();
+    toast("Đã OCR và lập chỉ mục tìm kiếm ("+text.length+" ký tự).");render();
+  }catch(e){if(stEl)stEl.textContent="";toast("Lỗi OCR: "+e.message)}
+}
+
+/* ============ GIAI ĐOẠN 3.0 — TRỢ LÝ AI (kiến trúc plugin) ============ */
+/* Nhà cung cấp mặc định: Google Gemini (gói miễn phí). Khóa API lưu CỤC BỘ
+   trên máy này (localStorage), không đưa lên Firestore. Đổi nhà cung cấp:
+   chỉ cần thay hàm aiCall — đúng nguyên tắc AI Module độc lập. */
+function aiKey(){try{return localStorage.getItem("do_ai_key")||""}catch(e){return ""}}
+function setAiKey(){
+  const v=(document.getElementById("ai-key")||{}).value||"";
+  try{if(v.trim())localStorage.setItem("do_ai_key",v.trim());else localStorage.removeItem("do_ai_key")}catch(e){}
+  toast(v.trim()?"Đã lưu khóa AI trên máy này.":"Đã gỡ khóa AI.");render();
+}
+async function aiCall(prompt){
+  const key=aiKey();
+  if(!key)throw new Error("NOKEY");
+  const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key="+encodeURIComponent(key),{
+    method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.4,maxOutputTokens:1400}})});
+  if(!r.ok){throw new Error("AI API lỗi "+r.status+(r.status===400||r.status===403?" — kiểm tra lại khóa API":""))}
+  const j=await r.json();
+  const c=(j.candidates||[])[0];
+  return ((c&&c.content&&c.content.parts)||[]).map(x=>x.text||"").join("").trim();
+}
+function aiNoKeyMsg(){toast("Chưa có khóa AI. Vào Dữ liệu & sao lưu → Trợ lý AI để dán khóa Gemini miễn phí (aistudio.google.com).")}
+async function aiSummarize(id){
+  const d=DB.docs.find(x=>x.id===id);if(!d)return;
+  const btn=document.getElementById("ai-sum-btn");if(btn){btn.disabled=true;btn.textContent="✨ Đang tóm tắt…"}
+  try{
+    const reports=d.recips.flatMap(r=>(r.reports||[]).map(rp=>((unit(r.unit)||{}).short||"?")+" ("+rp.progress+"%): "+rp.content)).join("\n");
+    const text=await aiCall(
+`Bạn là trợ lý văn phòng của tổ chức Đoàn TNCS Hồ Chí Minh. Tóm tắt văn bản sau thành tối đa 5 gạch đầu dòng tiếng Việt, ngắn gọn, nêu rõ: nội dung chính, yêu cầu, hạn xử lý (nếu có), tình hình thực hiện.
+--- VĂN BẢN ---
+Số: ${d.so||"(dự thảo)"} | Loại: ${LOAI[d.loai][1]} | Ban hành: ${(unit(d.from)||{}).name||""} ngày ${fmtD(d.ngayBH)} | Hạn xử lý: ${d.hanXuLy?fmtD(d.hanXuLy):"không"}
+Trích yếu: ${d.trichYeu}
+Nội dung: ${d.noiDung||"(không có)"}
+${d.ocrText?"Nội dung OCR từ tệp scan: "+d.ocrText.slice(0,3000):""}
+${reports?"Báo cáo của các đơn vị:\n"+reports:""}`);
+    S.aiOut={id,text};render();
+  }catch(e){if(e.message==="NOKEY")aiNoKeyMsg();else toast(e.message);if(btn){btn.disabled=false;btn.textContent="✨ Tóm tắt AI"}}
+}
+async function aiDraft(){
+  const ty=(document.getElementById("c-ty")||{}).value||"";
+  const loai=(document.getElementById("c-loai")||{}).value||"congvan";
+  if(!ty.trim()){toast("Nhập trích yếu trước, AI sẽ soạn nội dung theo trích yếu.");return}
+  const btn=document.getElementById("ai-draft-btn");if(btn){btn.disabled=true;btn.textContent="✨ Đang soạn…"}
+  try{
+    const text=await aiCall(
+`Bạn là cán bộ văn phòng ${me().name} (tổ chức Đoàn TNCS Hồ Chí Minh). Soạn NỘI DUNG (phần thân, không cần quốc hiệu/chữ ký) cho ${LOAI[loai][1]} với trích yếu: "${ty}".
+Yêu cầu: văn phong hành chính của Đoàn, bố cục mục La Mã (Mục đích - yêu cầu / Nội dung / Tổ chức thực hiện... tùy loại), số liệu để trống dạng "…", tối đa 350 từ, chỉ trả về nội dung thuần không markdown.`);
+    const nd=document.getElementById("c-nd");if(nd)nd.value=text;
+    toast("AI đã soạn xong — rà soát, chỉnh sửa trước khi trình/phát hành.");
+  }catch(e){if(e.message==="NOKEY")aiNoKeyMsg();else toast(e.message)}
+  finally{if(btn){btn.disabled=false;btn.textContent="✨ AI soạn giúp"}}
+}
+async function aiSuggest(){
+  const m=me();
+  const ty=(document.getElementById("c-ty")||{}).value||"";
+  const nd=(document.getElementById("c-nd")||{}).value||"";
+  if(!ty.trim()){toast("Nhập trích yếu trước để AI phân tích.");return}
+  const cands=[...children(m.id),...siblings(m),...(m.parent&&unit(m.parent)?[unit(m.parent)]:[])];
+  const btn=document.getElementById("ai-sug-btn");if(btn){btn.disabled=true;btn.textContent="✨ Đang phân tích…"}
+  try{
+    const raw=await aiCall(
+`Hôm nay là ${todayISO()}. Đơn vị soạn: ${m.name}. Danh sách đơn vị có thể nhận văn bản (id | tên | quan hệ):
+${cands.map(u=>u.id+" | "+u.name+" | "+(u.parent===m.id?"trực thuộc":(u.id===m.parent?"cấp trên":"ngang cấp"))).join("\n")}
+Văn bản: "${ty}". Nội dung: "${nd.slice(0,800)}"
+Hãy đề xuất nơi nhận phù hợp và hạn xử lý hợp lý (tính chất khẩn thì hạn ngắn). CHỈ trả về JSON đúng định dạng: {"donvi":["id",...],"han":"YYYY-MM-DD","lydo":"ngắn gọn 1 câu"}`);
+    const jm=raw.match(/\{[\s\S]*\}/);if(!jm)throw new Error("AI trả lời không đúng định dạng.");
+    const sug=JSON.parse(jm[0]);
+    sug.donvi=(sug.donvi||[]).filter(id=>cands.some(u=>u.id===id));
+    S.aiSug=sug;
+    /* áp dụng ngay trên form, không vẽ lại để giữ nội dung đang nhập */
+    sug.donvi.forEach(id=>{const cb=[...document.querySelectorAll(".recip-cb")].find(x=>x.value===id);if(cb)cb.checked=true});
+    if(sug.han&&/^\d{4}-\d{2}-\d{2}$/.test(sug.han)){const h=document.getElementById("c-han");if(h)h.value=sug.han}
+    const box=document.getElementById("ai-sug-out");
+    if(box)box.innerHTML='✨ <b>AI đề xuất:</b> gửi '+(sug.donvi.map(id=>esc((unit(id)||{}).short||id)).join(", ")||"—")
+      +(sug.han?' · hạn <b>'+esc(fmtD(sug.han))+'</b>':'')+(sug.lydo?' · <span class="muted">'+esc(sug.lydo)+'</span>':'')
+      +' <span class="muted">(đã tự tích chọn — bạn toàn quyền sửa lại)</span>';
+  }catch(e){if(e.message==="NOKEY")aiNoKeyMsg();else toast(e.message)}
+  finally{if(btn){btn.disabled=false;btn.textContent="✨ AI gợi ý nơi nhận & hạn"}}
+}
+
+/* ============ GIAI ĐOẠN 3.0 — KHO TÀI LIỆU ============ */
+const LIBCAT={maus:"Biểu mẫu · nhận diện",hoso:"Hồ sơ · tài liệu",anh:"Ảnh · media hoạt động",khac:"Khác"};
+function myLibrary(){const m=DB.session;return (DB.library||[]).filter(x=>x.from===m||(x.shareTo||[]).includes(m))}
+function viewLibrary(){
+  const m=me();
+  const items=myLibrary().sort((a,b)=>(b.time||"").localeCompare(a.time||""));
+  const cats={};items.forEach(x=>{(cats[x.cat||"khac"]=cats[x.cat||"khac"]||[]).push(x)});
+  const share=[...children(m.id),...siblings(m),...(m.parent&&unit(m.parent)&&!unit(m.parent).deleted?[unit(m.parent)]:[])];
+  return `
+  <div class="page-head"><div><div class="eyebrow">Biểu mẫu, hồ sơ, media dùng chung theo nhánh</div><h2>Kho tài liệu</h2></div></div>
+  <div class="detail-grid">
+  <div>
+   ${Object.keys(cats).length?Object.entries(cats).map(([c,arr])=>`
+    <div class="card"><div class="card-h"><h3>${LIBCAT[c]||c} (${arr.length})</h3></div><div class="card-b">
+     ${arr.map(x=>`<div class="report-item" style="border-left-color:var(--doan)">
+       <div class="rp-h"><b style="color:var(--doan-deep)">${esc((unit(x.from)||{}).short||"?")}</b> · ${fmtD(x.time)}
+        ${x.from===m.id?`<button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="delLibItem('${x.id}')">🗑</button>`:""}</div>
+       ${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">🔗 ${esc(x.ten)}</a>`:`<b>${esc(x.ten)}</b>`}
+       ${x.note?`<div class="small muted" style="margin-top:2px">${esc(x.note)}</div>`:""}
+       ${x.from===m.id&&(x.shareTo||[]).length?`<div class="small" style="margin-top:3px">${x.shareTo.map(u=>`<span class="tag-org">${esc((unit(u)||{}).short||"?")}</span>`).join("")}</div>`:""}
+     </div>`).join("")}
+    </div></div>`).join("")
+   :'<div class="card"><div class="card-b empty">Kho trống. Thêm biểu mẫu, bộ nhận diện, hồ sơ ở khung bên phải — chia sẻ một lần, cả nhánh dùng chung.</div></div>'}
+  </div>
+  <div class="card"><div class="card-h"><h3>Thêm tài liệu</h3></div><div class="card-b">
+    <div class="field"><label>Tên tài liệu *</label><input id="lb-ten" placeholder="vd: Mẫu báo cáo tháng"></div>
+    <div class="form-grid">
+      <div class="field"><label>Phân loại</label><select id="lb-cat">${Object.entries(LIBCAT).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select></div>
+      <div class="field"><label>Ghi chú</label><input id="lb-note"></div>
+    </div>
+    <div class="field"><label>Liên kết Google Drive *</label><input id="lb-link" placeholder="https://drive.google.com/… (bật chia sẻ: ai có liên kết đều xem được)"></div>
+    ${share.length?`<div class="recip-group"><h5>Chia sẻ cho đơn vị</h5>
+      ${share.map(u=>`<label class="recip-row"><input type="checkbox" class="lb-cb" value="${u.id}" ${u.parent===m.id?"checked":""}> ${esc(u.name)}</label>`).join("")}</div>`:""}
+    <button class="btn btn-primary" onclick="addLibItem()">＋ Đưa vào kho</button>
+    <div class="hint" style="margin-top:8px">Tệp nằm trên Google Drive (15GB miễn phí/tài khoản) — kho chỉ lưu liên kết nên nhẹ và không tốn hạn mức Firestore.</div>
+  </div></div></div>`;
+}
+async function addLibItem(){
+  const m=me(),g=id=>{const el=document.getElementById(id);return el?el.value.trim():""};
+  const ten=g("lb-ten"),link=g("lb-link");
+  if(!ten||!link){toast("Nhập tên tài liệu và liên kết Drive.");return}
+  const x={id:uid("lb"),from:m.id,ten,cat:g("lb-cat")||"khac",link,note:g("lb-note"),time:todayISO(),
+    shareTo:[...document.querySelectorAll(".lb-cb:checked")].map(c=>c.value)};
+  (DB.library=DB.library||[]).push(x);
+  if(MODE==="local"){save()}
+  else{try{await FB.fs.collection("library").doc(x.id).set(JSON.parse(JSON.stringify(x)))}
+    catch(e){DB.library.pop();toast("Lỗi lưu: "+e.message);return}}
+  orgLog("Thêm tài liệu vào kho","",ten+(x.shareTo.length?" (chia sẻ "+x.shareTo.length+" đơn vị)":""));
+  toast("Đã đưa “"+ten+"” vào kho.");render();
+}
+async function delLibItem(id){
+  const x=(DB.library||[]).find(t=>t.id===id);
+  if(!x||x.from!==DB.session)return;
+  if(!confirm("Gỡ “"+x.ten+"” khỏi kho? (Tệp trên Drive không bị xóa)"))return;
+  if(MODE==="cloud"){try{await FB.fs.collection("library").doc(id).delete()}catch(e){toast("Lỗi: "+e.message);return}}
+  DB.library=DB.library.filter(t=>t.id!==id);if(MODE==="local")save();
+  toast("Đã gỡ khỏi kho.");render();
+}
+
 /* ---------- Dữ liệu & sao lưu ---------- */
 function viewSystem(){
   const kb=Math.round((localStorage.getItem(LS_KEY)||"").length/1024);
@@ -1664,10 +1900,19 @@ function viewSystem(){
     <div style="border-top:1px dashed var(--line);margin-top:16px;padding-top:12px">
       <button class="btn btn-danger btn-sm" onclick="resetDemo()">Xóa dữ liệu & nạp lại bản mẫu</button></div>
   </div></div>`;
+  const aiCard=`<div class="card"><div class="card-h"><h3>Trợ lý AI (plugin — Gemini miễn phí)</h3></div><div class="card-b small">
+    <p style="margin-bottom:8px">AI dùng để <b>tóm tắt văn bản</b>, <b>soạn giúp nội dung</b> và <b>gợi ý nơi nhận, hạn xử lý</b>. Lấy khóa miễn phí tại <b>aistudio.google.com</b> (Get API key), dán vào đây. Khóa chỉ lưu <b>trên máy này</b>, không đưa lên máy chủ; mỗi máy/mỗi cán bộ dùng khóa riêng.</p>
+    <div class="field"><label>Khóa API Gemini ${aiKey()?'<span style="color:var(--ok)">· ĐANG BẬT</span>':'<span class="muted">· chưa cấu hình</span>'}</label>
+      <input id="ai-key" type="password" value="${esc(aiKey())}" placeholder="AIza…"></div>
+    <button class="btn btn-primary btn-sm" onclick="setAiKey()">Lưu khóa</button>
+    <button class="btn btn-ghost btn-sm" style="margin-left:6px" onclick="(document.getElementById('ai-key')||{}).value='';setAiKey()">Gỡ khóa</button>
+    <div class="hint" style="margin-top:8px">Không có khóa, mọi tính năng khác vẫn hoạt động bình thường — AI là mô-đun gắn thêm, đúng kiến trúc plugin. Nội dung gửi tới AI gồm trích yếu/nội dung văn bản bạn đang thao tác; cân nhắc với văn bản nhạy cảm.</div>
+  </div></div>`;
   return `
   <div class="page-head"><div><div class="eyebrow">Quản trị</div><h2>Dữ liệu & sao lưu</h2></div></div>
   <div class="detail-grid">
   ${storeCard}
+  ${aiCard}
   <div class="card"><div class="card-h"><h3>Triển khai thật (miễn phí 100%)</h3></div><div class="card-b small">
     <p style="margin-bottom:8px">Bản demo này mô phỏng máy chủ bằng bộ nhớ trình duyệt. Khi triển khai cho nhiều đơn vị dùng chung, giữ nguyên giao diện và thay lớp lưu trữ:</p>
     <p style="margin-bottom:6px">① <b>GitHub Pages / Cloudflare Pages</b> — phát hành trang web tĩnh, miễn phí, có HTTPS.</p>
@@ -1737,10 +1982,13 @@ async function cloudAfterLogin(user){
   FB.unsub.push(FB.fs.collection("targets").where("unit","==",mine.id).onSnapshot(applyCol(DB.targets),()=>{}));
   FB.unsub.push(FB.fs.collection("events").where("from","==",mine.id).onSnapshot(applyCol(DB.events),()=>{}));
   FB.unsub.push(FB.fs.collection("events").where("moi","array-contains",mine.id).onSnapshot(applyCol(DB.events),()=>{}));
+  DB.library=DB.library||[];
+  FB.unsub.push(FB.fs.collection("library").where("from","==",mine.id).onSnapshot(applyCol(DB.library),()=>{}));
+  FB.unsub.push(FB.fs.collection("library").where("shareTo","array-contains",mine.id).onSnapshot(applyCol(DB.library),()=>{}));
   render();
 }
 /* Không vẽ lại đè lên biểu mẫu người dùng đang nhập; dữ liệu mới sẽ hiện khi chuyển trang */
-function liveRender(){if(!DB.session)return;if(["soan","detail","chitieu","lich"].includes(S.view)||(S.view==="danhba"&&S.orgEdit)){S._stale=true;return}render()}
+function liveRender(){if(!DB.session)return;if(["soan","detail","chitieu","lich","timkiem","kho"].includes(S.view)||(S.view==="danhba"&&S.orgEdit)){S._stale=true;return}render()}
 /* Màn hình khởi tạo lần đầu: ghi cây đơn vị + bảng tra cứu tài khoản lên Firestore */
 function viewSetup(){
   const sample=JSON.stringify([
@@ -1772,6 +2020,17 @@ async function initUnits(){
   }catch(e){toast("Lỗi ghi Firestore: "+e.message+" — kiểm tra đã áp dụng luật bootstrap chưa.")}
 }
 
+/* ---------- Lớp tích hợp mở (Open Integration Layer) ----------
+   Các hệ thống khác / connector tương lai (iOffice tỉnh, Zalo bot…)
+   truy cập qua window.DoanOffice — không đụng vào lõi. */
+window.DoanOffice={
+  version:"3.0",
+  unit:()=>DB&&DB.session?{...me()}:null,
+  docs:()=>DB?JSON.parse(JSON.stringify(searchCorpus())):[],
+  targets:()=>DB?JSON.parse(JSON.stringify([...myTargets(),...myAssignedTargets()])):[],
+  openDoc:(id)=>openDoc(id),
+  exportAll:()=>backupJSON()
+};
 /* ---------- init ---------- */
 try{const h=(location.hash||"").match(/#vb=([A-Za-z0-9]+)/);if(h)S.pendingDoc=h[1]}catch(e){}
 boot();
