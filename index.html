@@ -74,13 +74,15 @@ a{color:var(--doan)}
 .side-foot{padding:12px 16px;font-size:.68rem;opacity:.6;border-top:1px solid rgba(255,255,255,.12);position:relative;z-index:1}
 
 .main{display:flex;flex-direction:column;min-width:0}
-.topbar{background:var(--card);border-bottom:1px solid var(--line);padding:10px 26px;display:flex;align-items:center;gap:14px}
+.topbar{background:var(--card);border-bottom:1px solid var(--line);padding:10px 30px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:40}
 .topbar .unit{font-weight:700;color:var(--doan-deep);font-size:1.02rem}
 .topbar .unit small{display:block;font-weight:400;color:var(--muted);font-size:.72rem}
 .topbar .spacer{flex:1}
 .userbox{display:flex;align-items:center;gap:9px;font-size:.85rem}
 .avatar{width:32px;height:32px;border-radius:50%;background:var(--doan);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.82rem}
-.content{padding:24px 26px 40px;max-width:1220px;width:100%}
+.content{padding:22px 30px 44px;max-width:1760px;width:100%;margin:0 auto}
+@media(min-width:1500px){.grid-4{grid-template-columns:repeat(4,1fr)}.detail-grid{grid-template-columns:1.9fr 1fr;gap:22px}html{font-size:15.5px}}
+@media(min-width:1900px){.content{padding:26px 44px 50px}}
 
 .page-head{display:flex;align-items:flex-end;gap:14px;margin-bottom:18px;flex-wrap:wrap}
 .page-head h2{font-size:1.32rem;color:var(--doan-deep);letter-spacing:-.01em}
@@ -172,7 +174,7 @@ tr.rowlink:hover td{background:#F7FAFE}
 <div class="toast" id="toast"></div>
 <script>
 /* =====================================================================
-   DoanOffice 3.0 — Hệ thống gửi/nhận & điều hành văn bản các cơ sở Đoàn
+   DoanOffice 3.6 — Hệ thống gửi/nhận & điều hành văn bản các cơ sở Đoàn
    - 100% chạy trên trình duyệt (HTML + JS thuần), triển khai tĩnh miễn phí
    - Dữ liệu lưu CỤC BỘ tại máy người dùng (localStorage / IndexedDB-ready)
    - Bản demo: toàn bộ đơn vị dùng chung kho dữ liệu trình duyệt để mô phỏng
@@ -237,7 +239,8 @@ function seed(){
   const mk=(o)=>{DB.docs.push(o)};
   mk({id:"d1",so:"12/KH-TĐĐT",loai:"kehoach",trichYeu:"Kế hoạch tổ chức Chiến dịch Thanh niên tình nguyện Hè năm 2026",
     noiDung:"Yêu cầu các huyện, thị, thành đoàn xây dựng kế hoạch triển khai tại địa phương; thành lập đội hình tình nguyện; báo cáo tiến độ hằng tuần về Ban Phong trào Tỉnh đoàn.",
-    from:"td",ngayBH:iso(now-6*D),doKhan:"khan",hanXuLy:iso(now+4*D),yeuCauBaoCao:true,file:{name:"KH12-TNTN-He2026.pdf",size:412000},replyTo:null,
+    from:"td",ngayBH:iso(now-6*D),doKhan:"khan",hanXuLy:iso(now+4*D),yeuCauBaoCao:true,
+    files:[{name:"KH12-TNTN-He2026.pdf",size:412000},{name:"Phụ lục 1 - Phân bổ chỉ tiêu đội hình.xlsx",size:0,link:"https://drive.google.com/vi-du-phu-luc"}],replyTo:null,
     recips:[
       {unit:"hcl",role:"XLC",status:"dangxuly",receivedAt:iso(now-6*D),viewed:true,progress:60,reports:[
         {time:iso(now-3*D),progress:30,content:"Đã ban hành kế hoạch triển khai của Huyện đoàn, thành lập 05 đội hình tình nguyện."},
@@ -266,6 +269,7 @@ function seed(){
   mk({id:"d3",so:"08/KH-HĐCL",loai:"kehoach",trichYeu:"Triển khai Chiến dịch TNTN Hè 2026 trên địa bàn huyện Cao Lãnh",
     noiDung:"Cụ thể hóa Kế hoạch số 12/KH-TĐĐT của Tỉnh đoàn. Các đoàn xã đăng ký ít nhất 01 công trình thanh niên; báo cáo về Huyện đoàn trước 17h thứ Sáu hằng tuần.",
     from:"hcl",ngayBH:iso(now-4*D),doKhan:"khan",hanXuLy:iso(now+3*D),yeuCauBaoCao:true,file:{name:"KH08-HDCL.pdf",size:230000},replyTo:"d1",
+    attachedDocs:[{id:"d1",so:"12/KH-TĐĐT",trichYeu:"Kế hoạch tổ chức Chiến dịch Thanh niên tình nguyện Hè năm 2026",ngayBH:iso(now-6*D),from:"td",loai:"kehoach",fileLink:"https://drive.google.com/vi-du-phu-luc"}],
     recips:[
       {unit:"xmt",role:"XLC",status:"dangxuly",receivedAt:iso(now-4*D),viewed:true,progress:50,reports:[
         {time:iso(now-1*D),progress:50,content:"Đã ra quân vệ sinh môi trường tuyến kênh Nguyễn Văn Tiếp, 60 ĐVTN tham gia."}]},
@@ -385,7 +389,7 @@ function logout(){
   if(MODE==="cloud"){FB.unsub.forEach(f=>f());FB.unsub=[];DB.session=null;FB.auth.signOut();render();return}
   DB.session=null;save();render();
 }
-function nav(v,extra){S.view=v;S.bell=false;if(v!=="danhba")S.orgEdit=null;if(v!=="soan")S.draftId=null;if(extra)Object.assign(S,extra);render();window.scrollTo(0,0)}
+function nav(v,extra){S.view=v;S.bell=false;if(v!=="danhba")S.orgEdit=null;if(v!=="soan"){S.draftId=null;S.quick=false}if(extra)Object.assign(S,extra);render();window.scrollTo(0,0)}
 /* commit(d): ghi một văn bản đã thay đổi.
    - local  : lưu toàn bộ DB vào localStorage
    - cloud  : ghi đúng document đó lên Firestore (các máy khác nhận qua onSnapshot) */
@@ -407,14 +411,64 @@ function receiveDoc(id){
   const d=DB.docs.find(x=>x.id===id),r=myRecip(d);if(!r)return;
   r.status="dangxuly";r.receivedAt=todayISO();audit(d,"Tiếp nhận văn bản","Bắt đầu xử lý");commit(d);toast("Đã tiếp nhận văn bản "+d.so);render();
 }
-function submitReport(id){
+/* Nén ảnh minh chứng: co về tối đa 900px, JPEG ~72% */
+function compressImage(file){
+  return new Promise((res,rej)=>{
+    const rd=new FileReader();
+    rd.onload=()=>{const img=new Image();
+      img.onload=()=>{try{
+        const MAX=900,ratio=Math.min(1,MAX/Math.max(img.width,img.height));
+        const cv=document.createElement("canvas");
+        cv.width=Math.round(img.width*ratio);cv.height=Math.round(img.height*ratio);
+        cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);
+        res(cv.toDataURL("image/jpeg",0.72));
+      }catch(e){rej(e)}};
+      img.onerror=()=>rej(new Error("Không đọc được ảnh "+file.name));
+      img.src=rd.result;};
+    rd.onerror=()=>rej(new Error("Không đọc được tệp."));
+    rd.readAsDataURL(file);});
+}
+async function collectReportMedia(){
+  const media=[];
+  const inp=document.getElementById("rp-imgs");
+  const files=inp&&inp.files?[...inp.files].slice(0,4):[];
+  for(const f of files){
+    try{media.push({type:"img",name:f.name,dataUrl:await compressImage(f)})}
+    catch(e){toast("Bỏ qua ảnh "+f.name+": "+e.message)}}
+  const lk=((document.getElementById("rp-mlink")||{}).value||"").trim();
+  if(lk)media.push({type:"link",name:lk.includes("youtu")?"Video minh chứng":"Tệp minh chứng (liên kết)",url:lk});
+  return media;
+}
+function mediaHTML(m,docId,ui,ri){
+  if(!m||!m.length)return "";
+  return '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center">'
+   +m.map((x,mi)=>x.type==="img"
+     ?`<img src="${x.dataUrl}" title="${esc(x.name||"Ảnh minh chứng")}" style="height:56px;border-radius:6px;border:1px solid var(--line);cursor:zoom-in" onclick="event.stopPropagation();openEvidence('${docId}',${ui},${ri},${mi})">`
+     :`<a href="${esc(x.url)}" target="_blank" rel="noopener" class="tag-org" onclick="event.stopPropagation()">🎬 ${esc(x.name)}</a>`).join("")
+   +'</div>';
+}
+function openEvidence(docId,ui,ri,mi){
+  const d=DB.docs.find(x=>x.id===docId);if(!d)return;
+  const m=(((d.recips[ui]||{}).reports||[])[ri]||{}).media;const x=m&&m[mi];
+  if(!x||x.type!=="img")return;
+  const w=window.open("","_blank");
+  if(w){w.document.write('<title>'+esc(x.name||"Minh chứng")+'</title><body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="'+x.dataUrl+'" style="max-width:100%;max-height:100vh"></body>');w.document.close()}
+}
+async function submitReport(id){
   const d=DB.docs.find(x=>x.id===id),r=myRecip(d);if(!r)return;
   const p=Math.max(0,Math.min(100,parseInt(document.getElementById("rp-prog").value||"0",10)));
   const c=document.getElementById("rp-note").value.trim();
   if(!c){toast("Vui lòng nhập nội dung báo cáo.");return}
+  let media=await collectReportMedia();
+  /* Firestore giới hạn ~1MB/văn bản: nếu chạm trần thì giữ liên kết, bỏ ảnh nhúng */
+  const est=JSON.stringify(d).length+media.reduce((a,x)=>a+(x.dataUrl?x.dataUrl.length:80),0);
+  if(est>880000){
+    media=media.filter(x=>x.type!=="img");
+    toast("Văn bản đã gần đầy dung lượng — ảnh nhúng bị lược bỏ, hãy đưa ảnh lên Google Drive rồi dán liên kết minh chứng.");
+  }
   r.progress=p;if(r.status==="choxuly")r.status="dangxuly";
-  r.reports.push({time:todayISO(),progress:p,content:c});
-  audit(d,"Báo cáo tiến độ "+p+"%",c.slice(0,120));
+  r.reports.push({time:todayISO(),progress:p,content:c,media});
+  audit(d,"Báo cáo tiến độ "+p+"%",c.slice(0,120)+(media.length?" (+"+media.length+" minh chứng)":""));
   if(p>=100){r.status="daxuly";audit(d,"Hoàn thành xử lý","")}
   commit(d);toast(p>=100?"Đã hoàn thành xử lý văn bản.":"Đã gửi báo cáo tiến độ "+p+"% lên "+unit(d.from).short);render();
 }
@@ -422,17 +476,61 @@ function markDone(id){
   const d=DB.docs.find(x=>x.id===id),r=myRecip(d);if(!r)return;
   r.status="daxuly";r.progress=100;audit(d,"Hoàn thành xử lý","");commit(d);toast("Đã đánh dấu hoàn thành.");render();
 }
-let composeFile=null;
+let composeFiles=[];        /* v3.6: nhiều tệp đính kèm */
+let composeFile=null;       /* giữ tương thích mã cũ */
+function resetCompose(){composeFiles=[];composeFile=null;S.composeAtt=[]}
+/* Gộp tệp mới (files[]) + tệp kiểu cũ (file) của văn bản */
+function docFiles(d){const a=[...(d.files||[])];if(d.file)a.push(d.file);return a}
 const FILE_LIMIT_KB = MODE==="cloud"?400:800; /* cloud: chừa chỗ vì Firestore giới hạn ~1MB/document, base64 phình ~37% */
 function onPickFile(inp){
-  const f=inp.files[0];composeFile=null;
-  const lbl=document.getElementById("file-lbl");
-  if(!f){lbl.textContent="Chưa chọn tệp";return}
-  if(f.size>FILE_LIMIT_KB*1024){composeFile={name:f.name,size:f.size,dataUrl:null};
-    lbl.textContent=f.name+" ("+Math.round(f.size/1024)+" KB — vượt "+FILE_LIMIT_KB+"KB nên chỉ lưu tên tệp; hãy đưa tệp lên Google Drive rồi dán liên kết bên dưới)";return}
-  const rd=new FileReader();
-  rd.onload=()=>{composeFile={name:f.name,size:f.size,dataUrl:rd.result};lbl.textContent=f.name+" ("+Math.round(f.size/1024)+" KB)"};
-  rd.readAsDataURL(f);
+  const list=[...(inp.files||[])];inp.value="";
+  if(!list.length)return;
+  quickAutofillTy(list[0].name);
+  list.forEach(f=>{
+    if(f.size>FILE_LIMIT_KB*1024){
+      composeFiles.push({name:f.name,size:f.size,dataUrl:null});
+      toast(f.name+" vượt "+FILE_LIMIT_KB+"KB — chỉ lưu tên; hãy đưa tệp này lên Drive rồi dán liên kết.");
+      updateFileListUI();return;}
+    const rd=new FileReader();
+    rd.onload=()=>{composeFiles.push({name:f.name,size:f.size,dataUrl:rd.result});updateFileListUI()};
+    rd.readAsDataURL(f);});
+  updateFileListUI();
+}
+function updateFileListUI(){
+  const el=document.getElementById("file-list");if(!el)return;
+  el.innerHTML=composeFiles.length?composeFiles.map((f,i)=>
+    `<div style="display:flex;gap:7px;align-items:center;margin-top:4px">📎 ${esc(f.name)}
+     <span class="muted">(${f.dataUrl?Math.round(f.size/1024)+" KB":"chỉ lưu tên"})</span>
+     <a href="javascript:void(0)" onclick="removeComposeFile(${i})" style="color:var(--danger)">✕</a></div>`).join("")
+   :"Chưa chọn tệp — chọn được nhiều tệp cùng lúc.";
+}
+function removeComposeFile(i){composeFiles.splice(i,1);updateFileListUI()}
+/* --- Văn bản kèm theo (bản chụp thông tin, không phá quyền đọc) --- */
+function attSnapshot(d){
+  const lk=docFiles(d).find(f=>f.link);
+  return {id:d.id,so:d.so||"(dự thảo)",trichYeu:d.trichYeu,ngayBH:d.ngayBH,from:d.from,loai:d.loai,fileLink:lk?lk.link:null};
+}
+function addAttachedDoc(){
+  const sel=document.getElementById("c-att");if(!sel||!sel.value)return;
+  const d=DB.docs.find(x=>x.id===sel.value);if(!d)return;
+  S.composeAtt=S.composeAtt||[];
+  if(S.composeAtt.some(a=>a.id===d.id)){toast("Văn bản này đã được kèm theo.");return}
+  S.composeAtt.push(attSnapshot(d));updateAttListUI();
+}
+function removeAtt(i){(S.composeAtt||[]).splice(i,1);updateAttListUI()}
+function updateAttListUI(){
+  const el=document.getElementById("att-list");if(!el)return;
+  const a=S.composeAtt||[];
+  el.innerHTML=a.length?a.map((x,i)=>
+    `<div style="display:flex;gap:7px;align-items:center;margin-top:4px">🧷 <b>${esc(x.so)}</b> — ${esc(x.trichYeu.slice(0,60))}
+     <span class="muted">(${esc((unit(x.from)||{}).short||"?")})</span>
+     <a href="javascript:void(0)" onclick="removeAtt(${i})" style="color:var(--danger)">✕</a></div>`).join("")
+   :"Chưa kèm văn bản nào.";
+}
+function quickAutofillTy(fname){
+  if(!S.quick)return;
+  const ty=document.getElementById("c-ty");
+  if(ty&&!ty.value.trim())ty.value="V/v gửi tài liệu: "+fname.replace(/\.[^.]+$/,"").replace(/[_-]+/g," ").trim();
 }
 function applyTemplate(k){
   const t=TEMPLATES[k];if(!t)return;
@@ -449,12 +547,22 @@ function collectCompose(){
   const recips=[...document.querySelectorAll(".recip-cb:checked")].map(cb=>({
     unit:cb.value,role:document.getElementById("role-"+cb.value).value,
     status:"choxuly",receivedAt:todayISO(),viewed:false,progress:0,reports:[]}));
-  const link=(g("c-link")||"").trim()||null;
-  let file=composeFile;
-  if(link){file={name:(composeFile&&composeFile.name)||"Tệp trên Google Drive",size:(composeFile&&composeFile.size)||0,link}}
+  const links=(g("c-links")||"").split(/\n+/).map(t=>t.trim()).filter(Boolean).map(t=>{
+      const p2=t.split("|");
+      return p2.length>1?{name:p2[0].trim()||"Tệp trên Google Drive",link:p2.slice(1).join("|").trim()}
+                       :{name:"Tệp trên Google Drive",link:t};})
+    .filter(x=>/^https?:\/\//.test(x.link)).map(x=>({name:x.name,size:0,link:x.link}));
+  let files=[...composeFiles.map(f=>({...f})),...links];
+  if(MODE==="cloud"){ /* trần ~1MB/document của Firestore: tổng tệp nhúng ≤ 600KB */
+    let tot=files.reduce((a,f)=>a+(f.dataUrl?f.dataUrl.length:0),0);
+    if(tot>600000){
+      [...files].sort((a,b)=>(b.dataUrl?b.dataUrl.length:0)-(a.dataUrl?a.dataUrl.length:0)).forEach(f=>{
+        if(f.dataUrl&&tot>600000){tot-=f.dataUrl.length;f.dataUrl=null}});
+      toast("Tổng tệp nhúng vượt mức an toàn — một số tệp chỉ lưu tên. Tệp lớn hãy dùng liên kết Drive.");}}
   return {loai:g("c-loai"),trichYeu,noiDung:g("c-nd").trim(),doKhan:g("c-khan"),
     hanXuLy:g("c-han")||null,yeuCauBaoCao:document.getElementById("c-ycbc").checked,
-    replyTo:g("c-reply")||null,file,recips,recipIds:recips.map(r=>r.unit)};
+    replyTo:g("c-reply")||null,files,attachedDocs:(S.composeAtt||[]).map(a=>({...a})),
+    recips,recipIds:recips.map(r=>r.unit)};
 }
 async function persistNew(d){
   if(MODE==="local"){DB.docs.push(d);save();return}
@@ -464,12 +572,16 @@ async function persistNew(d){
 /* Lưu dự thảo (mới hoặc đang sửa) — chưa cấp số, chưa gửi đi đâu */
 async function composeSave(kind){
   const m=me(),f=collectCompose();if(!f)return;
+  if(S.quick){
+    if(!f.files.length){toast("Gửi nhanh cần đính kèm tệp hoặc dán liên kết Google Drive.");return}
+    if(!f.noiDung)f.noiDung="(Toàn bộ nội dung tại "+f.files.length+" tệp đính kèm: "+f.files.map(x=>x.name).join("; ")+")";
+  }
   try{
     let d;
     if(S.draftId){ /* đang sửa dự thảo */
       d=DB.docs.find(x=>x.id===S.draftId);
       if(!d||d.from!==m.id||dstat(d)==="phathanh"){toast("Dự thảo không còn hợp lệ.");return}
-      Object.assign(d,f);delete d.returnNote;
+      Object.assign(d,f);delete d.returnNote;delete d.file;
     }else{
       d={id:uid("d"),so:"",from:m.id,ngayBH:todayISO(),docStatus:"duthao",comments:[],...f,
         audit:[{time:todayISO(),unit:m.id,action:"Tạo dự thảo",note:"",nguoi:memberLabel()}]};
@@ -482,12 +594,12 @@ async function composeSave(kind){
     }else if(kind==="publish"){
       if(!isApprover()){toast("Chỉ Bí thư / Phó Bí thư được phát hành trực tiếp.");return}
       if(!d.recips.length){toast("Chọn ít nhất một nơi nhận.");return}
-      await publishCore(d);composeFile=null;S.draftId=null;nav("vbdi");return;
+      await publishCore(d);resetCompose();S.draftId=null;nav("vbdi");return;
     }else{audit(d,"Lưu dự thảo","")}
     if(MODE==="local"){save()}
     else if(S.draftId){commit(d)}
     else{await persistNew(d)}
-    composeFile=null;S.draftId=null;
+    resetCompose();S.draftId=null;
     toast(kind==="trinh"?"Đã trình duyệt — chờ Bí thư/Phó Bí thư phê duyệt, phát hành.":"Đã lưu dự thảo.");
     nav("vbdi",{outTab:kind==="trinh"?"trinh":"duthao"});
   }catch(e){toast("Lỗi: "+e.message)}
@@ -536,7 +648,13 @@ async function deleteDraft(id){
   DB.docs=DB.docs.filter(x=>x.id!==id);if(MODE==="local")save();
   toast("Đã xóa dự thảo.");render();
 }
-function editDraft(id){S.draftId=id;nav("soan")}
+function editDraft(id){
+  const d=DB.docs.find(x=>x.id===id);
+  resetCompose();
+  if(d){composeFiles=docFiles(d).filter(f=>!f.link).map(f=>({...f}));
+    S.composeAtt=(d.attachedDocs||[]).map(a=>({...a}));}
+  S.draftId=id;nav("soan");
+}
 function recallDoc(id){
   const d=DB.docs.find(x=>x.id===id);
   if(!d||d.from!==DB.session||dstat(d)!=="phathanh")return;
@@ -596,6 +714,24 @@ function tryBrowserNotify(){
     else if(Notification.permission!=="denied")Notification.requestPermission().then(p=>{if(p==="granted")fire()});
   }catch(e){}
 }
+function downloadFileIdx(id,i){
+  const d=DB.docs.find(x=>x.id===id);if(!d)return;
+  const f=docFiles(d)[i];if(!f)return;
+  audit(d,f.link?"Mở tệp trên Google Drive":"Tải tệp đính kèm",f.name);commit(d);if(MODE==="local")save();
+  if(f.link){window.open(f.link,"_blank")}
+  else if(f.dataUrl){const a=document.createElement("a");a.href=f.dataUrl;a.download=f.name;a.click()}
+  else toast("Tệp này chỉ lưu tên (vượt hạn mức nhúng) — đề nghị nơi gửi bổ sung liên kết Google Drive.");
+  if(S.view==="detail")render();
+}
+function openAttached(id,i){
+  const d=DB.docs.find(x=>x.id===id);if(!d)return;
+  const a=(d.attachedDocs||[])[i];if(!a)return;
+  const orig=DB.docs.find(x=>x.id===a.id);
+  if(orig){openDoc(a.id);return}                 /* có quyền đọc bản gốc → mở thẳng */
+  if(a.fileLink){window.open(a.fileLink,"_blank");
+    toast("Bạn không thuộc diện nhận văn bản gốc "+a.so+" — đã mở tệp qua liên kết Drive kèm theo.");return}
+  toast("Văn bản kèm theo "+a.so+" ("+((unit(a.from)||{}).short||"?")+", "+fmtD(a.ngayBH)+") — bạn không thuộc diện nhận bản gốc; liên hệ nơi gửi nếu cần toàn văn.");
+}
 function downloadFile(id){
   const d=DB.docs.find(x=>x.id===id);if(!d||!d.file)return;
   audit(d,d.file.link?"Mở tệp trên Google Drive":"Tải tệp đính kèm",d.file.name);commit(d);
@@ -633,6 +769,7 @@ function render(){
   if(S.pendingDoc){const pid=S.pendingDoc;
     if(DB.docs.some(x=>x.id===pid)){S.pendingDoc=null;setTimeout(()=>openDoc(pid),0)}}
   if(S.qr&&S.view==="detail")renderQR();
+  if(S.view==="soan"){updateFileListUI();updateAttListUI()}
 }
 function renderQR(){
   const box=document.getElementById("qrbox");if(!box)return;
@@ -711,7 +848,7 @@ function shell(content){
       <h6>Quản trị</h6>
       ${item("hethong","⚙","Dữ liệu & sao lưu")}
     </nav>
-    <div class="side-foot">${MODE==="cloud"?"● Đồng bộ Firestore · offline-first":"Dữ liệu lưu cục bộ trên máy này"}<br>DoanOffice 3.0 · mã nguồn mở</div>
+    <div class="side-foot">${MODE==="cloud"?"● Đồng bộ Firestore · offline-first":"Dữ liệu lưu cục bộ trên máy này"}<br>DoanOffice 3.6 · mã nguồn mở</div>
    </aside>
    <div class="main">
     <div class="topbar">
@@ -748,7 +885,9 @@ function viewDashboard(){
   const tracking=out.filter(d=>d.yeuCauBaoCao&&d.recips.some(r=>r.status!=="daxuly")).slice(0,5);
   return `
   <div class="page-head"><div><div class="eyebrow">Tổng quan hôm nay · ${fmtD(todayISO())}</div><h2>Bảng điều hành</h2></div>
-   <div class="spacer"></div><button class="btn btn-gold" onclick="nav('soan')">✎ Soạn văn bản mới</button></div>
+   <div class="spacer"></div>
+   <button class="btn btn-ghost" onclick="resetCompose();nav('soan');S.quick=true;render()">📎 Gửi nhanh tệp</button>
+   <button class="btn btn-gold" onclick="resetCompose();nav('soan')">✎ Soạn văn bản mới</button></div>
   <div class="grid-4">
     <div class="stat amber" onclick="nav('vbden',{tab:'choxuly'})"><div class="n">${cCho}</div><div class="l">Văn bản chờ xử lý</div></div>
     <div class="stat blue" onclick="nav('vbden',{tab:'dangxuly'})"><div class="n">${cDang}</div><div class="l">Đang xử lý</div></div>
@@ -805,7 +944,7 @@ function viewInbox(){
     <th>Số ký hiệu</th><th>Trích yếu</th><th>Vai trò</th><th>Nơi gửi</th><th>Hạn xử lý</th><th>Độ khẩn</th><th>Trạng thái</th></tr></thead><tbody>
   ${rows.length?rows.map(d=>{const r=rOf(d);return `<tr class="rowlink" onclick="openDoc('${d.id}')">
     <td class="mono">${esc(d.so)}${r.viewed?"":' <span title="Chưa xem" style="color:var(--danger)">●</span>'}</td>
-    <td><span class="doc-title">${esc(d.trichYeu)}</span><div class="small muted">${LOAI[d.loai][1]} · ban hành ${fmtD(d.ngayBH)}${d.file?' · 📎 '+esc(d.file.name):''}</div></td>
+    <td><span class="doc-title">${esc(d.trichYeu)}</span><div class="small muted">${LOAI[d.loai][1]} · ban hành ${fmtD(d.ngayBH)}${docFiles(d).length?' · 📎 '+docFiles(d).length+' tệp':''}${(d.attachedDocs||[]).length?' · 🧷 '+d.attachedDocs.length+' VB kèm':''}</div></td>
     <td><span class="pill role">${ROLE[r.role]}</span></td>
     <td class="small">${esc(unit(d.from).short)}</td>
     <td class="small ${isOverdue(d,r)?'khan-tk':''}">${fmtD(d.hanXuLy)}</td>
@@ -839,7 +978,9 @@ function viewOutbox(){
   const draftMode=["duthao","trinh"].includes(S.outTab);
   return `
   <div class="page-head"><div><div class="eyebrow">Sổ đăng ký văn bản đi</div><h2>Văn bản đi</h2></div>
-  <div class="spacer"></div><button class="btn btn-gold" onclick="S.draftId=null;nav('soan')">✎ Soạn văn bản mới</button></div>
+  <div class="spacer"></div>
+  <button class="btn btn-ghost" onclick="resetCompose();S.draftId=null;nav('soan');S.quick=true;render()">📎 Gửi nhanh tệp có sẵn</button>
+  <button class="btn btn-gold" onclick="resetCompose();S.draftId=null;nav('soan')">✎ Soạn văn bản mới</button></div>
   <div class="card"><div class="card-b">
   <div class="tabs">${Object.keys(buckets).map(k=>`<button class="${S.outTab===k?"active":""}" onclick="S.outTab='${k}';render()">${labels[k]}<span class="cnt">${buckets[k].length}</span></button>`).join("")}</div>
   <div class="tbl-wrap"><table><thead><tr>
@@ -854,7 +995,7 @@ function viewOutbox(){
     <td class="small">${fmtD(d.ngayBH)}</td><td class="small">${fmtD(d.hanXuLy)}</td>
     <td onclick="event.stopPropagation()">
     ${dstat(d)==="duthao"?`<button class="btn btn-ghost btn-sm" onclick="editDraft('${d.id}')">✎ Sửa</button>
-      <button class="btn btn-primary btn-sm" onclick="(async()=>{S.draftId='${d.id}';nav('soan')})()">📨 Trình / Phát hành</button>
+      <button class="btn btn-primary btn-sm" onclick="editDraft('${d.id}')">📨 Trình / Phát hành</button>
       <button class="btn btn-sm" style="background:var(--danger-bg);color:var(--danger)" onclick="deleteDraft('${d.id}')">🗑</button>`
     :dstat(d)==="trinhduyet"?(isApprover()
       ?`<button class="btn btn-ok btn-sm" onclick="approvePublish('${d.id}')">✔ Duyệt & phát hành</button>
@@ -871,6 +1012,7 @@ function viewOutbox(){
 /* ---------- Soạn văn bản (v2.0: dự thảo & phê duyệt) ---------- */
 function viewCompose(){
   const m=me();
+  const quick=!!S.quick&&!S.draftId;
   const dr=S.draftId?DB.docs.find(x=>x.id===S.draftId):null;
   const v=k=>dr?esc(dr[k]||""):"";
   const chk=id=>dr&&dr.recips.some(r=>r.unit===id);
@@ -884,31 +1026,42 @@ function viewCompose(){
     ${hint?`<div class="hint" style="padding:6px 12px 9px">${hint}</div>`:""}</div>`:"";
   const inboxDocs=myInbox();
   return `
-  <div class="page-head"><div><div class="eyebrow">${dr?"Đang sửa dự thảo"+(dr.returnNote?" (bị trả lại)":""):"Soạn thảo văn bản điện tử"}</div><h2>${dr?"Sửa dự thảo":"Soạn văn bản"}</h2></div>
+  <div class="page-head"><div><div class="eyebrow">${dr?"Đang sửa dự thảo"+(dr.returnNote?" (bị trả lại)":""):(quick?"Chuyển phát tệp sẵn có — vẫn vào sổ, cấp số, truy vết đầy đủ":"Soạn thảo văn bản điện tử")}</div><h2>${dr?"Sửa dự thảo":(quick?"📎 Gửi nhanh tệp có sẵn":"Soạn văn bản")}</h2></div>
    ${dr?`<div class="spacer"></div><button class="btn btn-ghost btn-sm" onclick="S.draftId=null;nav('vbdi',{outTab:'duthao'})">✕ Hủy sửa</button>`:""}</div>
   ${dr&&dr.returnNote?`<div class="card" style="border-left:4px solid var(--danger)"><div class="card-b small">↩ <b>Dự thảo bị trả lại:</b> ${esc(dr.returnNote)}</div></div>`:""}
   <div class="detail-grid">
   <div class="card"><div class="card-h"><h3>Nội dung văn bản</h3>${memberLabel()?`<div class="spacer"></div><span class="small muted">Người soạn: ${esc(memberLabel())}</span>`:""}</div><div class="card-b">
-    <div class="field"><label>Dùng mẫu văn bản của Đoàn</label>
+    ${quick?`<div class="hint" style="margin-bottom:12px;background:var(--info-bg);padding:9px 13px;border-radius:8px">Nghiệp vụ gửi nhanh: bạn đã có sẵn tệp Word/Excel/PDF/PPT… — chỉ cần đính kèm tệp (hoặc dán liên kết Drive), hệ thống tự lấy tên tệp làm trích yếu; văn bản vẫn được <b>cấp số vào sổ đi, ghi truy vết và theo dõi xử lý</b> như văn bản thường.</div>`
+    :`<div class="field"><label>Dùng mẫu văn bản của Đoàn</label>
       <select id="c-tpl" onchange="applyTemplate(this.value)"><option value="">— Soạn tự do —</option>
       ${Object.entries(TEMPLATES).map(([k,t])=>`<option value="${k}">${t.ten}</option>`).join("")}</select>
-      <div class="hint">Chọn mẫu để đổ khung thể thức (mục đích – yêu cầu, nội dung, tổ chức thực hiện…) rồi điền vào chỗ [ … ].</div></div>
+      <div class="hint">Chọn mẫu để đổ khung thể thức (mục đích – yêu cầu, nội dung, tổ chức thực hiện…) rồi điền vào chỗ [ … ].</div></div>`}
     <div class="form-grid">
       <div class="field"><label>Loại văn bản</label><select id="c-loai">${Object.entries(LOAI).map(([k,vv])=>`<option value="${k}" ${dr&&dr.loai===k?"selected":""}>${vv[1]} (${vv[0]})</option>`).join("")}</select></div>
       <div class="field"><label>Độ khẩn</label><select id="c-khan">${Object.entries(KHAN).map(([k,vv])=>`<option value="${k}" ${dr&&dr.doKhan===k?"selected":""}>${vv[0]}</option>`).join("")}</select></div>
     </div>
     <div class="field"><label>Trích yếu nội dung *</label><input id="c-ty" value="${v("trichYeu")}" placeholder="V/v …"></div>
-    <div class="field"><label>Nội dung / ý kiến chỉ đạo</label><textarea id="c-nd" rows="5" placeholder="Nội dung chính, yêu cầu thực hiện, phân công…">${v("noiDung")}</textarea></div>
+    <div class="field"><label>Nội dung / ý kiến chỉ đạo${quick?" (không bắt buộc)":""}</label><textarea id="c-nd" rows="${quick?2:5}" placeholder="${quick?"Bỏ trống nếu toàn bộ nội dung nằm trong tệp — hệ thống tự ghi chú.":"Nội dung chính, yêu cầu thực hiện, phân công…"}">${v("noiDung")}</textarea></div>
     <div class="form-grid">
       <div class="field"><label>Hạn xử lý</label><input id="c-han" type="date" value="${dr&&dr.hanXuLy?dr.hanXuLy:""}"></div>
       <div class="field"><label>Trả lời / triển khai văn bản đến</label>
         <select id="c-reply"><option value="">— Không —</option>
         ${inboxDocs.map(d=>`<option value="${d.id}" ${dr&&dr.replyTo===d.id?"selected":""}>${esc(d.so)} · ${esc(d.trichYeu.slice(0,50))}</option>`).join("")}</select></div>
     </div>
-    <div class="field"><label>Tệp đính kèm (PDF/Word/Excel)</label>
-      <input type="file" onchange="onPickFile(this)"><div class="hint" id="file-lbl">${dr&&dr.file?("Đang có: "+esc(dr.file.name)+" — chọn tệp mới để thay"):"Chưa chọn tệp · tệp ≤ "+FILE_LIMIT_KB+"KB được lưu kèm ngay trong văn bản"}</div></div>
-    <div class="field"><label>Hoặc dán liên kết Google Drive (tệp lớn)</label>
-      <input id="c-link" value="${dr&&dr.file&&dr.file.link?esc(dr.file.link):""}" placeholder="https://drive.google.com/… (nhớ bật chia sẻ: ai có liên kết đều xem được)"></div>
+    <div class="field"><label>Tệp đính kèm — chọn được NHIỀU tệp (PDF/Word/Excel/PPT/ảnh…), mỗi tệp ≤ ${FILE_LIMIT_KB}KB lưu kèm văn bản</label>
+      <input type="file" multiple onchange="onPickFile(this)">
+      <div class="hint" id="file-list">Chưa chọn tệp — chọn được nhiều tệp cùng lúc.</div></div>
+    <div class="field"><label>Liên kết Google Drive cho tệp lớn — mỗi dòng một liên kết, có thể ghi “Tên tệp | https://…”</label>
+      <textarea id="c-links" rows="2" placeholder="Phụ lục 1 - Phân bổ chỉ tiêu | https://drive.google.com/…">${dr?esc(docFiles(dr).filter(f=>f.link).map(f=>((f.name&&f.name!=="Tệp trên Google Drive")?f.name+" | ":"")+f.link).join("\n")):""}</textarea></div>
+    <div class="field"><label>🧷 Văn bản kèm theo / liên quan (đã có trên hệ thống)</label>
+      <div style="display:flex;gap:8px">
+        <select id="c-att" style="flex:1;padding:9px 12px;border:1px solid var(--line);border-radius:8px">
+          <option value="">— Chọn văn bản để gửi kèm —</option>
+          ${searchCorpus().filter(x=>["phathanh","thuhoi"].includes(dstat(x))&&(!dr||x.id!==dr.id)).map(x=>`<option value="${x.id}">${esc(x.so)} · ${esc(x.trichYeu.slice(0,55))}</option>`).join("")}
+        </select>
+        <button class="btn btn-ghost" onclick="addAttachedDoc()">＋ Kèm theo</button></div>
+      <div class="hint" id="att-list">Chưa kèm văn bản nào.</div>
+      <div class="hint">Nơi nhận sẽ thấy thông tin tham chiếu (số, trích yếu, nơi ban hành, liên kết tệp nếu có); nếu họ có quyền đọc bản gốc thì mở thẳng được trên hệ thống.</div></div>
     <label style="display:flex;gap:8px;align-items:center;font-size:.88rem;margin:6px 0 14px">
       <input type="checkbox" id="c-ycbc" ${dr?(dr.yeuCauBaoCao?"checked":""):"checked"}> Giao việc kèm văn bản — yêu cầu nơi nhận <b>báo cáo tiến độ, kết quả</b> về đơn vị</label>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -918,7 +1071,7 @@ function viewCompose(){
         :`<button class="btn btn-primary" onclick="composeSave('trinh')">📮 Trình Bí thư / PBT duyệt</button>`}
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-      <button class="btn btn-ghost btn-sm" id="ai-draft-btn" onclick="aiDraft()">✨ AI soạn giúp</button>
+      ${quick?"":`<button class="btn btn-ghost btn-sm" id="ai-draft-btn" onclick="aiDraft()">✨ AI soạn giúp</button>`}
       <button class="btn btn-ghost btn-sm" id="ai-sug-btn" onclick="aiSuggest()">✨ AI gợi ý nơi nhận & hạn</button>
     </div>
     <div class="small" id="ai-sug-out" style="margin-top:6px"></div>
@@ -965,6 +1118,10 @@ function viewDetail(){
         <div class="field" style="display:flex;align-items:flex-end;padding-bottom:14px"><div class="prog" style="width:100%"><i style="width:${r.progress}%"></i></div></div>
       </div>
       <div class="field"><label>Nội dung báo cáo kết quả *</label><textarea id="rp-note" rows="3" placeholder="Kết quả thực hiện, số liệu, khó khăn – kiến nghị…"></textarea></div>
+      <div class="form-grid">
+        <div class="field"><label>Ảnh minh chứng (tối đa 4 ảnh — tự nén gọn)</label><input id="rp-imgs" type="file" accept="image/*" multiple></div>
+        <div class="field"><label>Liên kết video / âm thanh / hồ sơ (Drive, YouTube…)</label><input id="rp-mlink" placeholder="https://…"></div>
+      </div>
       <button class="btn btn-primary" onclick="submitReport('${d.id}')">📤 Gửi báo cáo</button>
       <button class="btn btn-ok" style="margin-left:8px" onclick="if(confirm('Xác nhận đã hoàn thành xử lý văn bản này?'))markDone('${d.id}')">✔ Hoàn thành xử lý</button>
     </div></div>`;
@@ -1005,9 +1162,9 @@ function viewDetail(){
      return `<tr><td>${esc(u.name)}${rr.assignee?`<div class="small muted">Chủ trì: ${esc(rr.assignee)}</div>`:""}</td><td><span class="pill role">${ROLE[rr.role]}</span></td>
      <td>${statusPill(d,rr)}</td>
      <td><div style="display:flex;gap:8px;align-items:center"><div class="prog ${rr.progress>=100?"done":""}"><i style="width:${rr.progress}%"></i></div><span class="small">${rr.progress}%</span></div></td>
-     <td class="small">${last?esc(last.content)+`<div class="muted">${fmtD(last.time)}</div>`:'<span class="muted">Chưa có báo cáo</span>'}</td></tr>`}).join("")}
+     <td class="small">${last?esc(last.content)+((last.media||[]).length?' <span class="pill role">📎 '+last.media.length+' minh chứng</span>':'')+`<div class="muted">${fmtD(last.time)}</div>`:'<span class="muted">Chưa có báo cáo</span>'}</td></tr>`}).join("")}
    </tbody></table></div></div>`;
-  const reports=d.recips.filter(rr=>rr.reports.length).map(rr=>rr.reports.map(rp=>({...rp,u:unit(rr.unit)}))).flat()
+  const reports=d.recips.map((rr,ui)=>(rr.reports||[]).map((rp,ri)=>({...rp,u:unit(rr.unit),_ui:ui,_ri:ri}))).flat()
     .sort((a,b)=>b.time.localeCompare(a.time));
   return `
   <div class="page-head">
@@ -1015,7 +1172,7 @@ function viewDetail(){
     <div class="spacer"></div>
     <button class="btn btn-ghost btn-sm no-print" onclick="nav('${back}')">← Quay lại</button>
     ${st!=="duthao"&&st!=="trinhduyet"?`<button class="btn btn-ghost btn-sm no-print" onclick="S.qr=S.qr==='${d.id}'?null:'${d.id}';render()">▦ Mã QR</button>`:""}
-    <button class="btn btn-ghost btn-sm no-print" onclick="window.print()">🖨 In phiếu xử lý</button></div>
+    <button class="btn btn-ghost btn-sm no-print" onclick="printDoc('${d.id}')">🖨 In phiếu xử lý</button></div>
   ${S.qr===d.id?`<div class="card"><div class="card-b" style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
     <div id="qrbox" style="width:150px;height:150px;flex:none;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:8px;background:#fff"><span class="small muted">Đang tạo…</span></div>
     <div class="small"><b>Xác thực văn bản ${esc(d.so)}</b>
@@ -1032,14 +1189,15 @@ function viewDetail(){
       <tr><td>Hạn xử lý</td><td>${d.hanXuLy?fmtD(d.hanXuLy):"Không đặt hạn"}</td></tr>
       <tr><td>Giao việc / báo cáo</td><td>${d.yeuCauBaoCao?"Có — nơi nhận phải báo cáo tiến độ, kết quả":"Không yêu cầu"}</td></tr>
       ${reply?`<tr><td>Triển khai từ VB</td><td><a href="javascript:void(0)" onclick="openDoc('${reply.id}')">${esc(reply.so)} — ${esc(reply.trichYeu)}</a></td></tr>`:""}
-      <tr><td>Tệp đính kèm</td><td>${d.file?`<a href="javascript:void(0)" onclick="downloadFile('${d.id}')">${d.file.link?"🔗":"📎"} ${esc(d.file.name)}</a> <span class="muted small">(${d.file.link?"Google Drive":Math.round(d.file.size/1024)+" KB"+(d.file.dataUrl?", lưu kèm":"")})</span>`:"Không có"}</td></tr>
+      <tr><td>Tệp đính kèm (${docFiles(d).length})</td><td>${docFiles(d).length?docFiles(d).map((f,i)=>`<div style="margin-bottom:2px"><a href="javascript:void(0)" onclick="downloadFileIdx('${d.id}',${i})">${f.link?"🔗":"📎"} ${esc(f.name)}</a> <span class="muted small">(${f.link?"Google Drive":Math.round((f.size||0)/1024)+" KB"+(f.dataUrl?", lưu kèm":", chỉ lưu tên")})</span></div>`).join(""):"Không có"}</td></tr>
+      ${(d.attachedDocs||[]).length?`<tr><td>Văn bản kèm theo</td><td>${d.attachedDocs.map((a,i)=>`<div style="margin-bottom:2px"><a href="javascript:void(0)" onclick="openAttached('${d.id}',${i})">🧷 ${esc(a.so)} — ${esc(a.trichYeu)}</a> <span class="muted small">(${esc((unit(a.from)||{}).short||"?")} · ${LOAI[a.loai]?LOAI[a.loai][1]:""} · ${fmtD(a.ngayBH)})</span></div>`).join("")}</td></tr>`:""}
      </table>
      ${d.noiDung?`<div style="border-top:1px dashed var(--line);margin-top:10px;padding-top:10px;white-space:pre-wrap">${esc(d.noiDung)}</div>`:""}
     </div></div>
     ${(st==="phathanh"||st==="thuhoi")&&(isSender||r)?`<div class="card"><div class="card-b" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
       <span class="small muted">Công cụ:</span>
       <button class="btn btn-ghost btn-sm" id="ai-sum-btn" onclick="aiSummarize('${d.id}')">✨ Tóm tắt AI</button>
-      ${d.file&&d.file.dataUrl&&d.file.dataUrl.startsWith("data:image")?`<button class="btn btn-ghost btn-sm" onclick="ocrDoc('${d.id}')">🔎 OCR tệp scan</button>`:""}
+      ${docFiles(d).some(f=>f.dataUrl&&f.dataUrl.startsWith("data:image"))?`<button class="btn btn-ghost btn-sm" onclick="ocrDoc('${d.id}')">🔎 OCR tệp scan</button>`:""}
       <span class="small" id="ocr-doc-status" style="color:var(--warn)"></span>
       ${S.aiOut&&S.aiOut.id===d.id?`</div><div class="card-b" style="border-top:1px dashed var(--line);white-space:pre-wrap;background:#FFFDF4">✨ <b>Tóm tắt AI</b> <span class="small muted">(tham khảo — đối chiếu văn bản gốc)</span>
 ${esc(S.aiOut.text)}`:""}
@@ -1050,7 +1208,7 @@ ${esc(S.aiOut.text)}`:""}
     ${assignBox}
     ${st==="phathanh"||st==="thuhoi"?track:""}
     ${reports.length?`<div class="card"><div class="card-h"><h3>Báo cáo kết quả từ các đơn vị (${reports.length})</h3></div><div class="card-b">
-      ${reports.map(rp=>`<div class="report-item"><div class="rp-h"><b style="color:var(--doan-deep)">${esc(rp.u.short)}</b> · ${fmtD(rp.time)} · tiến độ <b>${rp.progress}%</b></div>${esc(rp.content)}</div>`).join("")}
+      ${reports.map(rp=>`<div class="report-item"><div class="rp-h"><b style="color:var(--doan-deep)">${esc(rp.u.short)}</b> · ${fmtD(rp.time)} · tiến độ <b>${rp.progress}%</b></div>${esc(rp.content)}${mediaHTML(rp.media,d.id,rp._ui,rp._ri)}</div>`).join("")}
     </div></div>`:""}
     ${commentBox}
    </div>
@@ -1073,6 +1231,80 @@ function exportDocCSV(id){
 }
 
 /* ---------- Thống kê ---------- */
+/* Biểu đồ vành khuyên SVG thuần */
+function donutHTML(parts){
+  const total=parts.reduce((a,p)=>a+p.v,0);
+  if(!total)return '<div class="empty">Chưa có dữ liệu trong kỳ.</div>';
+  const R=44,C=2*Math.PI*R;let off=0;
+  const segs=parts.filter(p=>p.v>0).map(p=>{
+    const len=p.v/total*C;
+    const el=`<circle r="${R}" cx="60" cy="60" fill="none" stroke="${p.c}" stroke-width="20" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}" transform="rotate(-90 60 60)"/>`;
+    off+=len;return el;}).join("");
+  return `<div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
+    <svg width="120" height="120" viewBox="0 0 120 120">${segs}
+      <text x="60" y="57" text-anchor="middle" font-size="22" font-weight="800" fill="var(--doan-deep)">${total}</text>
+      <text x="60" y="74" text-anchor="middle" font-size="9" fill="var(--muted)">văn bản</text></svg>
+    <div class="small">${parts.map(p=>`<div style="margin-bottom:4px"><span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:${p.c};margin-right:7px"></span>${esc(p.l)}: <b>${p.v}</b> (${Math.round(p.v/total*100)}%)</div>`).join("")}</div>
+  </div>`;
+}
+/* Báo cáo thống kê dạng văn bản (dùng chung cho Word + In/PDF) */
+function buildStatsHTML(){
+  const m=me(),from=S.statFrom,to=S.statTo,inRange=d=>(!from||d.ngayBH>=from)&&(!to||d.ngayBH<=to);
+  const rOf=d=>myRecipOf(d,m.id);
+  const inbox=myInbox().filter(inRange);
+  const my={nhan:inbox.length,xong:inbox.filter(d=>rOf(d).status==="daxuly").length,
+    qua:inbox.filter(d=>isOverdue(d,rOf(d))).length,dang:inbox.filter(d=>rOf(d).status==="dangxuly").length};
+  const byUnit={};
+  myOutbox().filter(d=>dstat(d)==="phathanh").filter(inRange).forEach(d=>d.recips.forEach(r=>{
+    const b=byUnit[r.unit]=byUnit[r.unit]||{giao:0,xong:0,dang:0,cho:0,qua:0,ps:0};
+    b.giao++;b.ps+=r.progress;if(isOverdue(d,r))b.qua++;
+    if(r.status==="daxuly")b.xong++;else if(r.status==="dangxuly")b.dang++;else b.cho++;}));
+  const kpi=(DB.targets||[]).filter(t=>t.from===m.id);
+  const ky=(from?fmtD(from):"Từ đầu")+" đến "+(to?fmtD(to):fmtD(todayISO()));
+  return `<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><title>Báo cáo ${esc(m.short)}</title>
+<style>@page{size:A4;margin:18mm 16mm}body{font-family:"Times New Roman",serif;font-size:13.5pt;line-height:1.45;color:#000;margin:0}
+.hd{display:flex;justify-content:space-between;font-size:12.5pt;text-align:center}
+.hd b{display:block}.line{width:40%;border-bottom:1.2pt solid #000;margin:2px auto 8px}
+h1{text-align:center;font-size:15pt;text-transform:uppercase;margin:16px 0 2px}
+.sub{text-align:center;font-style:italic;margin-bottom:14px}
+h2{font-size:13.5pt;margin:12px 0 6px}
+table{width:100%;border-collapse:collapse;margin-bottom:10px}
+td,th{border:.9pt solid #000;padding:4px 7px;font-size:12.5pt}th{background:#eee}
+.c{text-align:center}.sig{margin-top:20px;text-align:right}
+.sig .in{display:inline-block;text-align:center;width:62mm}.sig i{font-size:11.5pt}</style></head><body>
+<div class="hd"><div style="width:46%"><b>ĐOÀN TNCS HỒ CHÍ MINH</b><b>${esc(m.name.toUpperCase())}</b><div class="line"></div></div>
+<div style="width:50%"><i>${esc((m.diachi||"…").split(",").pop().trim()||"…")}, ngày ${new Date().getDate()} tháng ${new Date().getMonth()+1} năm ${new Date().getFullYear()}</i></div></div>
+<h1>Báo cáo tình hình xử lý văn bản và kết quả thực hiện nhiệm vụ</h1>
+<div class="sub">Kỳ báo cáo: ${esc(ky)} — kết xuất từ Hệ thống DoanOffice</div>
+<h2>I. TÌNH HÌNH TIẾP NHẬN, XỬ LÝ VĂN BẢN ĐẾN</h2>
+<table><tr><th>Tổng VB đến</th><th>Đã xử lý</th><th>Đang xử lý</th><th>Quá hạn</th><th>Tỷ lệ hoàn thành</th></tr>
+<tr class="c"><td>${my.nhan}</td><td>${my.xong}</td><td>${my.dang}</td><td>${my.qua}</td><td><b>${my.nhan?Math.round(my.xong/my.nhan*100):0}%</b></td></tr></table>
+<h2>II. KẾT QUẢ THỰC HIỆN CỦA CÁC ĐƠN VỊ ĐƯỢC GIAO VIỆC</h2>
+<table><tr><th>TT</th><th>Đơn vị</th><th>Được giao</th><th>Hoàn thành</th><th>Đang XL</th><th>Chưa nhận</th><th>Quá hạn</th><th>Tiến độ TB</th></tr>
+${Object.entries(byUnit).map(([u,b],i)=>'<tr><td class="c">'+(i+1)+'</td><td>'+esc((unit(u)||{}).name||"?")+'</td><td class="c">'+b.giao+'</td><td class="c">'+b.xong+'</td><td class="c">'+b.dang+'</td><td class="c">'+b.cho+'</td><td class="c">'+b.qua+'</td><td class="c">'+Math.round(b.ps/b.giao)+'%</td></tr>').join("")||'<tr><td colspan="8" class="c"><i>Không phát sinh trong kỳ</i></td></tr>'}</table>
+${kpi.length?`<h2>III. KẾT QUẢ THỰC HIỆN CHỈ TIÊU (KPI)</h2>
+<table><tr><th>TT</th><th>Đơn vị</th><th>Chỉ tiêu</th><th>Giao</th><th>Đạt</th><th>KPI</th></tr>
+${kpi.map((t,i)=>'<tr><td class="c">'+(i+1)+'</td><td>'+esc((unit(t.unit)||{}).name||"?")+'</td><td>'+esc(t.ten)+'</td><td class="c">'+t.giao+" "+esc(t.donvi||"")+'</td><td class="c">'+t.dat+'</td><td class="c">'+kpiPct(t)+'%</td></tr>').join("")}</table>`:""}
+<h2>${kpi.length?"IV":"III"}. ĐÁNH GIÁ, KIẾN NGHỊ</h2>
+<p>………………………………………………………………………………………………………………</p>
+<p>………………………………………………………………………………………………………………</p>
+<div class="sig"><div class="in"><b>TM. BAN THƯỜNG VỤ</b><br><b>BÍ THƯ</b><i><br>(Ký, đóng dấu)</i><br><br><br><br></div></div>
+</body></html>`;
+}
+function exportStatsWord(){
+  const html=buildStatsHTML();
+  const blob=new Blob(["﻿"+html],{type:"application/msword;charset=utf-8"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download="bao-cao-"+me().code+"-"+todayISO()+".doc";a.click();
+  toast("Đã xuất báo cáo Word (.doc) — mở bằng Microsoft Word/LibreOffice.");
+}
+function printStatsReport(){
+  const w=window.open("","_blank");
+  if(!w){toast("Cho phép popup để in/lưu PDF báo cáo.");return}
+  w.document.write(buildStatsHTML().replace("</body>",'<script>window.onload=function(){setTimeout(function(){window.print()},250)}<\/script></body>'));
+  w.document.close();
+  toast("Chọn máy in hoặc “Save as PDF” trong hộp thoại in.");
+}
 function viewStats(){
   const m=me(),from=S.statFrom,to=S.statTo;
   const inRange=d=>(!from||d.ngayBH>=from)&&(!to||d.ngayBH<=to);
@@ -1101,6 +1333,8 @@ function viewStats(){
    <input type="date" value="${from}" onchange="S.statFrom=this.value;render()" style="padding:7px 10px;border:1px solid var(--line);border-radius:8px">
    <span class="muted">→</span>
    <input type="date" value="${to}" onchange="S.statTo=this.value;render()" style="padding:7px 10px;border:1px solid var(--line);border-radius:8px">
+   <button class="btn btn-ghost btn-sm" onclick="exportStatsWord()">⬇ Xuất Word</button>
+   <button class="btn btn-primary btn-sm" onclick="printStatsReport()">🖨 In / Lưu PDF</button>
   </div>
   <div class="grid-4">
     <div class="stat blue"><div class="n">${my.nhan}</div><div class="l">Văn bản đến (kỳ báo cáo)</div></div>
@@ -1121,12 +1355,16 @@ function viewStats(){
    ${unitRows.length?`<div class="card-b"><div class="eyebrow" style="margin-bottom:8px">Số văn bản đã giao theo đơn vị</div>
     ${unitRows.map(r=>`<div class="bar-row"><span>${esc(r.u.short)}</span><div class="bar-track"><div class="bar-fill" style="width:${r.giao/maxGiao*100}%"></div></div><span class="small muted">${r.giao} VB · ${r.avg}%</span></div>`).join("")}</div>`:""}
   </div>
+  <div>
+  <div class="card"><div class="card-h"><h3>Cơ cấu xử lý văn bản đến (kỳ báo cáo)</h3></div><div class="card-b">
+    ${donutHTML([{l:"Đã xử lý",v:my.xong,c:"var(--ok)"},{l:"Đang xử lý",v:my.dang,c:"var(--doan)"},{l:"Chờ xử lý",v:my.nhan-my.xong-my.dang-my.qua,c:"#E7B93C"},{l:"Quá hạn",v:my.qua,c:"var(--danger)"}])}
+  </div></div>
   <div class="card"><div class="card-h"><h3>Văn bản đến theo loại</h3></div><div class="card-b">
    ${Object.keys(byLoai).length?Object.entries(byLoai).sort((a,b)=>b[1]-a[1]).map(([k,n])=>
      `<div class="bar-row"><span>${LOAI[k][1]}</span><div class="bar-track"><div class="bar-fill gold" style="width:${n/maxLoai*100}%"></div></div><span class="small muted">${n}</span></div>`).join("")
     :'<div class="empty">Chưa có dữ liệu.</div>'}
-   <div class="hint" style="margin-top:10px">Chọn khoảng ngày ở góc trên để lập báo cáo tháng/quý; nút “Xuất CSV” tạo tệp gửi kèm báo cáo lên Đoàn cấp trên.</div>
-  </div></div></div>`;
+   <div class="hint" style="margin-top:10px">Chọn khoảng ngày ở góc trên để lập báo cáo tháng/quý. Nút <b>Xuất Word</b>/<b>In · Lưu PDF</b> kết xuất báo cáo hoàn chỉnh theo thể thức (kèm bảng KPI) để trình ký, gửi Đoàn cấp trên.</div>
+  </div></div></div></div>`;
 }
 function exportStatsCSV(){
   const m=me();
@@ -1161,7 +1399,10 @@ function viewOrg(){
   return `
   <div class="page-head"><div><div class="eyebrow">Phân cấp cơ sở Đoàn</div><h2>Sơ đồ tổ chức</h2></div>
    <div class="spacer"></div>
+   <button class="btn btn-ghost btn-sm" onclick="downloadOrgTemplate()">⬇ File Excel mẫu</button>
+   <label class="btn btn-ghost btn-sm">⬆ Nhập từ Excel<input type="file" accept=".xlsx,.xls,.csv" style="display:none" onchange="importOrgFile(this)"></label>
    <button class="btn btn-gold" onclick="orgAdd()">＋ Thêm đơn vị cấp dưới</button></div>
+  ${S.orgImport?orgImportCard():""}
   ${needMigrate?`<div class="card" style="border-left:4px solid var(--warn)"><div class="card-b small">
     ⚠ <b>Cần nâng cấp dữ liệu phân cấp (một lần).</b> Để luật bảo mật máy chủ nhận diện quyền quản trị toàn nhánh, mỗi đơn vị cần trường chuỗi cấp trên (anc). 
     <button class="btn btn-primary btn-sm" style="margin-left:8px" onclick="migrateAnc()">Nâng cấp ngay</button>
@@ -1251,6 +1492,145 @@ function orgEditor(){
     ${!isAdd?memberSection(u):""}
     ${!isAdd?passSection(u,isSelf):""}
    </div></div>`;
+}
+/* --- Nhập đơn vị hàng loạt từ Excel --- */
+function loadXLSX(){
+  if(typeof XLSX!=="undefined")return Promise.resolve();
+  return new Promise((res,rej)=>{const sc=document.createElement("script");
+    sc.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+    sc.onload=res;sc.onerror=()=>rej(new Error("Không tải được thư viện Excel — cần kết nối mạng."));
+    document.head.appendChild(sc)});
+}
+const ORG_HEADERS=["Tên đầy đủ *","Tên gọn","Mã ký hiệu *","Tài khoản đăng nhập *","Mật khẩu ban đầu *","Trực thuộc (tài khoản đơn vị cha, trống = trực thuộc bạn)","Địa chỉ","Điện thoại","Email"];
+async function downloadOrgTemplate(){
+  try{
+    await loadXLSX();
+    const rows=[ORG_HEADERS,
+      ["Đoàn xã Tân Hội","Đoàn xã Tân Hội","ĐXTH","dx.tanhoi","doan@2026","","Xã Tân Hội","0277xxxxxx",""],
+      ["Chi đoàn ấp 1 - Tân Hội","CĐ ấp 1","CĐA1","cd.ap1.tanhoi","doan@2026","dx.tanhoi","","",""]];
+    const wb=XLSX.utils.book_new();
+    const ws=XLSX.utils.aoa_to_sheet(rows);
+    ws["!cols"]=[{wch:32},{wch:18},{wch:12},{wch:22},{wch:16},{wch:40},{wch:22},{wch:14},{wch:22}];
+    XLSX.utils.book_append_sheet(wb,ws,"DonVi");
+    const hd=XLSX.utils.aoa_to_sheet([["HƯỚNG DẪN NHẬP ĐƠN VỊ TỪ EXCEL"],[""],
+      ["1. Điền mỗi đơn vị một dòng trong sheet DonVi; các cột có dấu * là bắt buộc."],
+      ["2. Tài khoản đăng nhập: chữ thường không dấu, số, dấu chấm/gạch; không trùng nhau và không trùng tài khoản đã có."],
+      ["3. Cột Trực thuộc: điền TÀI KHOẢN của đơn vị cha (đã có trên hệ thống hoặc nằm ngay trong file này — nhập được nhiều cấp một lần). Bỏ trống = trực thuộc đơn vị của bạn."],
+      ["4. Mật khẩu ban đầu tối thiểu 6 ký tự; gửi cho từng đơn vị qua kênh an toàn, đề nghị đổi sau lần đăng nhập đầu."],
+      ["5. Lưu file rồi bấm 'Nhập từ Excel' trong trang Sơ đồ tổ chức, kiểm tra bảng xem trước và xác nhận."]]);
+    hd["!cols"]=[{wch:110}];
+    XLSX.utils.book_append_sheet(wb,hd,"HuongDan");
+    XLSX.writeFile(wb,"mau-nhap-don-vi.xlsx");
+    toast("Đã tải file Excel mẫu.");
+  }catch(e){toast(e.message)}
+}
+function _norm(t){return (t||"").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d")}
+/* Hàm thuần (test được): nhận mảng dòng [ [cột..] ], trả {items, errors} đã xếp thứ tự cha trước con */
+function parseOrgRows(rows){
+  const errors=[],m=me();
+  if(!rows||rows.length<2)return {items:[],errors:["File không có dữ liệu."]};
+  const head=rows[0].map(_norm);
+  const col=(kw,excl)=>head.findIndex(h=>kw.every(k=>h.includes(k))&&(!excl||!excl.some(k=>h.includes(k))));
+  const ci={name:col(["ten","day du"]),short:col(["ten gon"]),code:col(["ma"]),
+    user:col(["tai khoan"],["truc thuoc"]),pass:col(["mat khau"]),parent:col(["truc thuoc"]),
+    diachi:col(["dia chi"]),sdt:col(["dien thoai"]),email:col(["email"])};
+  if(ci.name<0||ci.code<0||ci.user<0||ci.pass<0)return {items:[],errors:["Không nhận diện được tiêu đề cột — hãy dùng đúng file mẫu."]};
+  const raw=[];
+  rows.slice(1).forEach((r,idx)=>{
+    if(!r||r.every(c=>!(c??"").toString().trim()))return;
+    const g=i=>i>=0?(r[i]??"").toString().trim():"";
+    const it={row:idx+2,name:g(ci.name),short:g(ci.short)||g(ci.name),
+      code:g(ci.code).toUpperCase().replace(/\s+/g,""),user:g(ci.user).toLowerCase().replace(/\s+/g,""),
+      pass:g(ci.pass),parentUser:g(ci.parent).toLowerCase().replace(/\s+/g,""),
+      diachi:g(ci.diachi),dienthoai:g(ci.sdt),email:g(ci.email)};
+    if(!it.name||!it.code)errors.push("Dòng "+it.row+": thiếu Tên hoặc Mã ký hiệu.");
+    else if(!/^[a-z0-9._-]+$/.test(it.user))errors.push("Dòng "+it.row+": tài khoản “"+it.user+"” không hợp lệ (chữ thường không dấu, số, . _ -).");
+    else if(DB.units.some(x=>x.user===it.user)||raw.some(x=>x.user===it.user))errors.push("Dòng "+it.row+": tài khoản “"+it.user+"” bị trùng.");
+    else if((it.pass||"").length<6)errors.push("Dòng "+it.row+": mật khẩu tối thiểu 6 ký tự.");
+    else raw.push(it);});
+  /* xếp cha trước con; kiểm tra quyền theo nhánh */
+  const ordered=[],inFile=u=>raw.find(x=>x.user===u);
+  let guard=0;
+  while(ordered.length<raw.length&&guard++<raw.length+2){
+    raw.forEach(it=>{
+      if(ordered.includes(it))return;
+      if(!it.parentUser){it._parentId=m.id;ordered.push(it);return}
+      const ex=DB.units.find(x=>x.user===it.parentUser&&!x.deleted);
+      if(ex){
+        if(ex.id!==m.id&&!managedBy(ex,m.id)){errors.push("Dòng "+it.row+": đơn vị cha “"+it.parentUser+"” ngoài nhánh quản lý của bạn.");ordered.push(it);it._skip=true;return}
+        it._parentId=ex.id;ordered.push(it);return}
+      const pf=inFile(it.parentUser);
+      if(!pf){errors.push("Dòng "+it.row+": không tìm thấy đơn vị cha “"+it.parentUser+"” (trên hệ thống lẫn trong file).");ordered.push(it);it._skip=true;return}
+      if(ordered.includes(pf)&&!pf._skip){it._parentInFile=pf.user;ordered.push(it)}
+      else if(pf._skip){ordered.push(it);it._skip=true;errors.push("Dòng "+it.row+": đơn vị cha ở dòng lỗi nên bị bỏ qua.")}});
+  }
+  return {items:ordered.filter(x=>!x._skip),errors};
+}
+async function importOrgFile(inp){
+  const f=inp.files[0];inp.value="";if(!f)return;
+  try{
+    await loadXLSX();
+    const buf=await f.arrayBuffer();
+    const wb=XLSX.read(buf,{type:"array"});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:false});
+    S.orgImport=parseOrgRows(rows);S.orgImport.done=false;
+    render();
+  }catch(e){toast("Không đọc được file: "+e.message)}
+}
+function orgImportCard(){
+  const oi=S.orgImport;
+  return `<div class="card" style="border-left:4px solid var(--gold)"><div class="card-h"><h3>Xem trước nhập từ Excel — ${oi.items.length} đơn vị hợp lệ</h3>
+    <div class="spacer"></div><button class="btn btn-ghost btn-sm" onclick="S.orgImport=null;render()">✕ Hủy</button></div>
+   <div class="card-b">
+    ${oi.errors.length?`<div style="background:var(--danger-bg);border-radius:8px;padding:9px 13px;margin-bottom:10px" class="small">
+      <b style="color:var(--danger)">${oi.errors.length} dòng lỗi (sẽ bỏ qua):</b><br>${oi.errors.map(esc).join("<br>")}</div>`:""}
+    ${oi.items.length?`<div class="tbl-wrap"><table><thead><tr><th>Dòng</th><th>Tên đơn vị</th><th>Mã</th><th>Tài khoản</th><th>Trực thuộc</th></tr></thead><tbody>
+      ${oi.items.map(it=>`<tr><td>${it.row}</td><td>${esc(it.name)}</td><td class="mono">${esc(it.code)}</td><td class="mono">${esc(it.user)}</td>
+        <td class="small">${it._parentInFile?esc(it._parentInFile)+' <span class="muted">(trong file)</span>':esc((unit(it._parentId)||{}).short||"?")}</td></tr>`).join("")}
+      </tbody></table></div>
+      <div style="margin-top:12px;display:flex;gap:10px;align-items:center">
+        <button class="btn btn-primary" id="oi-run" onclick="runOrgImport()">✔ Xác nhận nhập ${oi.items.length} đơn vị & cấp tài khoản</button>
+        <span class="small" id="oi-status" style="color:var(--warn)"></span></div>`
+     :'<div class="empty">Không có dòng hợp lệ nào để nhập.</div>'}
+   </div></div>`;
+}
+async function runOrgImport(){
+  const oi=S.orgImport;if(!oi||!oi.items.length)return;
+  const btn=document.getElementById("oi-run"),stEl=document.getElementById("oi-status");
+  if(btn)btn.disabled=true;
+  const idByUser={};let ok=0,fail=0;
+  for(let i=0;i<oi.items.length;i++){
+    const it=oi.items[i];
+    if(stEl)stEl.textContent="Đang tạo "+(i+1)+"/"+oi.items.length+": "+it.user+"…";
+    try{
+      const parentId=it._parentInFile?idByUser[it._parentInFile]:it._parentId;
+      if(!parentId)throw new Error("mất tham chiếu đơn vị cha");
+      const pu=unit(parentId)||DB.units.find(x=>x.id===parentId);
+      const nu={id:uid("u"),name:it.name,short:it.short,code:it.code,user:it.user,
+        parent:parentId,level:((pu&&pu.level)||1)+1,anc:chainAnc({parent:parentId}),
+        diachi:it.diachi,dienthoai:it.dienthoai,email:it.email};
+      if(MODE==="local"){nu.pass=it.pass;DB.units.push(nu)}
+      else{
+        try{
+          const sec=firebase.apps.find(a=>a.name==="sec")||firebase.initializeApp(FIREBASE_CONFIG,"sec");
+          await sec.auth().createUserWithEmailAndPassword(it.user+"@"+LOGIN_DOMAIN,it.pass);
+          await sec.auth().signOut();
+        }catch(e){if(e.code!=="auth/email-already-in-use")throw e}
+        const batch=FB.fs.batch();
+        batch.set(FB.fs.collection("units").doc(nu.id),JSON.parse(JSON.stringify(nu)));
+        batch.set(FB.fs.collection("userIndex").doc(nu.user),{unitId:nu.id});
+        await batch.commit();
+        if(!DB.units.some(x=>x.id===nu.id))DB.units.push(nu);
+      }
+      idByUser[it.user]=nu.id;ok++;
+    }catch(e){fail++;oi.errors.push("Dòng "+it.row+" ("+it.user+"): "+e.message)}
+  }
+  if(MODE==="local")save();
+  orgLog("Nhập đơn vị từ Excel","","Thành công "+ok+(fail?", lỗi "+fail:""));
+  toast("Nhập xong: "+ok+" đơn vị"+(fail?", "+fail+" lỗi (xem chi tiết trong bảng).":"."));
+  if(fail){if(btn)btn.disabled=false;if(stEl)stEl.textContent="";S.orgImport.items=[];render()}
+  else{S.orgImport=null;render()}
 }
 /* --- quản lý cán bộ của đơn vị (III: Bí thư, Phó BT, UV BCH, cán bộ, văn thư) --- */
 function memberSection(u){
@@ -1661,7 +2041,9 @@ async function buildSummaryReport(id){
     noiDung:nd,doKhan:"thuong",hanXuLy:null,yeuCauBaoCao:false,replyTo:d.id,file:null,
     recips:sup&&!sup.deleted?[{unit:sup.id,role:"XDB",status:"choxuly",receivedAt:todayISO(),viewed:false,progress:0,reports:[]}]:[],
     recipIds:[],audit:[{time:todayISO(),unit:m.id,action:"Tạo dự thảo",note:"Tổng hợp tự động từ báo cáo của "+d.recips.length+" đơn vị (VB "+d.so+")",nguoi:memberLabel()}]};
+  draft.attachedDocs=[attSnapshot(d)]; /* tự kèm văn bản gốc làm tài liệu tham chiếu */
   try{await persistNew(draft)}catch(e){toast("Lỗi tạo dự thảo: "+e.message);return}
+  resetCompose();S.composeAtt=draft.attachedDocs.map(a=>({...a}));
   S.draftId=draft.id;
   toast("Đã tổng hợp thành dự thảo báo cáo — rà soát, bổ sung đánh giá rồi trình/phát hành.");
   nav("soan");S.draftId=draft.id;render();
@@ -1678,6 +2060,8 @@ function viewSearch(){
   if(q){
     searchCorpus().forEach(d=>{
       const fields=[["Số ký hiệu",d.so],["Trích yếu",d.trichYeu],["Nội dung",d.noiDung],["OCR",d.ocrText]];
+      (d.attachedDocs||[]).forEach(a=>fields.push(["VB kèm theo",a.so+" "+a.trichYeu]));
+      docFiles(d).forEach(f=>fields.push(["Tên tệp",f.name]));
       (d.comments||[]).forEach(c=>fields.push(["Trao đổi",c.text]));
       d.recips.forEach(r=>(r.reports||[]).forEach(rp=>fields.push(["Báo cáo",rp.content])));
       for(const[label,val]of fields){
@@ -1734,10 +2118,11 @@ function ocrPickFile(inp){
 }
 async function ocrDoc(id){
   const d=DB.docs.find(x=>x.id===id);
-  if(!d||!d.file||!d.file.dataUrl||!d.file.dataUrl.startsWith("data:image")){toast("Chỉ OCR được tệp ảnh lưu kèm văn bản.");return}
+  const imgF=d?docFiles(d).find(f=>f.dataUrl&&f.dataUrl.startsWith("data:image")):null;
+  if(!imgF){toast("Chỉ OCR được tệp ảnh lưu kèm văn bản.");return}
   const stEl=document.getElementById("ocr-doc-status");
   try{
-    const text=await runOCR(d.file.dataUrl,stEl);
+    const text=await runOCR(imgF.dataUrl,stEl);
     d.ocrText=text;audit(d,"OCR trích xuất nội dung",text.length+" ký tự");
     commit(d);if(MODE==="local")save();
     toast("Đã OCR và lập chỉ mục tìm kiếm ("+text.length+" ký tự).");render();
@@ -1754,16 +2139,36 @@ function setAiKey(){
   try{if(v.trim())localStorage.setItem("do_ai_key",v.trim());else localStorage.removeItem("do_ai_key")}catch(e){}
   toast(v.trim()?"Đã lưu khóa AI trên máy này.":"Đã gỡ khóa AI.");render();
 }
+const AI_FREE_LIMIT=1500; /* hạn mức miễn phí THAM KHẢO của Gemini Flash (lượt/ngày) — Google không có API tra hạn mức còn lại */
+function aiUseCount(){try{return parseInt(localStorage.getItem("do_ai_use_"+todayISO())||"0",10)}catch(e){return 0}}
+function bumpAiUse(){try{
+  const n=aiUseCount()+1;localStorage.setItem("do_ai_use_"+todayISO(),String(n));
+  if(n===Math.ceil(AI_FREE_LIMIT*0.8))toast("⚠ Đã dùng ~80% hạn mức AI miễn phí ước tính trong ngày ("+n+"/"+AI_FREE_LIMIT+").");
+}catch(e){}}
 async function aiCall(prompt){
   const key=aiKey();
   if(!key)throw new Error("NOKEY");
   const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key="+encodeURIComponent(key),{
     method:"POST",headers:{"Content-Type":"application/json"},
     body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.4,maxOutputTokens:1400}})});
+  if(r.status===429){throw new Error("Khóa này đã chạm hạn mức miễn phí trong ngày (HTTP 429). Chờ sang ngày hoặc dùng khóa khác.")}
   if(!r.ok){throw new Error("AI API lỗi "+r.status+(r.status===400||r.status===403?" — kiểm tra lại khóa API":""))}
+  bumpAiUse();
   const j=await r.json();
   const c=(j.candidates||[])[0];
   return ((c&&c.content&&c.content.parts)||[]).map(x=>x.text||"").join("").trim();
+}
+async function testAi(){
+  const out=document.getElementById("ai-test-out");
+  const v=(document.getElementById("ai-key")||{}).value||"";
+  if(v.trim()&&v.trim()!==aiKey()){try{localStorage.setItem("do_ai_key",v.trim())}catch(e){}}
+  if(!aiKey()){if(out)out.innerHTML='<span style="color:var(--danger)">Chưa có khóa — dán khóa rồi bấm kiểm tra.</span>';return}
+  if(out)out.innerHTML='<span style="color:var(--warn)">Đang gọi thử Gemini…</span>';
+  try{
+    const t=await aiCall("Trả lời ngắn gọn đúng một câu tiếng Việt xác nhận kết nối thành công.");
+    if(out)out.innerHTML='<span style="color:var(--ok)">✔ Khóa hoạt động.</span> AI trả lời: <i>'+esc(t.slice(0,120))+'</i> · Đã dùng <b>'+aiUseCount()+'</b> lượt hôm nay (máy này).';
+    render();
+  }catch(e){if(out)out.innerHTML='<span style="color:var(--danger)">✕ '+esc(e.message)+'</span>'}
 }
 function aiNoKeyMsg(){toast("Chưa có khóa AI. Vào Dữ liệu & sao lưu → Trợ lý AI để dán khóa Gemini miễn phí (aistudio.google.com).")}
 async function aiSummarize(id){
@@ -1906,6 +2311,15 @@ function viewSystem(){
       <input id="ai-key" type="password" value="${esc(aiKey())}" placeholder="AIza…"></div>
     <button class="btn btn-primary btn-sm" onclick="setAiKey()">Lưu khóa</button>
     <button class="btn btn-ghost btn-sm" style="margin-left:6px" onclick="(document.getElementById('ai-key')||{}).value='';setAiKey()">Gỡ khóa</button>
+    <button class="btn btn-gold btn-sm" style="margin-left:6px" onclick="testAi()">🧪 Kiểm tra khóa</button>
+    <div class="small" id="ai-test-out" style="margin-top:8px"></div>
+    ${aiKey()?`<div style="margin-top:10px">
+      <div class="eyebrow" style="margin-bottom:4px">Hạn mức trong ngày (đếm tại máy này)</div>
+      <div style="display:flex;gap:9px;align-items:center">
+        <div class="prog" style="flex:1"><i style="width:${Math.min(100,Math.round(aiUseCount()/AI_FREE_LIMIT*100))}%;${aiUseCount()>=AI_FREE_LIMIT*0.8?"background:var(--danger)":""}"></i></div>
+        <span class="small ${aiUseCount()>=AI_FREE_LIMIT*0.8?"khan-tk":"muted"}">${aiUseCount()}/${AI_FREE_LIMIT} lượt</span></div>
+      <div class="hint" style="margin-top:4px">${aiUseCount()>=AI_FREE_LIMIT*0.8?"⚠ Sắp chạm hạn mức miễn phí ước tính — cân nhắc để dành cho việc quan trọng. ":""}Google không cung cấp API tra hạn mức còn lại, nên đây là số lượt gọi đếm từ máy này (mốc ~${AI_FREE_LIMIT} lượt/ngày là hạn mức miễn phí tham khảo của Gemini Flash; dùng cùng khóa trên nhiều máy thì tổng thực tế cao hơn).</div>
+    </div>`:""}
     <div class="hint" style="margin-top:8px">Không có khóa, mọi tính năng khác vẫn hoạt động bình thường — AI là mô-đun gắn thêm, đúng kiến trúc plugin. Nội dung gửi tới AI gồm trích yếu/nội dung văn bản bạn đang thao tác; cân nhắc với văn bản nhạy cảm.</div>
   </div></div>`;
   return `
@@ -2020,11 +2434,95 @@ async function initUnits(){
   }catch(e){toast("Lỗi ghi Firestore: "+e.message+" — kiểm tra đã áp dụng luật bootstrap chưa.")}
 }
 
+/* ---------- Phiếu xử lý văn bản (bản in A4, thể thức hành chính) ---------- */
+async function getQRDataUrl(text){
+  try{
+    if(typeof QRCode==="undefined"){
+      await new Promise((res,rej)=>{const sc=document.createElement("script");
+        sc.src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";
+        sc.onload=res;sc.onerror=rej;document.head.appendChild(sc)});}
+    const tmp=document.createElement("div");tmp.style.cssText="position:fixed;left:-9999px";
+    document.body.appendChild(tmp);
+    new QRCode(tmp,{text,width:104,height:104,correctLevel:QRCode.CorrectLevel.M});
+    const cv=tmp.querySelector("canvas");const src=cv?cv.toDataURL("image/png"):(tmp.querySelector("img")||{}).src||"";
+    document.body.removeChild(tmp);return src;
+  }catch(e){return ""}
+}
+async function printDoc(id){
+  const d=DB.docs.find(x=>x.id===id);if(!d)return;
+  const m=me(),from=unit(d.from)||{},st=dstat(d);
+  const qr=await getQRDataUrl((location.origin&&location.origin!=="null"?location.origin+location.pathname:"")+"#vb="+d.id);
+  const stTxt={choxuly:"Chờ xử lý",dangxuly:"Đang xử lý",daxuly:"Đã xử lý"};
+  const row=(k,v)=>'<tr><td class="k">'+k+'</td><td>'+v+'</td></tr>';
+  const html=`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><title>Phiếu xử lý ${esc(d.so||"")}</title>
+<style>
+@page{size:A4;margin:16mm 15mm}
+body{font-family:"Times New Roman",Times,serif;font-size:13.5pt;color:#000;line-height:1.42;margin:0}
+.hd{display:flex;justify-content:space-between;gap:16px;margin-bottom:4px}
+.hd .l{width:46%;text-align:center;font-size:12.5pt}
+.hd .r{width:52%;text-align:center;font-size:12.5pt}
+.hd b{display:block}
+.line{width:38%;border-bottom:1.2pt solid #000;margin:2px auto 0}
+h1{text-align:center;font-size:15pt;margin:14px 0 2px;text-transform:uppercase}
+.sub{text-align:center;font-style:italic;margin-bottom:12px}
+table{width:100%;border-collapse:collapse;margin-bottom:12px}
+td,th{border:0.9pt solid #000;padding:4px 7px;vertical-align:top;font-size:12.5pt}
+th{background:#eee;text-align:center}
+td.k{width:34mm;font-weight:bold;background:#f6f6f6}
+.noborder td{border:none;padding:2px 0}
+.sig{display:flex;justify-content:space-between;margin-top:16px;text-align:center;font-size:12.5pt}
+.sig .box{width:46%}
+.sig i{display:block;font-size:11.5pt}
+.small{font-size:11pt}
+.qr{float:right;text-align:center;font-size:10pt;margin-left:10px}
+.recall{border:2pt solid #000;text-align:center;font-weight:bold;padding:5px;margin-bottom:10px;text-transform:uppercase}
+</style></head><body>
+<div class="hd">
+ <div class="l"><b>ĐOÀN TNCS HỒ CHÍ MINH</b><b>${esc((from.name||"").toUpperCase())}</b><div class="line"></div>
+  <div style="margin-top:4px">Số: ${esc(d.so||"…")}</div></div>
+ <div class="r" style="padding-top:2px"><i>${esc((m.diachi||"").split(",").pop()||"…")}, ngày ${new Date().getDate()} tháng ${new Date().getMonth()+1} năm ${new Date().getFullYear()}</i></div>
+</div>
+${qr?`<div class="qr"><img src="${qr}" width="96" height="96"><br>Mã kiểm tra: <b>${vbHash(d)}</b></div>`:`<div class="qr">Mã kiểm tra: <b>${vbHash(d)}</b></div>`}
+<h1>Phiếu xử lý văn bản</h1>
+<div class="sub">(Kèm theo ${esc(LOAI[d.loai][1])} số ${esc(d.so||"…")} — in từ Hệ thống DoanOffice ngày ${fmtD(todayISO())})</div>
+${st==="thuhoi"?'<div class="recall">Văn bản đã thu hồi — không có giá trị thực hiện</div>':""}
+<table>
+${row("Số ký hiệu",esc(d.so||"(chưa cấp số)"))}
+${row("Loại · Độ khẩn",esc(LOAI[d.loai][1])+" · "+esc(KHAN[d.doKhan][0]))}
+${row("Trích yếu","<b>"+esc(d.trichYeu)+"</b>")}
+${row("Cơ quan ban hành",esc(from.name||"?"))}
+${row("Ngày ban hành",fmtD(d.ngayBH))}
+${row("Hạn xử lý",d.hanXuLy?fmtD(d.hanXuLy):"Không đặt hạn")}
+${row("Giao việc/báo cáo",d.yeuCauBaoCao?"Có — nơi nhận báo cáo tiến độ, kết quả":"Không yêu cầu")}
+${row("Tệp đính kèm",docFiles(d).length?docFiles(d).map(f=>esc(f.name)+(f.link?" (Drive)":"")).join("; "):"Không có")}
+${(d.attachedDocs||[]).length?row("Văn bản kèm theo",d.attachedDocs.map(a=>esc(a.so)+" — "+esc(a.trichYeu)).join("; ")):""}
+</table>
+<b>1. Theo dõi xử lý tại các nơi nhận</b>
+<table><tr><th style="width:8mm">TT</th><th>Đơn vị nhận</th><th style="width:24mm">Vai trò</th><th style="width:22mm">Trạng thái</th><th style="width:16mm">Tiến độ</th><th>Kết quả/báo cáo gần nhất</th></tr>
+${d.recips.map((r,i)=>{const u=unit(r.unit)||{name:"?"};const last=(r.reports||[])[r.reports.length-1];
+ return "<tr><td style='text-align:center'>"+(i+1)+"</td><td>"+esc(u.name)+(r.assignee?"<br><i class='small'>Chủ trì: "+esc(r.assignee)+"</i>":"")+"</td><td>"+ROLE[r.role]+"</td><td>"+(isOverdue(d,r)?"Quá hạn":stTxt[r.status])+"</td><td style='text-align:center'>"+r.progress+"%</td><td class='small'>"+(last?esc(last.content)+" <i>("+fmtD(last.time)+")</i>":"—")+"</td></tr>"}).join("")}
+</table>
+<b>2. Truy vết xử lý (nhật ký hệ thống — không thể sửa/xóa)</b>
+<table><tr><th style="width:22mm">Ngày</th><th style="width:34mm">Đơn vị</th><th style="width:40mm">Người thao tác</th><th>Hoạt động</th></tr>
+${d.audit.map(a=>"<tr><td>"+fmtD(a.time)+"</td><td>"+esc((unit(a.unit)||{}).short||"?")+"</td><td>"+esc(a.nguoi||"Tài khoản đơn vị")+"</td><td>"+esc(a.action)+(a.note?" — <i class='small'>"+esc(a.note)+"</i>":"")+"</td></tr>").join("")}
+</table>
+<div class="sig">
+ <div class="box"><b>NGƯỜI LẬP PHIẾU</b><i>(Ký, ghi rõ họ tên)</i><br><br><br><br>${esc(curMember()?curMember().name:"")}</div>
+ <div class="box"><b>LÃNH ĐẠO ĐƠN VỊ</b><i>(Ký, ghi rõ họ tên)</i><br><br><br><br></div>
+</div>
+<script>window.onload=function(){setTimeout(function(){window.print()},250)}<\/script>
+</body></html>`;
+  const w=window.open("","_blank");
+  if(!w){toast("Trình duyệt chặn cửa sổ mới — cho phép popup để in phiếu.");return}
+  w.document.write(html);w.document.close();
+  audit(d,"In phiếu xử lý","");commit(d);if(MODE==="local")save();
+}
+
 /* ---------- Lớp tích hợp mở (Open Integration Layer) ----------
    Các hệ thống khác / connector tương lai (iOffice tỉnh, Zalo bot…)
    truy cập qua window.DoanOffice — không đụng vào lõi. */
 window.DoanOffice={
-  version:"3.0",
+  version:"3.6",
   unit:()=>DB&&DB.session?{...me()}:null,
   docs:()=>DB?JSON.parse(JSON.stringify(searchCorpus())):[],
   targets:()=>DB?JSON.parse(JSON.stringify([...myTargets(),...myAssignedTargets()])):[],
