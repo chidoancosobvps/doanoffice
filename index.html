@@ -178,6 +178,15 @@ tr.rowlink:hover td{background:#F4F9FF}
 .pill.role{background:#EEF2F7;color:#41566B}
 .khan-thuong{color:#8CA1B4} .khan-khan{color:var(--gold-2);font-weight:600} .khan-tk{color:var(--danger);font-weight:600} .khan-ht{color:#E25822;font-weight:700}
 .empty{padding:38px 20px;text-align:center;color:var(--muted);font-size:.87rem}
+.tpl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.tpl-card{border:1.5px solid var(--line);border-radius:12px;padding:14px 15px;background:#FBFDFF;display:flex;flex-direction:column}
+.tpl-card:hover{border-color:var(--gold);box-shadow:0 4px 14px -6px rgba(240,180,41,.5)}
+.tpl-h{font-weight:700;color:var(--doan-deep);line-height:1.3}
+.rp-blocks{border-left:3px solid var(--line-soft);padding-left:14px;margin:8px 0}
+.rp-fixed{font-weight:700;color:var(--doan-deep);margin:14px 0 6px;padding-bottom:3px;border-bottom:1px dashed var(--line)}
+.rp-note{background:var(--info-bg);border-radius:8px;padding:8px 11px;margin:6px 0;line-height:1.4}
+.rp-auto{background:var(--gold-soft);border-radius:8px;padding:7px 11px;margin:6px 0;font-weight:600}
+code{background:var(--line-soft);padding:1px 5px;border-radius:5px;font-family:ui-monospace,monospace;font-size:.86em}
 .empty::before{content:"";display:block;width:52px;height:52px;margin:0 auto 12px;opacity:.5;
   background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235F7488' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'><path d='M22 12h-6l-2 3h-4l-2-3H2'/><path d='M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z'/></svg>") center/contain no-repeat}
 
@@ -308,6 +317,8 @@ const ICO={
   bell:_sv('<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>'),
   menu:_sv('<path d="M4 6h16M4 12h16M4 18h16"/>'),
   clip:_sv('<path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/>'),
+  tmpl:_sv('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h4"/>'),
+  alarm:_sv('<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3 2 6"/><path d="m22 6-3-3"/><path d="M6.38 18.7 4 21"/><path d="M17.64 18.67 20 21"/>'),
 };
 const LOAI={congvan:["CV","Công văn"],kehoach:["KH","Kế hoạch"],thongbao:["TB","Thông báo"],quyetdinh:["QĐ","Quyết định"],baocao:["BC","Báo cáo"],huongdan:["HD","Hướng dẫn"],totrinh:["TTr","Tờ trình"],chuongtrinh:["CTr","Chương trình"],nghiquyet:["NQ","Nghị quyết"],giaymoi:["GM","Giấy mời"],bienban:["BB","Biên bản"]};
 /* Kho mẫu văn bản đặc thù của Đoàn (khung thể thức theo hướng dẫn văn bản của Đoàn) */
@@ -323,7 +334,8 @@ let DB=null, S={view:"dashboard",tab:"choxuly",outTab:"all",docId:null,statFrom:
 /* ---------------- store ---------------- */
 function load(){try{DB=JSON.parse(localStorage.getItem(LS_KEY))}catch(e){DB=null}
   if(!DB||!DB.units){seed()}
-  DB.targets=DB.targets||[];DB.events=DB.events||[];DB.library=DB.library||[];DB.periodic=DB.periodic||[]; }
+  DB.targets=DB.targets||[];DB.events=DB.events||[];DB.library=DB.library||[];DB.periodic=DB.periodic||[];
+  DB.reports=DB.reports||[];DB.reminders=DB.reminders||[];ensureReminderSeed(); }
 function save(){localStorage.setItem(LS_KEY,JSON.stringify(DB))}
 function uid(p){return p+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function seed(){
@@ -485,7 +497,7 @@ async function doLogin(){
   catch(e){err.style.display="block";
     err.textContent={"auth/invalid-credential":"Sai tài khoản hoặc mật khẩu.","auth/user-not-found":"Tài khoản chưa được quản trị viên tạo trên Firebase.","auth/wrong-password":"Sai mật khẩu.","auth/too-many-requests":"Nhập sai nhiều lần, thử lại sau ít phút.","auth/network-request-failed":"Không có kết nối mạng."}[e.code]||("Lỗi đăng nhập: "+e.message)}
 }
-function quickLogin(id){DB.session=id;save();S.view="dashboard";S.memberId=localStorage.getItem("do_mem_"+id)||null;render()}
+function quickLogin(id){DB.session=id;save();S.view="dashboard";S.memberId=localStorage.getItem("do_mem_"+id)||null;ensureReminderSeed();render()}
 function logout(){
   try{sessionStorage.removeItem("do_lg")}catch(e){}
   S.logs=null;S.memberId=null;S.bell=false;
@@ -950,12 +962,13 @@ function render(){
   if(!DB.session){app.innerHTML=viewLogin();return}
   if(members(me()).length&&!curMember()){app.innerHTML=viewPickMember();return}
   S._stale=false;
-  const views={dashboard:viewDashboard,vbden:viewInbox,vbdi:viewOutbox,soan:viewCompose,detail:viewDetail,thongke:viewStats,danhba:viewOrg,hethong:viewSystem,chitieu:viewTargets,lich:viewCalendar,timkiem:viewSearch,kho:viewLibrary,dinhky:viewPeriodic};
+  const views={dashboard:viewDashboard,vbden:viewInbox,vbdi:viewOutbox,soan:viewCompose,detail:viewDetail,thongke:viewStats,danhba:viewOrg,hethong:viewSystem,chitieu:viewTargets,lich:viewCalendar,timkiem:viewSearch,kho:viewLibrary,dinhky:viewPeriodic,maubc:viewReports,nhaclich:viewReminders};
   app.innerHTML=shell((views[S.view]||viewDashboard)());
   if(S.pendingDoc){const pid=S.pendingDoc;
     if(DB.docs.some(x=>x.id===pid)){S.pendingDoc=null;setTimeout(()=>openDoc(pid),0)}}
   if(S.qr&&S.view==="detail")renderQR();
   if(S.view==="soan"){updateFileListUI();updateAttListUI()}
+  if(S.view==="nhaclich"){try{rmCycleUI()}catch(e){}}
 }
 function renderQR(){
   const box=document.getElementById("qrbox");if(!box)return;
@@ -1033,7 +1046,9 @@ function shell(content){
       ${item("thongke",ICO.chart,"Báo cáo · Thống kê",nQuaHan?nQuaHan:"")}
       ${item("chitieu",ICO.target,"Chỉ tiêu · KPI")}
       ${item("dinhky",ICO.period,"Báo cáo định kỳ",periodicDueCount()||"")}
+      ${item("maubc",ICO.tmpl,"Mẫu báo cáo")}
       ${item("lich",ICO.cal,"Lịch công tác")}
+      ${item("nhaclich",ICO.alarm,"Nhắc lịch báo cáo",reminderDueCount()||"")}
       ${item("kho",ICO.lib,"Kho tài liệu")}
       ${item("danhba",ICO.org,"Sơ đồ tổ chức")}
       <h6>Quản trị</h6>
@@ -2574,6 +2589,22 @@ function viewSystem(){
     <p style="margin-bottom:6px">② <b>Firebase Auth + Firestore (gói Spark)</b> — tài khoản đăng nhập từng cơ sở Đoàn và cơ sở dữ liệu văn bản dùng chung, đồng bộ thời gian thực.</p>
     <p style="margin-bottom:6px">③ <b>Google Drive API</b> — lưu tệp PDF/Word đính kèm (15GB miễn phí mỗi tài khoản đơn vị).</p>
     <p>④ Bộ nhớ cục bộ (IndexedDB) vẫn giữ vai trò cache để làm việc offline, tự đồng bộ khi có mạng.</p>
+  </div></div>
+  <div class="card"><div class="card-h"><h3>Mới ở 4.1 · Mẫu báo cáo & Nhắc lịch</h3></div><div class="card-b small">
+    <p style="margin-bottom:6px">⑤ <b>Mẫu báo cáo</b> — cơ sở chọn mẫu chuẩn (theo Công văn 76-CV/ĐTN) hoặc tạo mẫu riêng, điền nội dung, tự lấy số liệu từ <b>Báo cáo định kỳ</b>, rồi <b>xuất Word đúng thể thức</b> và/hoặc <b>gửi bản điện tử lên cấp trên</b> (thành văn bản đi loại Báo cáo).</p>
+    <p style="margin-bottom:6px">⑥ <b>Nhắc lịch báo cáo</b> — nạp sẵn mốc CV76 (tháng/quý/6-9 tháng/năm), cảnh báo trước hạn 1–2 ngày (tùy chọn), lặp định kỳ; cơ sở tạo thêm lịch riêng. Nhắc trong app + Discord; muốn nhắc Email/Discord kể cả khi không ai mở web thì đặt trigger <code>dueReminders</code> trong <b>Code.gs</b>.</p>
+    <p style="margin-bottom:6px"><b>Firestore rules cần bổ sung</b> cho 4.1 (dán vào <code>firestore.rules</code> rồi publish):</p>
+    <pre style="background:var(--line-soft);padding:10px;border-radius:8px;overflow:auto;font-size:.78rem;line-height:1.4">match /reportTemplates/{id} {
+  allow read: if request.auth != null;      // mọi đơn vị đọc mẫu dùng chung
+  allow write: if request.auth != null
+    && request.resource.data.from == null
+       || resource == null
+       || resource.data.from == request.auth.token.email.split('@')[0];
+}
+match /reminders/{id} {
+  allow read, write: if request.auth != null; // lịch nhắc của từng đơn vị
+}</pre>
+    <p class="muted">Nguyên tắc: mẫu chỉ đơn vị tạo ra mới sửa/xóa; lịch nhắc thuộc đơn vị sở hữu (trường <code>from</code>). Trường <code>webhook</code>, <code>email</code> vẫn dùng chung quyền của <code>units</code>.</p>
   </div></div></div>`;
 }
 
@@ -2615,6 +2646,7 @@ async function cloudAfterLogin(user){
   }
   DB.session=mine.id;S.view="dashboard";
   S.memberId=localStorage.getItem("do_mem_"+mine.id)||null;
+  ensureReminderSeed();
   try{if(!sessionStorage.getItem("do_lg")){orgLog("Đăng nhập");sessionStorage.setItem("do_lg","1")}}catch(e){}
   FB.unsub.push(FB.fs.collection("units").onSnapshot(s=>{
     DB.units=s.docs.map(d=>({id:d.id,...d.data()}));liveRender()}));
@@ -2639,13 +2671,18 @@ async function cloudAfterLogin(user){
   FB.unsub.push(FB.fs.collection("events").where("moi","array-contains",mine.id).onSnapshot(applyCol(DB.events),()=>{}));
   FB.unsub.push(FB.fs.collection("periodic").where("from","==",mine.id).onSnapshot(applyCol(DB.periodic),()=>{}));
   FB.unsub.push(FB.fs.collection("periodic").where("recipIds","array-contains",mine.id).onSnapshot(applyCol(DB.periodic),()=>{}));
+  DB.reports=DB.reports||[];DB.reminders=DB.reminders||[];
+  /* Mẫu báo cáo dùng chung: đơn vị nào cũng đọc để dùng làm khung; sửa/tạo do từng đơn vị */
+  FB.unsub.push(FB.fs.collection("reportTemplates").onSnapshot(applyCol(DB.reports),()=>{}));
+  /* Lịch nhắc: của riêng đơn vị (from) */
+  FB.unsub.push(FB.fs.collection("reminders").where("from","==",mine.id).onSnapshot(applyCol(DB.reminders),()=>{ensureReminderSeed()}));
   DB.library=DB.library||[];
   FB.unsub.push(FB.fs.collection("library").where("from","==",mine.id).onSnapshot(applyCol(DB.library),()=>{}));
   FB.unsub.push(FB.fs.collection("library").where("shareTo","array-contains",mine.id).onSnapshot(applyCol(DB.library),()=>{}));
   render();
 }
 /* Không vẽ lại đè lên biểu mẫu người dùng đang nhập; dữ liệu mới sẽ hiện khi chuyển trang */
-function liveRender(){if(!DB.session)return;if(["soan","detail","chitieu","lich","timkiem","kho"].includes(S.view)||(S.view==="danhba"&&S.orgEdit)){S._stale=true;return}render()}
+function liveRender(){if(!DB.session)return;if(["soan","detail","chitieu","lich","timkiem","kho","nhaclich"].includes(S.view)||(S.view==="maubc"&&S.rpSel)||(S.view==="danhba"&&S.orgEdit)){S._stale=true;return}render()}
 /* Màn hình khởi tạo lần đầu: ghi cây đơn vị + bảng tra cứu tài khoản lên Firestore */
 function viewSetup(){
   const sample=JSON.stringify([
@@ -2946,6 +2983,466 @@ tr.sum td{background:#f4e8c8;font-weight:bold}.sig{margin-top:20px;text-align:ri
   toast("Đã xuất biểu tổng hợp Word (.doc).");
 }
 
+/* ==================================================================
+   v4.1 · GIAI ĐOẠN 4 — (1) MẪU BÁO CÁO THEO THỂ THỨC  (2) NHẮC LỊCH BÁO CÁO
+   ------------------------------------------------------------------
+   (1) Cơ sở đoàn cấp dưới chọn MẪU (khung cố định theo văn bản của Đoàn),
+       điền các phần nội dung (một số tự lấy từ hệ thống: tên đơn vị, kỳ,
+       số liệu Báo cáo định kỳ). Kết quả: XUẤT WORD đúng thể thức VÀ gửi
+       bản điện tử LÊN cấp trên (tạo văn bản đi loại "Báo cáo" để cấp trên
+       nhận & theo dõi như văn bản thường).
+   (2) Lịch nhắc nộp báo cáo: nạp sẵn mốc theo Công văn 76-CV/ĐTN, cảnh báo
+       trước hạn (tùy chọn 1–2 ngày…), lặp tháng/quý/6-9 tháng/năm; cơ sở
+       tự tạo thêm. Nhắc trong app + Discord (và Email qua Code.gs khi offline).
+   Lưu ở collection "reportTemplates" (mẫu dùng chung) và "reminders" (của đơn vị).
+   ================================================================== */
+
+/* ----------- (1a) BỘ MẪU CHUẨN (số hoá từ 3 file .docx của tỉnh) ----------
+   Mỗi mẫu = danh sách "block". Loại block:
+     h  : đề mục cố định (in đậm, không sửa) — vẫn cho ghi chú hướng dẫn
+     sec: đề mục có ô nhập nội dung bên dưới (người dùng tự nhập)
+     txt: đoạn văn cố định (căn cứ, lời mở/kết) — có thể chèn biến {tenDonVi},{ky},{capTren},{ngay}
+     auto: dòng tự điền số liệu từ Báo cáo định kỳ (nếu có) */
+const REPORT_TEMPLATES_BUILTIN=[
+{
+  id:"tpl_ctd_pttn", ten:"Báo cáo công tác Đoàn & phong trào thanh niên (khung I–V)",
+  moTa:"Theo Mẫu số 1 kèm Công văn 76-CV/ĐTN — khung đầy đủ I→V. Dùng cho báo cáo tháng/quý/6-9 tháng/năm.",
+  loai:"baocao", tenBC:"CÔNG TÁC ĐOÀN VÀ PHONG TRÀO THANH NIÊN {ky}",
+  builtin:true,
+  blocks:[
+    {t:"txt", v:"Căn cứ Công văn số 76-CV/ĐTN ngày 22/5/2026 của Ban Thường vụ Đoàn Uỷ ban nhân dân tỉnh về việc quy định chế độ thông tin báo cáo công tác Đoàn và phong trào thanh niên,\n{tenDonVi} báo cáo công tác Đoàn và phong trào thanh niên {ky} như sau:"},
+    {t:"h", v:"I. TÌNH HÌNH DƯ LUẬN XÃ HỘI"},
+    {t:"sec", v:"1. Tình hình dư luận trong công tác Đoàn", ph:"Nêu tình hình dư luận nổi bật trong cán bộ, đoàn viên…"},
+    {t:"sec", v:"2. Tình hình dư luận xã hội trong thanh niên (thế giới; chính trị; kinh tế - xã hội; tội phạm, an ninh, trật tự, cháy nổ)", ph:"Tổng hợp dư luận thanh niên trên các lĩnh vực…"},
+    {t:"h", v:"II. KẾT QUẢ CÔNG TÁC ĐOÀN VÀ PHONG TRÀO THANH NIÊN ĐẠT ĐƯỢC"},
+    {t:"sec", v:"1. Công tác tuyên truyền, giáo dục", ph:"Học và làm theo Bác; giáo dục lý tưởng, truyền thống, đạo đức lối sống, pháp luật; nắm bắt dư luận…"},
+    {t:"sec", v:"2. Phong trào \"5 tiên phong\"", ph:"2.1 KHCN, ĐMST, chuyển đổi số; 2.2 làm giàu chính đáng; 2.3 hội nhập quốc tế; 2.4 tình nguyện; 2.5 bảo vệ Tổ quốc…"},
+    {t:"sec", v:"3. Chương trình \"Phát triển toàn diện thanh niên Việt Nam\"", ph:"3.1 học tập, phát triển trí tuệ; 3.2 rèn luyện thể chất; 3.3 đời sống văn hóa tinh thần…"},
+    {t:"sec", v:"4. Công tác xây dựng Đoàn, mở rộng mặt trận đoàn kết tập hợp thanh niên", ph:"Chỉ đạo phối hợp; cán bộ; tổ chức cơ sở Đoàn; đoàn viên; kiểm tra giám sát; mở rộng mặt trận…"},
+    {t:"auto", v:"(Số liệu chủ yếu — tự tổng hợp từ Báo cáo định kỳ)"},
+    {t:"sec", v:"5. Công tác bảo vệ, chăm sóc, giáo dục thiếu niên, nhi đồng", ph:"Bảo vệ trẻ em; đại diện tiếng nói, nguyện vọng trẻ em…"},
+    {t:"sec", v:"6. Công tác tham gia xây dựng, bảo vệ Đảng và hệ thống chính trị", ph:"Giới thiệu đoàn viên ưu tú; tạo nguồn cán bộ trẻ; bảo vệ nền tảng tư tưởng; giám sát, phản biện…"},
+    {t:"h", v:"III. KẾT QUẢ THỰC HIỆN BỘ TIÊU CHÍ THI ĐUA"},
+    {t:"sec", v:"", ph:"Kết quả thực hiện Bộ tiêu chí thi đua trong kỳ…"},
+    {t:"h", v:"IV. ĐÁNH GIÁ"},
+    {t:"sec", v:"1. Mặt được", ph:"Những kết quả nổi bật…"},
+    {t:"sec", v:"2. Hạn chế", ph:"Những tồn tại, hạn chế…"},
+    {t:"sec", v:"3. Nguyên nhân", ph:"Nguyên nhân của hạn chế…"},
+    {t:"h", v:"V. PHƯƠNG HƯỚNG TRONG THỜI GIAN TỚI"},
+    {t:"sec", v:"", ph:"Nhiệm vụ, giải pháp trọng tâm kỳ tới…"},
+  ]
+},
+{
+  id:"tpl_tcxd_ktgs", ten:"Báo cáo công tác tổ chức xây dựng đoàn, kiểm tra – giám sát",
+  moTa:"Theo Mẫu số 2 kèm Công văn 76-CV/ĐTN. Báo cáo ngắn gọn kèm biểu mẫu số liệu.",
+  loai:"baocao", tenBC:"CÔNG TÁC TỔ CHỨC XÂY DỰNG ĐOÀN, KIỂM TRA, GIÁM SÁT {ky}",
+  builtin:true,
+  blocks:[
+    {t:"txt", v:"Căn cứ Công văn số 76-CV/ĐTN ngày 22/5/2026 của Ban Thường vụ Đoàn Uỷ ban nhân dân tỉnh về việc quy định chế độ thông tin báo cáo công tác Đoàn và phong trào thanh niên.\n{tenDonVi} báo cáo công tác tổ chức xây dựng đoàn, công tác kiểm tra, giám sát {ky}, cụ thể:"},
+    {t:"sec", v:"1. Công tác tổ chức xây dựng Đoàn", ph:"Tổ chức cơ sở Đoàn; cán bộ; đoàn viên; phát triển đoàn viên mới; chuẩn hoá dữ liệu đoàn viên…"},
+    {t:"sec", v:"2. Công tác kiểm tra, giám sát", ph:"Kiểm tra chuyên đề, thường xuyên, khi có dấu hiệu vi phạm; vai trò UBKT…"},
+    {t:"auto", v:"(Số liệu chủ yếu — tự tổng hợp từ Báo cáo định kỳ)"},
+    {t:"txt", v:"{tenDonVi} kính báo cáo./."},
+  ]
+},
+{
+  id:"tpl_rutgon", ten:"Báo cáo nhanh tháng/quý (rút gọn)",
+  moTa:"Mẫu rút gọn để báo cáo nhanh theo tháng/quý — 3 phần chính, tự điền số liệu.",
+  loai:"baocao", tenBC:"KẾT QUẢ CÔNG TÁC ĐOÀN VÀ PHONG TRÀO THANH THIẾU NHI {ky}",
+  builtin:true,
+  blocks:[
+    {t:"txt", v:"{tenDonVi} báo cáo kết quả công tác Đoàn và phong trào thanh thiếu nhi {ky} như sau:"},
+    {t:"h", v:"I. KẾT QUẢ NỔI BẬT"},
+    {t:"sec", v:"", ph:"Các kết quả, hoạt động nổi bật trong kỳ…"},
+    {t:"auto", v:"(Số liệu chủ yếu — tự tổng hợp từ Báo cáo định kỳ)"},
+    {t:"h", v:"II. ĐÁNH GIÁ (ưu điểm – hạn chế)"},
+    {t:"sec", v:"", ph:"Ưu điểm; hạn chế, nguyên nhân…"},
+    {t:"h", v:"III. PHƯƠNG HƯỚNG KỲ TỚI"},
+    {t:"sec", v:"", ph:"Nhiệm vụ trọng tâm kỳ tới…"},
+  ]
+}];
+/* Danh sách mẫu khả dụng = mẫu chuẩn (đã có sẵn) + mẫu do đơn vị tạo (DB.reports) */
+function allTemplates(){
+  const custom=(DB.reports||[]);
+  /* mẫu tùy biến của đơn vị mình hoặc chia sẻ toàn hệ thống */
+  const mine=custom.filter(t=>!t.from||t.from===DB.session||t.shared);
+  return [...REPORT_TEMPLATES_BUILTIN, ...mine];
+}
+function findTemplate(id){return allTemplates().find(t=>t.id===id)||REPORT_TEMPLATES_BUILTIN.find(t=>t.id===id)}
+/* Thay biến trong chuỗi mẫu */
+function fillVars(s,ctx){return (s||"").replace(/\{tenDonVi\}/g,ctx.tenDonVi).replace(/\{ky\}/g,ctx.ky).replace(/\{capTren\}/g,ctx.capTren).replace(/\{ngay\}/g,ctx.ngay)}
+/* Lấy số liệu Báo cáo định kỳ gần nhất mà đơn vị đã nộp/tổng hợp — để auto-fill */
+function autoNumbersForUnit(){
+  const m=me();const out=[];
+  (DB.periodic||[]).forEach(p=>{
+    /* đợt mà đơn vị mình được yêu cầu HOẶC do mình phát động */
+    const involved=(p.recipIds||[]).includes(m.id)||p.from===m.id;
+    if(!involved)return;
+    const ro=periodicRollup(p,m.id); /* cộng dồn nhánh của mình */
+    const anyData=(p.fields||[]).some(f=>(ro.acc[f.key]||0)>0);
+    if(!anyData)return;
+    out.push({ten:p.ten,ky:(PKY[p.ky]||p.ky)+" · "+(p.kylabel||""),
+      rows:(p.fields||[]).map(f=>({name:f.name,unit:f.unit||"",val:ro.acc[f.key]||0}))});
+  });
+  return out;
+}
+
+/* ----------- (1b) GIAO DIỆN MẪU BÁO CÁO ----------- */
+function viewReports(){
+  const m=me();
+  if(!S.rpTab)S.rpTab="soan";
+  const drafts=(DB.docs||[]).filter(d=>d.from===m.id&&d.fromTemplate);
+  return `
+  <div class="page-head"><div><div class="eyebrow">Soạn báo cáo theo mẫu · xuất Word đúng thể thức & gửi lên cấp trên</div><h2>Mẫu báo cáo</h2></div></div>
+  <div class="card"><div class="card-b">
+   <div class="tabs">
+    <button class="${S.rpTab==="soan"?"active":""}" onclick="S.rpTab='soan';S.rpSel=null;render()">Soạn báo cáo theo mẫu</button>
+    <button class="${S.rpTab==="mau"?"active":""}" onclick="S.rpTab='mau';render()">Quản lý mẫu<span class="cnt">${allTemplates().length}</span></button>
+   </div>
+   ${S.rpTab==="soan"?viewReportsCompose():viewReportsManage()}
+  </div></div>`;
+}
+function viewReportsCompose(){
+  const m=me();
+  const tpl=S.rpSel?findTemplate(S.rpSel):null;
+  const list=allTemplates();
+  if(!tpl){
+    return `<div class="hint" style="margin-bottom:12px">Chọn một mẫu để bắt đầu. Khung đề mục cố định giữ nguyên theo văn bản của Đoàn; bạn chỉ điền phần nội dung. Số liệu sẽ tự lấy từ <b>Báo cáo định kỳ</b> nếu đã có.</div>
+    <div class="tpl-grid">${list.map(t=>`
+      <div class="tpl-card">
+        <div class="tpl-h">${esc(t.ten)}${t.builtin?'<span class="pill role" style="margin-left:6px">Mẫu chuẩn</span>':'<span class="pill" style="margin-left:6px;background:var(--info-bg)">Mẫu của đơn vị</span>'}</div>
+        <div class="small muted" style="margin:4px 0 8px">${esc(t.moTa||"")}</div>
+        <div class="small muted">${(t.blocks||[]).filter(b=>b.t==="sec").length} mục cần nhập · ${(t.blocks||[]).filter(b=>b.t==="h").length} đề mục cố định</div>
+        <button class="btn btn-gold btn-sm" style="margin-top:8px" onclick="S.rpSel='${t.id}';render()">Dùng mẫu này →</button>
+      </div>`).join("")}</div>`;
+  }
+  const autos=autoNumbersForUnit();
+  const kyGuess="tháng "+(new Date().getMonth()+1)+"/"+new Date().getFullYear();
+  return `
+   <button class="btn btn-ghost btn-sm" onclick="S.rpSel=null;render()">← Chọn mẫu khác</button>
+   <h3 style="margin:10px 0 4px">${esc(tpl.ten)}</h3>
+   <div class="small muted" style="margin-bottom:12px">${esc(tpl.moTa||"")}</div>
+   <div class="form-grid">
+     <div class="field"><label>Kỳ báo cáo *</label><input id="rp-ky" value="${esc(kyGuess)}" placeholder="vd: tháng 7/2026 / Quý III/2026 / năm 2026"></div>
+     <div class="field"><label>Nơi nhận (cấp trên)</label><input id="rp-capTren" value="${esc(m.parent?(unit(m.parent)||{}).name:"Ban Thường vụ Đoàn cấp trên")}"></div>
+   </div>
+   ${autos.length?`<div class="recip-group" style="margin-bottom:12px"><h5>Số liệu tự lấy từ Báo cáo định kỳ (sẽ chèn vào báo cáo)</h5>
+     <div style="padding:8px 12px">${autos.map(a=>`<div style="margin-bottom:6px"><b class="small">${esc(a.ten)}</b> <span class="muted small">(${esc(a.ky)})</span>
+       <div class="tbl-wrap"><table><tbody>${a.rows.map(r=>`<tr><td>${esc(r.name)}</td><td class="c" style="text-align:right;font-weight:600">${r.val.toLocaleString("vi-VN")}</td><td class="muted small">${esc(r.unit)}</td></tr>`).join("")}</tbody></table></div></div>`).join("")}
+     <label class="small" style="display:flex;align-items:center;gap:6px;margin-top:4px"><input type="checkbox" id="rp-useauto" checked> Chèn bảng số liệu này vào phần \"Số liệu chủ yếu\" của báo cáo</label></div></div>`
+    :`<div class="hint" style="margin-bottom:12px">Chưa có số liệu Báo cáo định kỳ để tự điền. Bạn vẫn soạn báo cáo bình thường; có thể sang <b>Báo cáo định kỳ</b> nhập số trước để tự tổng hợp.</div>`}
+   <div class="rp-blocks">
+   ${tpl.blocks.map((b,i)=>{
+     if(b.t==="h")return `<div class="rp-fixed">${esc(b.v)}</div>`;
+     if(b.t==="txt")return `<div class="rp-note small muted">${esc(fillVars(b.v,{tenDonVi:m.name,ky:"…",capTren:"…",ngay:"…"})).replace(/\n/g,"<br>")}</div>`;
+     if(b.t==="auto")return `<div class="rp-auto small" style="color:var(--gold)">▣ ${esc(b.v)}</div>`;
+     return `<div class="field" style="margin-bottom:10px">${b.v?`<label>${esc(b.v)}</label>`:`<label class="muted">Nội dung</label>`}
+        <textarea id="rp-b${i}" rows="3" placeholder="${esc(b.ph||"Nhập nội dung…")}"></textarea></div>`;
+   }).join("")}
+   </div>
+   <div class="hint" style="margin:6px 0 12px">Nút <b>Xuất Word</b> tạo tệp .doc đúng thể thức để trình ký. Nút <b>Gửi lên cấp trên</b> vừa lưu bản điện tử vào Văn bản đi vừa gửi cho ${esc(m.parent?(unit(m.parent)||{}).short:"cấp trên")} theo dõi.</div>
+   <button class="btn btn-primary" onclick="exportReportWord('${tpl.id}')">⬇ Xuất Word (.doc)</button>
+   <button class="btn btn-gold" style="margin-left:8px" onclick="submitReportUp('${tpl.id}')">📤 Gửi lên cấp trên</button>`;
+}
+function viewReportsManage(){
+  const m=me();
+  const custom=(DB.reports||[]).filter(t=>t.from===m.id);
+  return `
+  <div class="recip-group" style="margin-bottom:14px"><h5>Tạo mẫu báo cáo riêng của đơn vị</h5>
+   <div style="padding:10px 12px">
+    <div class="field"><label>Tên mẫu *</label><input id="rt-ten" placeholder="vd: Báo cáo sinh hoạt chi đoàn hằng tháng"></div>
+    <div class="field"><label>Mô tả ngắn</label><input id="rt-mota" placeholder="Dùng cho…"></div>
+    <div class="field"><label>Tên báo cáo (in hoa, dùng \{ky\} để chèn kỳ)</label><input id="rt-tenbc" value="KẾT QUẢ CÔNG TÁC ĐOÀN {ky}"></div>
+    <div class="field"><label>Khung nội dung *</label>
+      <div class="hint" style="margin:2px 0 6px">Mỗi dòng một mục. Bắt đầu bằng:
+        <b>#</b> = đề mục cố định (in đậm, không nhập); <b>?</b> = mục cần nhập nội dung; <b>=</b> = đoạn văn cố định; <b>$</b> = chèn bảng số liệu Báo cáo định kỳ.
+        VD:<br><code># I. KẾT QUẢ<br>? 1. Hoạt động nổi bật<br>$ Số liệu chủ yếu<br># II. PHƯƠNG HƯỚNG<br>? Nhiệm vụ kỳ tới</code></div>
+      <textarea id="rt-blocks" rows="7" placeholder="# I. KẾT QUẢ NỔI BẬT&#10;? 1. Kết quả các mặt công tác&#10;$ Số liệu chủ yếu&#10;# II. ĐÁNH GIÁ&#10;? Ưu điểm, hạn chế&#10;# III. PHƯƠNG HƯỚNG&#10;? Nhiệm vụ kỳ tới"></textarea></div>
+    <label class="small" style="display:flex;align-items:center;gap:6px;margin-bottom:8px"><input type="checkbox" id="rt-shared"> Chia sẻ mẫu này cho các đơn vị khác trong hệ thống dùng chung</label>
+    <button class="btn btn-gold" onclick="createTemplate()">＋ Lưu mẫu</button>
+   </div></div>
+  <h5 style="margin:12px 0 6px">Mẫu chuẩn (có sẵn — không sửa/xóa)</h5>
+  ${REPORT_TEMPLATES_BUILTIN.map(t=>`<div class="report-item"><div class="rp-h"><b>${esc(t.ten)}</b> <span class="pill role">Chuẩn</span></div><div class="small muted">${esc(t.moTa||"")}</div></div>`).join("")}
+  <h5 style="margin:14px 0 6px">Mẫu riêng của đơn vị (${custom.length})</h5>
+  ${custom.length?custom.map(t=>`<div class="report-item"><div class="rp-h"><b>${esc(t.ten)}</b> ${t.shared?'<span class="pill xong">Đã chia sẻ</span>':""}
+     <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="delTemplate('${t.id}')">🗑 Xóa</button></div>
+     <div class="small muted">${esc(t.moTa||"")} · ${(t.blocks||[]).length} mục</div></div>`).join("")
+   :'<div class="empty">Chưa có mẫu riêng. Tạo mẫu ở trên để tái sử dụng nhanh.</div>'}`;
+}
+/* Thu thập nội dung người dùng đã nhập cho từng block */
+function collectReport(tpl){
+  const m=me(),g=id=>{const el=document.getElementById(id);return el?el.value.trim():""};
+  const ky=g("rp-ky")||"";const capTren=g("rp-capTren")||(m.parent?(unit(m.parent)||{}).name:"");
+  const ctx={tenDonVi:m.name,ky,capTren,ngay:new Date().getDate()+"/"+(new Date().getMonth()+1)+"/"+new Date().getFullYear()};
+  const useAuto=(document.getElementById("rp-useauto")||{}).checked;
+  const autos=useAuto?autoNumbersForUnit():[];
+  const parts=[];
+  tpl.blocks.forEach((b,i)=>{
+    if(b.t==="h"){parts.push({t:"h",v:b.v});}
+    else if(b.t==="txt"){parts.push({t:"p",v:fillVars(b.v,ctx)});}
+    else if(b.t==="auto"){parts.push({t:"auto",v:b.v,autos});}
+    else{const val=g("rp-b"+i);parts.push({t:"sec",label:b.v,v:val});}
+  });
+  return {ky,capTren,ctx,parts,autos};
+}
+/* Kết xuất báo cáo thành text thuần (để lưu vào văn bản điện tử) */
+function reportPlainText(tpl,data){
+  const L=[];
+  L.push("Kính gửi: "+data.capTren);L.push("");
+  data.parts.forEach(pt=>{
+    if(pt.t==="h"){L.push("");L.push(pt.v);}
+    else if(pt.t==="p"){L.push(pt.v);}
+    else if(pt.t==="sec"){if(pt.label)L.push(pt.label);if(pt.v)L.push(pt.v);L.push("");}
+    else if(pt.t==="auto"){
+      L.push("SỐ LIỆU CHỦ YẾU:");
+      if(pt.autos&&pt.autos.length){pt.autos.forEach(a=>{a.rows.forEach(r=>L.push("- "+r.name+": "+r.val.toLocaleString("vi-VN")+" "+r.unit));});}
+      else L.push("(chưa có số liệu định kỳ)");
+      L.push("");
+    }
+  });
+  return L.join("\n").replace(/\n{3,}/g,"\n\n").trim();
+}
+/* Xuất Word .doc đúng thể thức (theo mẫu văn bản Đoàn) */
+function exportReportWord(tplId){
+  const tpl=findTemplate(tplId);if(!tpl)return;const m=me(),data=collectReport(tpl);
+  if(!data.ky){toast("Nhập kỳ báo cáo.");return}
+  const now=new Date();const diaPhuong=(m.diachi||"").split(",").pop().trim()||"…";
+  const tenBC=fillVars(tpl.tenBC||"BÁO CÁO",{tenDonVi:m.name,ky:data.ky.toUpperCase(),capTren:data.capTren,ngay:""});
+  const bodyHTML=data.parts.map(pt=>{
+    if(pt.t==="h")return `<p class="hh">${esc(pt.v)}</p>`;
+    if(pt.t==="p")return `<p class="jt">${esc(pt.v).replace(/\n/g,"<br>")}</p>`;
+    if(pt.t==="sec")return (pt.label?`<p class="ss">${esc(pt.label)}</p>`:"")+(pt.v?`<p class="jt">${esc(pt.v).replace(/\n/g,"<br>")}</p>`:`<p class="jt" style="color:#888"><i>…</i></p>`);
+    if(pt.t==="auto"){
+      if(!pt.autos||!pt.autos.length)return `<p class="jt"><i>(Số liệu chủ yếu — chưa có dữ liệu Báo cáo định kỳ)</i></p>`;
+      return pt.autos.map(a=>`<p class="ss">Số liệu: ${esc(a.ten)} <i>(${esc(a.ky)})</i></p>
+        <table class="num"><thead><tr><th>Chỉ tiêu</th><th>Số lượng</th><th>Đơn vị tính</th></tr></thead><tbody>
+        ${a.rows.map(r=>`<tr><td>${esc(r.name)}</td><td class="c">${r.val.toLocaleString("vi-VN")}</td><td class="c">${esc(r.unit)}</td></tr>`).join("")}</tbody></table>`).join("");
+    }
+    return "";
+  }).join("");
+  const soKH="…/BC-"+(m.code||"");
+  const html=`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><title>${esc(tenBC)}</title>
+<style>@page{size:A4;margin:20mm 25mm 20mm 30mm}body{font-family:"Times New Roman",serif;font-size:13.5pt;line-height:1.35;color:#000}
+.top{display:flex;justify-content:space-between;text-align:center}.top .l,.top .r{width:48%}
+.top b{display:block}.line{width:60%;border-bottom:1.1pt solid #000;margin:3px auto 0}
+.rl{width:70%;border-bottom:1.1pt solid #000;margin:3px auto 8px}
+h1{text-align:center;font-size:15pt;font-weight:bold;text-transform:uppercase;margin:16px 0 2px}
+.sub{text-align:center;font-style:italic;margin-bottom:4px}.dash{text-align:center;margin-bottom:12px}
+.kg{font-style:italic;font-weight:bold;margin:10px 0}
+p.hh{font-weight:bold;margin:12px 0 4px}p.ss{font-weight:bold;font-style:italic;margin:8px 0 2px}
+p.jt{text-align:justify;margin:4px 0;text-indent:12mm}
+table.num{border-collapse:collapse;width:100%;margin:6px 0}
+table.num td,table.num th{border:.9pt solid #000;padding:3px 7px;font-size:12.5pt}table.num th{background:#eee;text-align:center}.c{text-align:center}
+.sign{display:flex;justify-content:space-between;margin-top:20px}.noinhan{font-size:11pt}.noinhan i{font-weight:bold}
+.tm{text-align:center;width:60mm;font-weight:bold}.tm .sp{height:22mm}</style></head><body>
+<div class="top">
+  <div class="l"><b style="font-weight:normal">${esc(m.parent?(unit(m.parent)||{}).name.toUpperCase():"ĐOÀN TNCS HỒ CHÍ MINH")}</b><b>${esc(m.name.toUpperCase())}</b><div class="line"></div><div style="margin-top:4px">Số: ${esc(soKH)}</div></div>
+  <div class="r"><b>ĐOÀN TNCS HỒ CHÍ MINH</b><div class="rl"></div><i>${esc(diaPhuong)}, ngày ${now.getDate()} tháng ${now.getMonth()+1} năm ${now.getFullYear()}</i></div>
+</div>
+<h1>BÁO CÁO</h1><div class="sub">${esc(tenBC)}</div><div class="dash">-----</div>
+<p class="kg">Kính gửi: ${esc(data.capTren)}.</p>
+${bodyHTML}
+<div class="sign">
+  <div class="noinhan"><i>Nơi nhận:</i><br>- Như trên;<br>- Lưu.</div>
+  <div class="tm">TM. BAN CHẤP HÀNH<br>${esc(m.name.toUpperCase())}<br><span class="sp"></span><br>BÍ THƯ</div>
+</div></body></html>`;
+  const blob=new Blob(["\ufeff"+html],{type:"application/msword;charset=utf-8"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download="bao-cao-"+(m.code||"")+"-"+todayISO()+".doc";a.click();
+  toast("Đã xuất báo cáo Word (.doc) đúng thể thức.");
+}
+/* Gửi bản điện tử LÊN cấp trên: tạo văn bản đi loại Báo cáo, phát hành cho đơn vị cha */
+async function submitReportUp(tplId){
+  const tpl=findTemplate(tplId);if(!tpl)return;const m=me(),data=collectReport(tpl);
+  if(!data.ky){toast("Nhập kỳ báo cáo.");return}
+  const sup=m.parent?unit(m.parent):null;
+  if(!sup||sup.deleted){toast("Đơn vị bạn là cấp cao nhất hoặc chưa có cấp trên để gửi.");return}
+  const nd=reportPlainText(tpl,data);
+  const tenBC=fillVars(tpl.tenBC||"Báo cáo",{tenDonVi:m.name,ky:data.ky,capTren:data.capTren,ngay:""});
+  const d={id:uid("d"),so:"",from:m.id,ngayBH:todayISO(),docStatus:"duthao",comments:[],
+    loai:"baocao",fromTemplate:tpl.id,
+    trichYeu:"Báo cáo "+tpl.ten.replace(/^Báo cáo\s*/i,"").toLowerCase()+" "+data.ky,
+    noiDung:nd,doKhan:"thuong",hanXuLy:null,yeuCauBaoCao:false,replyTo:null,files:[],attachedDocs:[],
+    recips:[{unit:sup.id,role:"XDB",status:"choxuly",receivedAt:todayISO(),viewed:false,progress:0,reports:[]}],
+    recipIds:[],
+    audit:[{time:todayISO(),unit:m.id,action:"Tạo dự thảo",note:"Soạn từ mẫu: "+tpl.ten,nguoi:memberLabel()}]};
+  /* Nếu là Bí thư/Phó Bí thư → phát hành ngay; nếu không → để chờ duyệt đúng quy trình văn thư */
+  try{
+    if(isApprover()){await publishCore(d);toast("Đã gửi báo cáo lên "+sup.short+" (đã phát hành).");}
+    else{d.docStatus="trinhduyet";audit(d,"Trình duyệt","Trình Thường trực phê duyệt, phát hành báo cáo");await persistNew(d);
+      toast("Đã tạo báo cáo, chờ Bí thư/Phó Bí thư phê duyệt phát hành.");}
+  }catch(e){toast("Lỗi gửi: "+e.message);return}
+  orgLog("Gửi báo cáo theo mẫu",sup.id,tpl.ten+" — "+data.ky);
+  S.rpSel=null;nav("vbdi");
+}
+async function createTemplate(){
+  const m=me(),g=id=>{const el=document.getElementById(id);return el?el.value.trim():""};
+  const ten=g("rt-ten");if(!ten){toast("Nhập tên mẫu.");return}
+  const raw=g("rt-blocks");if(!raw){toast("Khai khung nội dung cho mẫu.");return}
+  const blocks=raw.split(/\n+/).map(l=>l.trim()).filter(Boolean).map(l=>{
+    const c=l[0];const rest=l.slice(1).trim();
+    if(c==="#")return {t:"h",v:rest};
+    if(c==="=")return {t:"txt",v:rest};
+    if(c==="$")return {t:"auto",v:rest||"Số liệu chủ yếu"};
+    if(c==="?")return {t:"sec",v:rest,ph:"Nhập nội dung…"};
+    return {t:"sec",v:l,ph:"Nhập nội dung…"};
+  });
+  const tpl={id:uid("tpl"),from:m.id,ten,moTa:g("rt-mota"),tenBC:g("rt-tenbc")||"BÁO CÁO {ky}",
+    loai:"baocao",shared:(document.getElementById("rt-shared")||{}).checked||false,blocks,created:todayISO()};
+  (DB.reports=DB.reports||[]).push(tpl);
+  try{if(MODE==="cloud"){await FB.fs.collection("reportTemplates").doc(tpl.id).set(JSON.parse(JSON.stringify(tpl)))}else save();}
+  catch(e){DB.reports.pop();toast("Lỗi lưu mẫu: "+e.message);return}
+  orgLog("Tạo mẫu báo cáo","",ten);toast("Đã lưu mẫu “"+ten+"”.");render();
+}
+async function delTemplate(id){
+  const t=(DB.reports||[]).find(x=>x.id===id);if(!t||t.from!==DB.session){toast("Chỉ xóa được mẫu do đơn vị mình tạo.");return}
+  if(!confirm("Xóa mẫu “"+t.ten+"”?"))return;
+  if(MODE==="cloud"){try{await FB.fs.collection("reportTemplates").doc(id).delete()}catch(e){toast("Lỗi: "+e.message);return}}
+  DB.reports=DB.reports.filter(x=>x.id!==id);if(MODE==="local")save();
+  toast("Đã xóa mẫu.");render();
+}
+
+/* ================= (2) NHẮC LỊCH BÁO CÁO ================= */
+/* Chu kỳ lặp */
+const RCYCLE={none:"Không lặp",daily:"Hằng ngày",monthly:"Hằng tháng",quarterly:"Hằng quý",yearly:"Hằng năm"};
+/* Lịch chuẩn theo Công văn 76-CV/ĐTN (mốc hạn nộp). Dùng để nạp sẵn.
+   next = hạn kế tiếp (YYYY-MM-DD) tính động; ở đây lưu quy tắc, tính khi cần. */
+const CV76_SEED=[
+  {key:"cv76_ctd_thang", ten:"Báo cáo công tác Đoàn & PTTN — THÁNG", note:"Chậm nhất ngày 23 hằng tháng (mốc: 21 tháng trước → 20 tháng này). CV76 khoản 1.", cycle:"monthly", dueDay:23, lead:2},
+  {key:"cv76_ctd_quy",   ten:"Báo cáo công tác Đoàn & PTTN — QUÝ", note:"Chậm nhất 15h ngày 21/3, 21/6, 21/9, 21/12. CV76 khoản 1.", cycle:"quarterly", dueDay:21, dueMonthOffset:3, lead:2},
+  {key:"cv76_ctd_nam",   ten:"Báo cáo công tác Đoàn & PTTN — NĂM", note:"Chậm nhất ngày 23/11. CV76 khoản 1.", cycle:"yearly", dueDay:23, dueMonth:11, lead:3},
+  {key:"cv76_tc_thang",  ten:"Báo cáo tổ chức xây dựng đoàn, KTGS — THÁNG", note:"Chậm nhất ngày 22 hằng tháng. CV76 khoản 2.", cycle:"monthly", dueDay:22, lead:2},
+  {key:"cv76_tc_nam",    ten:"Báo cáo tổ chức xây dựng đoàn, KTGS — NĂM", note:"Chậm nhất ngày 22/10. CV76 khoản 2.", cycle:"yearly", dueDay:22, dueMonth:10, lead:3},
+];
+/* Tính hạn kế tiếp cho một reminder dựa trên hôm nay */
+function nextDue(r){
+  if(r.next)return r.next; /* nếu đã ấn định cụ thể */
+  const t=new Date();t.setHours(0,0,0,0);
+  const y=t.getFullYear(),mo=t.getMonth();
+  const mk=(yy,mm,dd)=>{const d=new Date(yy,mm,dd);return iso(d.getTime());};
+  const dd=r.dueDay||1;
+  if(r.cycle==="daily"){return iso(t.getTime());}
+  if(r.cycle==="monthly"){
+    let cand=mk(y,mo,dd);if(cand<iso(t.getTime()))cand=mk(y,mo+1,dd);return cand;}
+  if(r.cycle==="quarterly"){
+    /* mốc quý: các tháng 3,6,9,12 (index 2,5,8,11) */
+    const qm=[2,5,8,11];for(const mm of qm){const cand=mk(y,mm,dd);if(cand>=iso(t.getTime()))return cand;}return mk(y+1,2,dd);}
+  if(r.cycle==="yearly"){
+    const mm=(r.dueMonth||1)-1;let cand=mk(y,mm,dd);if(cand<iso(t.getTime()))cand=mk(y+1,mm,dd);return cand;}
+  return r.next||iso(t.getTime());
+}
+function reminderList(){return (DB.reminders||[]).filter(r=>r.from===DB.session)}
+/* Đếm số lịch sắp đến hạn trong ngưỡng cảnh báo (để hiện badge) */
+function reminderDueCount(){
+  if(!DB||!DB.session)return 0;const today=todayISO();
+  return reminderList().filter(r=>{if(r.off)return false;const nd=nextDue(r);
+    const diff=(new Date(nd)-new Date(today))/86400000;return diff>=0&&diff<=(r.lead||2);}).length;
+}
+/* Nạp sẵn lịch CV76 lần đầu cho đơn vị (chỉ khi chưa có reminder nào của họ) */
+function ensureReminderSeed(){
+  if(!DB||!DB.session)return;
+  if((DB.reminders||[]).some(r=>r.from===DB.session))return; /* đã có → không nạp lại */
+  if(sessionStorage.getItem("do_rmd_seed_"+DB.session))return;
+  sessionStorage.setItem("do_rmd_seed_"+DB.session,"1");
+  const m=me();if(!m)return;
+  CV76_SEED.forEach(s=>{
+    const r={id:uid("rmd"),from:m.id,seedKey:s.key,ten:s.ten,note:s.note,cycle:s.cycle,
+      dueDay:s.dueDay,dueMonth:s.dueMonth,off:false,lead:s.lead||2,builtin:true,created:todayISO()};
+    (DB.reminders=DB.reminders||[]).push(r);
+    if(MODE==="cloud"){FB.fs.collection("reminders").doc(r.id).set(JSON.parse(JSON.stringify(r))).catch(()=>{})}
+  });
+  if(MODE==="local")save();
+}
+function viewReminders(){
+  const m=me();const today=todayISO();
+  const list=reminderList().map(r=>({...r,_due:nextDue(r),_diff:Math.round((new Date(nextDue(r))-new Date(today))/86400000)}))
+    .sort((a,b)=>a._due.localeCompare(b._due));
+  const due=list.filter(r=>!r.off&&r._diff>=0&&r._diff<=(r.lead||2));
+  return `
+  <div class="page-head"><div><div class="eyebrow">Nhắc lịch nộp báo cáo · cảnh báo trước hạn · Discord/Email</div><h2>Nhắc lịch báo cáo</h2></div></div>
+  ${due.length?`<div class="card" style="margin-bottom:12px;border-left:4px solid var(--gold)"><div class="card-b">
+    <b style="color:var(--gold)">⏰ ${due.length} lịch sắp đến hạn</b>
+    ${due.map(r=>`<div class="report-item" style="border-left-color:var(--gold)"><div class="rp-h"><b>${esc(r.ten)}</b> <span class="pill ${r._diff===0?'qua':'cho'}">${r._diff===0?"HẠN HÔM NAY":"còn "+r._diff+" ngày"}</span></div>
+      <div class="small muted">Hạn: ${fmtD(r._due)} · ${esc(r.note||"")}</div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:6px" onclick="pushReminderDiscord('${r.id}')">📣 Gửi nhắc Discord ngay</button>
+      <button class="btn btn-ghost btn-sm" onclick="nav('maubc')">✎ Soạn báo cáo</button></div>`).join("")}
+   </div></div>`:""}
+  <div class="detail-grid">
+   <div class="card"><div class="card-h"><h3>Danh sách lịch nhắc (${list.length})</h3></div><div class="card-b">
+    ${list.length?list.map(r=>`<div class="report-item" style="${r.off?'opacity:.5':''}">
+      <div class="rp-h"><b>${esc(r.ten)}</b>
+        ${r.builtin?'<span class="pill role">CV76</span>':'<span class="pill" style="background:var(--info-bg)">Tự tạo</span>'}
+        <span class="pill xong" style="margin-left:4px">${RCYCLE[r.cycle]||r.cycle}</span>
+        <div class="spacer"></div>
+        <label class="small" style="display:flex;align-items:center;gap:4px"><input type="checkbox" ${r.off?"":"checked"} onchange="toggleReminder('${r.id}',this.checked)"> Bật</label>
+        <button class="btn btn-ghost btn-sm" onclick="delReminder('${r.id}')">🗑</button>
+      </div>
+      <div class="small muted">Hạn kế tiếp: <b>${fmtD(r._due)}</b> ${r._diff>=0?`(còn ${r._diff} ngày)`:`(đã qua ${-r._diff} ngày)`} · cảnh báo trước ${r.lead||2} ngày${r.note?" · "+esc(r.note):""}</div>
+    </div>`).join(""):'<div class="empty">Chưa có lịch nhắc nào. Lịch chuẩn CV76 sẽ tự nạp; bạn có thể thêm lịch riêng bên phải.</div>'}
+   </div></div>
+   <div class="card"><div class="card-h"><h3>Thêm lịch nhắc riêng</h3></div><div class="card-b">
+    <div class="field"><label>Tên lịch nhắc *</label><input id="rm-ten" placeholder="vd: Nộp báo cáo sinh hoạt chi đoàn"></div>
+    <div class="form-grid">
+      <div class="field"><label>Chu kỳ lặp</label><select id="rm-cycle" onchange="rmCycleUI()">${Object.entries(RCYCLE).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select></div>
+      <div class="field"><label>Cảnh báo trước (ngày)</label><select id="rm-lead"><option>1</option><option selected>2</option><option>3</option><option>5</option><option>7</option></select></div>
+    </div>
+    <div id="rm-day-wrap" class="form-grid">
+      <div class="field"><label>Ngày trong tháng (hạn)</label><input id="rm-dueday" type="number" min="1" max="31" value="22"></div>
+      <div class="field" id="rm-month-wrap" style="display:none"><label>Tháng (với lặp năm)</label><input id="rm-duemonth" type="number" min="1" max="12" value="11"></div>
+    </div>
+    <div class="field" id="rm-date-wrap" style="display:none"><label>Ngày cụ thể (không lặp)</label><input id="rm-date" type="date" value="${today}"></div>
+    <div class="field"><label>Ghi chú</label><input id="rm-note" placeholder="Mốc thời gian, phạm vi số liệu…"></div>
+    <button class="btn btn-primary" onclick="createReminder()">＋ Thêm lịch nhắc</button>
+    <div class="hint" style="margin-top:10px">Cảnh báo hiện trong app và có nút <b>gửi Discord</b>. Muốn tự động gửi <b>Email/Discord kể cả khi không ai mở web</b>, dùng tệp <b>Code.gs</b> (hàm <code>dueReminders</code>) theo Hướng dẫn triển khai.</div>
+   </div></div>
+  </div>`;
+}
+function rmCycleUI(){
+  const c=(document.getElementById("rm-cycle")||{}).value;
+  const dayWrap=document.getElementById("rm-day-wrap"),dateWrap=document.getElementById("rm-date-wrap"),monthWrap=document.getElementById("rm-month-wrap");
+  if(!dayWrap)return;
+  if(c==="none"){dayWrap.style.display="none";dateWrap.style.display="";}
+  else if(c==="daily"){dayWrap.style.display="none";dateWrap.style.display="none";}
+  else{dayWrap.style.display="";dateWrap.style.display="none";monthWrap.style.display=(c==="yearly")?"":"none";}
+}
+async function createReminder(){
+  const m=me(),g=id=>{const el=document.getElementById(id);return el?el.value.trim():""};
+  const ten=g("rm-ten");if(!ten){toast("Nhập tên lịch nhắc.");return}
+  const cycle=g("rm-cycle")||"monthly";
+  const r={id:uid("rmd"),from:m.id,ten,note:g("rm-note"),cycle,lead:Number(g("rm-lead")||2),off:false,builtin:false,created:todayISO()};
+  if(cycle==="none"){r.next=g("rm-date")||todayISO();}
+  else if(cycle!=="daily"){r.dueDay=Number(g("rm-dueday")||1);if(cycle==="yearly")r.dueMonth=Number(g("rm-duemonth")||1);}
+  (DB.reminders=DB.reminders||[]).push(r);
+  try{if(MODE==="cloud"){await FB.fs.collection("reminders").doc(r.id).set(JSON.parse(JSON.stringify(r)))}else save();}
+  catch(e){DB.reminders.pop();toast("Lỗi lưu: "+e.message);return}
+  orgLog("Tạo lịch nhắc báo cáo","",ten);toast("Đã thêm lịch nhắc “"+ten+"”.");render();
+}
+async function toggleReminder(id,on){
+  const r=(DB.reminders||[]).find(x=>x.id===id);if(!r||r.from!==DB.session)return;
+  r.off=!on;
+  try{if(MODE==="cloud"){await FB.fs.collection("reminders").doc(id).set(JSON.parse(JSON.stringify(r)))}else save();}catch(e){}
+  render();
+}
+async function delReminder(id){
+  const r=(DB.reminders||[]).find(x=>x.id===id);if(!r||r.from!==DB.session)return;
+  if(!confirm("Xóa lịch nhắc “"+r.ten+"”?"))return;
+  if(MODE==="cloud"){try{await FB.fs.collection("reminders").doc(id).delete()}catch(e){toast("Lỗi: "+e.message);return}}
+  DB.reminders=DB.reminders.filter(x=>x.id!==id);if(MODE==="local")save();
+  toast("Đã xóa lịch nhắc.");render();
+}
+/* Gửi nhắc thủ công vào Discord của chính đơn vị (webhook khai trong Sơ đồ tổ chức) */
+function pushReminderDiscord(id){
+  const r=(DB.reminders||[]).find(x=>x.id===id);if(!r)return;const m=me();
+  if(!m.webhook||!/^https:\/\/(discord\.com|discordapp\.com)\/api\/webhooks\//.test(m.webhook)){
+    toast("Đơn vị chưa khai Webhook Discord (Sơ đồ tổ chức → Sửa thông tin).");return;}
+  const nd=nextDue(r);const diff=Math.round((new Date(nd)-new Date(todayISO()))/86400000);
+  const fd=new FormData();
+  fd.append("payload_json",JSON.stringify({content:
+    "⏰ **Nhắc lịch báo cáo** — "+m.name+"\n📋 "+r.ten+"\n🗓️ Hạn nộp: **"+fmtD(nd)+"** "+(diff===0?"(HÔM NAY)":"(còn "+diff+" ngày)")+
+    (r.note?"\nℹ️ "+r.note:"")+"\nĐăng nhập DoanOffice → Mẫu báo cáo để soạn và gửi."}));
+  fetch(m.webhook,{method:"POST",body:fd}).then(()=>toast("Đã gửi nhắc vào Discord.")).catch(()=>toast("Không gửi được — kiểm tra webhook."));
+}
+
 /* ---------- Lớp tích hợp mở (Open Integration Layer) ----------
    Các hệ thống khác / connector tương lai (iOffice tỉnh, Zalo bot…)
    truy cập qua window.DoanOffice — không đụng vào lõi. */
@@ -2955,6 +3452,9 @@ window.DoanOffice={
   docs:()=>DB?JSON.parse(JSON.stringify(searchCorpus())):[],
   targets:()=>DB?JSON.parse(JSON.stringify([...myTargets(),...myAssignedTargets()])):[],
   periodic:()=>DB?JSON.parse(JSON.stringify([...periodicMine(),...periodicAssigned()])):[],
+  reportTemplates:()=>DB?JSON.parse(JSON.stringify(allTemplates())):[],
+  reminders:()=>DB?JSON.parse(JSON.stringify(reminderList().map(r=>({...r,next:nextDue(r)})))):[],
+  dueReminders:()=>DB?JSON.parse(JSON.stringify(reminderList().filter(r=>!r.off).map(r=>{const nd=nextDue(r);const diff=Math.round((new Date(nd)-new Date(todayISO()))/86400000);return{ten:r.ten,due:nd,daysLeft:diff,within:diff>=0&&diff<=(r.lead||2)}}).filter(x=>x.within))):[],
   overdueInbox:()=>DB?myInbox().filter(d=>dstat(d)==="phathanh"&&d.hanXuLy&&d.hanXuLy<todayISO()&&(myRecip(d)||{}).status!=="daxuly").map(d=>({so:d.so,trichYeu:d.trichYeu,han:d.hanXuLy})):[],
   openDoc:(id)=>openDoc(id),
   exportAll:()=>backupJSON()
