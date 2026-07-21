@@ -292,6 +292,8 @@ const LS_KEY="doanoffice_v2";
 const STAR='<svg width="22" height="22" viewBox="0 0 120 120"><path fill="currentColor" d="M60 8l12.4 29.6 32 2.6-24.4 21 7.4 31.2L60 75.6 32.6 92.4 40 61.2 15.6 40.2l32-2.6z"/></svg>';
 const _sv=d=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 const ICO={
+  period:_sv('<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8"/><path d="M8 11h8"/><path d="M8 15h5"/>'),
+  fwd:_sv('<path d="M15 6l6 6-6 6"/><path d="M21 12H8a5 5 0 0 0-5 5v1"/>'),
   dash:_sv('<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>'),
   inbox:_sv('<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>'),
   send:_sv('<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>'),
@@ -321,7 +323,7 @@ let DB=null, S={view:"dashboard",tab:"choxuly",outTab:"all",docId:null,statFrom:
 /* ---------------- store ---------------- */
 function load(){try{DB=JSON.parse(localStorage.getItem(LS_KEY))}catch(e){DB=null}
   if(!DB||!DB.units){seed()}
-  DB.targets=DB.targets||[];DB.events=DB.events||[];DB.library=DB.library||[]; }
+  DB.targets=DB.targets||[];DB.events=DB.events||[];DB.library=DB.library||[];DB.periodic=DB.periodic||[]; }
 function save(){localStorage.setItem(LS_KEY,JSON.stringify(DB))}
 function uid(p){return p+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function seed(){
@@ -724,6 +726,7 @@ async function publishCore(d){
   else{await FB.fs.collection("docs").doc(d.id).set(JSON.parse(JSON.stringify(d)));
     if(!DB.docs.some(x=>x.id===d.id))DB.docs.push(d)}
   toast("Đã phát hành văn bản số "+d.so);
+  notifyChannels(d);
 }
 async function approvePublish(id){
   const d=DB.docs.find(x=>x.id===id);
@@ -782,6 +785,88 @@ function assignLead(id){
   r.assignee=mem.name+" · "+ROLES[mem.role];
   audit(d,"Phân công chủ trì",r.assignee);commit(d);if(MODE==="local")save();
   toast("Đã phân công "+mem.name+" chủ trì xử lý.");render();
+}
+
+/* ========== v4.0 · GIAI ĐOẠN 1: BÚT PHÊ NỘI BỘ & CHUYỂN TIẾP XUỐNG CẤP DƯỚI ========== */
+/* Bút phê: ý kiến chỉ đạo của Bí thư/Phó Bí thư trên văn bản ĐẾN, lưu tại hồ sơ xử lý
+   của đơn vị nhận (r.butphe) — hiển thị trong giao diện đơn vị mình và in kèm Phiếu xử lý. */
+function addButPhe(id){
+  const m=me(),d=DB.docs.find(x=>x.id===id),r=myRecip(d);if(!d||!r)return;
+  if(!isApprover()){toast("Chỉ Bí thư / Phó Bí thư được bút phê chỉ đạo.");return}
+  const t=((document.getElementById("bp-text")||{}).value||"").trim();
+  if(!t){toast("Nhập nội dung bút phê chỉ đạo.");return}
+  const han=(document.getElementById("bp-han")||{}).value||"";
+  const bp={time:nowTS(),nguoi:memberLabel()||m.name,text:t,han:han||null};
+  const sel=document.getElementById("bp-mem");
+  if(sel&&sel.value){const mem=members(m).find(x=>x.id===sel.value);
+    if(mem){bp.giao=mem.name+" · "+ROLES[mem.role];r.assignee=bp.giao}}
+  (r.butphe=r.butphe||[]).push(bp);
+  audit(d,"Bút phê chỉ đạo",t.slice(0,90)+(bp.giao?" — giao "+bp.giao:""));
+  commit(d);if(MODE==="local")save();
+  toast("Đã ghi bút phê chỉ đạo.");render();
+}
+/* Chuyển tiếp: tạo văn bản triển khai gửi các đơn vị cấp dưới, giữ chuỗi liên kết
+   với văn bản gốc (origId / parentDocId) để truy vết xuyên cấp. */
+function fwdFileBudget(){return MODE==="cloud"?450000:900000}
+async function forwardDoc(id){
+  const m=me(),d=DB.docs.find(x=>x.id===id),r=myRecip(d);
+  if(!d||!r||dstat(d)!=="phathanh"){toast("Chỉ chuyển tiếp được văn bản đã phát hành mà đơn vị là nơi nhận.");return}
+  const picks=[...document.querySelectorAll(".fw-cb:checked")].map(c=>c.value);
+  if(!picks.length){toast("Chọn ít nhất một đơn vị cấp dưới nhận triển khai.");return}
+  const g=i=>{const el=document.getElementById(i);return el?el.value:""};
+  const ty=(g("fw-ty")||"").trim();
+  if(!ty){toast("Nhập trích yếu văn bản triển khai.");return}
+  const chiDao=(g("fw-nd")||"").trim();
+  const recips=picks.map(u=>({unit:u,role:(document.getElementById("fwrole-"+u)||{}).value||"XLC",
+    status:"choxuly",receivedAt:todayISO(),viewed:false,progress:0,reports:[]}));
+  /* Sao chép tệp trong ngân sách dung lượng an toàn của Firestore; tệp vượt mức giữ tên/liên kết */
+  let bud=fwdFileBudget(),dropped=0;
+  const files=docFiles(d).map(f=>{const c={name:f.name,size:f.size||0};
+    if(f.link)c.link=f.link;
+    if(f.dataUrl){if(f.dataUrl.length<=bud){c.dataUrl=f.dataUrl;bud-=f.dataUrl.length}else dropped++}
+    return c});
+  if(dropped)toast(dropped+" tệp lớn chỉ chuyển kèm tên — hãy dùng liên kết Google Drive cho tệp nặng.");
+  const nd=(chiDao?("Ý KIẾN CHỈ ĐẠO CỦA "+m.name.toUpperCase()+":\n"+chiDao+"\n\n"):"")
+    +"— Triển khai "+(LOAI[d.loai]?LOAI[d.loai][1]:"văn bản")+" số "+d.so+" ngày "+fmtD(d.ngayBH)
+    +" của "+((unit(d.from)||{}).name||"cấp trên")+"."
+    +(d.noiDung?("\n\nNỘI DUNG VĂN BẢN GỐC:\n"+d.noiDung):"");
+  const nu={id:uid("d"),so:"",from:m.id,loai:d.loai,trichYeu:ty,noiDung:nd,
+    doKhan:g("fw-khan")||d.doKhan,hanXuLy:g("fw-han")||d.hanXuLy||null,
+    yeuCauBaoCao:!!(document.getElementById("fw-ycbc")||{}).checked,
+    replyTo:null,files,attachedDocs:[attSnapshot(d),...(d.attachedDocs||[])].slice(0,6),
+    origId:d.origId||d.id,parentDocId:d.id,parentSo:d.so,parentFrom:d.from,
+    comments:[],recips,recipIds:[],docStatus:"duthao",
+    audit:[{time:todayISO(),unit:m.id,action:"Tạo văn bản chuyển tiếp",note:"Triển khai từ "+d.so+" của "+((unit(d.from)||{}).short||"?"),nguoi:memberLabel()}]};
+  try{
+    if(isApprover()){await publishCore(nu)}
+    else{nu.docStatus="trinhduyet";nu.audit.push({time:todayISO(),unit:m.id,action:"Trình duyệt",note:"Trình Thường trực phê duyệt văn bản chuyển tiếp",nguoi:memberLabel()});
+      await persistNew(nu);toast("Đã lập văn bản chuyển tiếp và trình Bí thư/Phó Bí thư phê duyệt, phát hành.")}
+    (r.forwards=r.forwards||[]).push({docId:nu.id,so:nu.so||"(chờ duyệt)",units:picks,time:todayISO()});
+    audit(d,"Chuyển tiếp xuống cấp dưới","→ "+picks.map(u=>(unit(u)||{}).short||"?").join(", ")+(isApprover()?" (VB số "+nu.so+")":" (chờ duyệt)"));
+    commit(d);if(MODE==="local")save();
+    S.fwdOpen=null;render();
+  }catch(e){toast("Lỗi chuyển tiếp: "+e.message)}
+}
+/* ========== v4.0 · GIAI ĐOẠN 3 (client): THÔNG BÁO DISCORD TỨC THỜI, MIỄN PHÍ ==========
+   Mỗi đơn vị khai Webhook Discord trong Sơ đồ tổ chức → Sửa thông tin. Khi phát hành
+   văn bản, hệ thống bắn thông báo vào kênh Discord của TỪNG đơn vị nhận (fire-and-forget,
+   dùng FormData/payload_json nên không vướng CORS preflight). Email + nhắc định kỳ khi
+   không ai mở web do Google Apps Script đảm nhiệm (xem Code.gs kèm theo). */
+function notifyChannels(d){
+  try{
+    (d.recips||[]).forEach(rc=>{
+      const u=unit(rc.unit);
+      if(!u||!u.webhook||!/^https:\/\/(discord\.com|discordapp\.com)\/api\/webhooks\//.test(u.webhook))return;
+      const fd=new FormData();
+      fd.append("payload_json",JSON.stringify({content:
+        "📩 **"+me().name+"** vừa phát hành "+(LOAI[d.loai]?LOAI[d.loai][1]:"văn bản")
+        +" số **"+d.so+"**\n— "+d.trichYeu
+        +(d.hanXuLy?"\n⏰ Hạn xử lý: "+fmtD(d.hanXuLy):"")
+        +(d.doKhan&&d.doKhan!=="thuong"?"\n🔥 Độ khẩn: **"+((KHAN[d.doKhan]||[])[0]||d.doKhan).toUpperCase()+"**":"")
+        +"\nĐăng nhập DoanOffice để tiếp nhận, xử lý."}));
+      fetch(u.webhook,{method:"POST",body:fd}).catch(()=>{});
+    });
+  }catch(e){}
 }
 function addComment(id){
   const d=DB.docs.find(x=>x.id===id);if(!d)return;
@@ -865,7 +950,7 @@ function render(){
   if(!DB.session){app.innerHTML=viewLogin();return}
   if(members(me()).length&&!curMember()){app.innerHTML=viewPickMember();return}
   S._stale=false;
-  const views={dashboard:viewDashboard,vbden:viewInbox,vbdi:viewOutbox,soan:viewCompose,detail:viewDetail,thongke:viewStats,danhba:viewOrg,hethong:viewSystem,chitieu:viewTargets,lich:viewCalendar,timkiem:viewSearch,kho:viewLibrary};
+  const views={dashboard:viewDashboard,vbden:viewInbox,vbdi:viewOutbox,soan:viewCompose,detail:viewDetail,thongke:viewStats,danhba:viewOrg,hethong:viewSystem,chitieu:viewTargets,lich:viewCalendar,timkiem:viewSearch,kho:viewLibrary,dinhky:viewPeriodic};
   app.innerHTML=shell((views[S.view]||viewDashboard)());
   if(S.pendingDoc){const pid=S.pendingDoc;
     if(DB.docs.some(x=>x.id===pid)){S.pendingDoc=null;setTimeout(()=>openDoc(pid),0)}}
@@ -947,13 +1032,14 @@ function shell(content){
       <h6>Theo dõi</h6>
       ${item("thongke",ICO.chart,"Báo cáo · Thống kê",nQuaHan?nQuaHan:"")}
       ${item("chitieu",ICO.target,"Chỉ tiêu · KPI")}
+      ${item("dinhky",ICO.period,"Báo cáo định kỳ",periodicDueCount()||"")}
       ${item("lich",ICO.cal,"Lịch công tác")}
       ${item("kho",ICO.lib,"Kho tài liệu")}
       ${item("danhba",ICO.org,"Sơ đồ tổ chức")}
       <h6>Quản trị</h6>
       ${item("hethong",ICO.gear,"Dữ liệu & sao lưu")}
     </nav>
-    <div class="side-foot">${MODE==="cloud"?"● Đồng bộ Firestore · offline-first":"Dữ liệu lưu cục bộ trên máy này"}<br>DoanOffice 3.7 · mã nguồn mở</div>
+    <div class="side-foot">${MODE==="cloud"?"● Đồng bộ Firestore · offline-first":"Dữ liệu lưu cục bộ trên máy này"}<br>DoanOffice 4.0 · mã nguồn mở</div>
    </aside>
    <div class="sb-backdrop" id="sb-backdrop" onclick="toggleSidebar(false)"></div>
    <div class="main">
@@ -1249,6 +1335,49 @@ function viewDetail(){
       ${members(me()).map(x=>`<option value="${x.id}">${esc(x.name)} (${ROLES[x.role]})</option>`).join("")}</select>
     <button class="btn btn-ghost btn-sm" onclick="assignLead('${d.id}')">Phân công</button>
   </div></div>`:"";
+  /* v4.0 · Bút phê nội bộ (chỉ hiển thị cho đơn vị nhận: lãnh đạo ghi, cán bộ đọc) */
+  const canBut=r&&st==="phathanh"&&isApprover()&&r.status!=="daxuly";
+  const butList=(r&&(r.butphe||[]).length)?`<div class="card" style="border-left:4px solid var(--gold)"><div class="card-h"><h3>✒ Bút phê chỉ đạo (${r.butphe.length})</h3></div><div class="card-b">
+    ${r.butphe.map(b=>`<div class="report-item" style="border-left-color:var(--gold);background:#FFFDF4">
+      <div class="rp-h"><b style="color:var(--doan-deep)">${esc(b.nguoi||"Lãnh đạo")}</b> · ${esc(fmtTS(b.time))}${b.han?` · <span style="color:var(--danger)">hạn ${fmtD(b.han)}</span>`:""}${b.giao?` · giao <b>${esc(b.giao)}</b>`:""}</div>
+      <div style="white-space:pre-wrap">${esc(b.text)}</div></div>`).join("")}
+  </div></div>`:"";
+  const butBox=canBut?`<div class="card"><div class="card-h"><h3>✒ Bút phê chỉ đạo (nội bộ đơn vị)</h3></div><div class="card-b">
+    <div class="field"><label>Ý kiến chỉ đạo xử lý *</label><textarea id="bp-text" rows="2" placeholder="vd: Giao đồng chí … chủ trì, phối hợp … hoàn thành trước ngày …"></textarea></div>
+    <div class="form-grid">
+      <div class="field"><label>Giao chủ trì (tùy chọn)</label><select id="bp-mem"><option value="">— Không chỉ định —</option>${members(me()).map(x=>`<option value="${x.id}">${esc(x.name)} (${ROLES[x.role]})</option>`).join("")}</select></div>
+      <div class="field"><label>Hạn hoàn thành nội bộ</label><input id="bp-han" type="date"></div>
+    </div>
+    <button class="btn btn-gold btn-sm" onclick="addButPhe('${d.id}')">✒ Ghi bút phê & giao xử lý</button>
+    <div class="hint" style="margin-top:6px">Bút phê là ý kiến chỉ đạo nội bộ, chỉ hiển thị trong đơn vị và in kèm Phiếu xử lý — không gửi ngược lên nơi ban hành.</div>
+  </div></div>`:"";
+  /* v4.0 · Chuyển tiếp xuống cấp dưới (đơn vị nhận có cấp dưới trong nhánh) */
+  const subs=myDescendants().filter(u=>children(u.id).length===0||true);
+  const directSubs=children(me().id);
+  const canFwd=r&&st==="phathanh"&&directSubs.length&&r.status!=="daxuly";
+  const fwdOpen=S.fwdOpen===d.id;
+  const fwdList=(r&&(r.forwards||[]).length)?`<div class="small" style="margin-top:8px">Đã chuyển tiếp: ${r.forwards.map(f=>`<a href="javascript:void(0)" onclick="openDoc('${f.docId}')" class="pill role" style="text-decoration:none">➜ ${esc(f.so)} · ${f.units.length} đơn vị</a>`).join(" ")}</div>`:"";
+  const fwdBox=canFwd?`<div class="card"><div class="card-b">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <span class="small"><b>Chuyển tiếp xuống cấp dưới:</b> lập văn bản triển khai gửi các đơn vị trực thuộc, giữ nguyên chuỗi truy vết.</span>
+      <button class="btn ${fwdOpen?"btn-ghost":"btn-gold"} btn-sm" style="margin-left:auto" onclick="S.fwdOpen=S.fwdOpen==='${d.id}'?null:'${d.id}';render()">${fwdOpen?"✕ Đóng":"➜ Chuyển tiếp"}</button>
+    </div>${fwdList}
+    ${fwdOpen?`<div style="border-top:1px dashed var(--line);margin-top:10px;padding-top:10px">
+      <div class="field"><label>Trích yếu văn bản triển khai *</label><input id="fw-ty" value="V/v triển khai ${esc((d.trichYeu||"").slice(0,80))}"></div>
+      <div class="field"><label>Ý kiến chỉ đạo / yêu cầu bổ sung của đơn vị</label><textarea id="fw-nd" rows="2" placeholder="Nội dung chỉ đạo thêm khi triển khai xuống cơ sở (tùy chọn)…"></textarea></div>
+      <div class="form-grid">
+        <div class="field"><label>Độ khẩn</label><select id="fw-khan">${Object.entries(KHAN).map(([k,v])=>`<option value="${k}" ${k===d.doKhan?"selected":""}>${v[0]}</option>`).join("")}</select></div>
+        <div class="field"><label>Hạn xử lý cấp dưới</label><input id="fw-han" type="date" value="${d.hanXuLy||""}"></div>
+      </div>
+      <label class="small" style="display:flex;gap:7px;align-items:center;margin:4px 0 8px"><input type="checkbox" id="fw-ycbc" checked> Yêu cầu cấp dưới báo cáo tiến độ, kết quả</label>
+      <div class="recip-group"><h5>Đơn vị cấp dưới nhận triển khai</h5>
+        ${directSubs.map(u=>`<label class="recip-row" style="display:flex;gap:10px;align-items:center"><input type="checkbox" class="fw-cb" value="${u.id}" checked> <span style="flex:1">${esc(u.name)}</span>
+          <select id="fwrole-${u.id}" style="padding:4px 8px;border:1px solid var(--line);border-radius:7px;font-size:.8rem">${Object.entries(ROLE).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select></label>`).join("")}
+      </div>
+      <button class="btn btn-primary" onclick="forwardDoc('${d.id}')">➜ ${isApprover()?"Phát hành văn bản chuyển tiếp":"Lập & trình duyệt chuyển tiếp"}</button>
+      <div class="hint" style="margin-top:6px">Tệp đính kèm và văn bản gốc được kèm theo tự động. ${isApprover()?"Bạn là Bí thư/Phó Bí thư nên văn bản phát hành ngay.":"Văn bản sẽ chờ Bí thư/Phó Bí thư phê duyệt trước khi gửi."}</div>
+    </div>`:""}
+  </div></div>`:"";
   /* trao đổi trên văn bản */
   const cmts=d.comments||[];
   const commentBox=(isSender||r)?`<div class="card"><div class="card-h"><h3>Trao đổi trên văn bản (${cmts.length})</h3></div><div class="card-b">
@@ -1296,6 +1425,7 @@ function viewDetail(){
       <tr><td>Hạn xử lý</td><td>${d.hanXuLy?fmtD(d.hanXuLy):"Không đặt hạn"}</td></tr>
       <tr><td>Giao việc / báo cáo</td><td>${d.yeuCauBaoCao?"Có — nơi nhận phải báo cáo tiến độ, kết quả":"Không yêu cầu"}</td></tr>
       ${reply?`<tr><td>Triển khai từ VB</td><td><a href="javascript:void(0)" onclick="openDoc('${reply.id}')">${esc(reply.so)} — ${esc(reply.trichYeu)}</a></td></tr>`:""}
+      ${d.parentDocId?`<tr><td>Chuyển tiếp từ VB</td><td>${DB.docs.some(x=>x.id===d.parentDocId)?`<a href="javascript:void(0)" onclick="openDoc('${d.parentDocId}')">${esc(d.parentSo||"văn bản gốc")}</a>`:esc(d.parentSo||"văn bản gốc")} <span class="muted small">(${esc((unit(d.parentFrom)||{}).short||"?")})</span></td></tr>`:""}
       <tr><td>Tệp đính kèm (${docFiles(d).length})</td><td>${docFiles(d).length?docFiles(d).map((f,i)=>`<div style="margin-bottom:2px"><a href="javascript:void(0)" onclick="downloadFileIdx('${d.id}',${i})">${f.link?"🔗":"📎"} ${esc(f.name)}</a> <span class="muted small">(${f.link?"Google Drive":Math.round((f.size||0)/1024)+" KB"+(f.dataUrl?", lưu kèm":", chỉ lưu tên")})</span></div>`).join(""):"Không có"}</td></tr>
       ${(d.attachedDocs||[]).length?`<tr><td>Văn bản kèm theo</td><td>${d.attachedDocs.map((a,i)=>`<div style="margin-bottom:2px"><a href="javascript:void(0)" onclick="openAttached('${d.id}',${i})">🧷 ${esc(a.so)} — ${esc(a.trichYeu)}</a> <span class="muted small">(${esc((unit(a.from)||{}).short||"?")} · ${LOAI[a.loai]?LOAI[a.loai][1]:""} · ${fmtD(a.ngayBH)})</span></div>`).join("")}</td></tr>`:""}
      </table>
@@ -1313,6 +1443,9 @@ ${esc(S.aiOut.text)}`:""}
     ${actions}
     ${senderBar}
     ${assignBox}
+    ${butBox}
+    ${butList}
+    ${fwdBox}
     ${st==="phathanh"||st==="thuhoi"?track:""}
     ${reports.length?`<div class="card"><div class="card-h"><h3>Báo cáo kết quả từ các đơn vị (${reports.length})</h3></div><div class="card-b">
       ${reports.map(rp=>`<div class="report-item"><div class="rp-h"><b style="color:var(--doan-deep)">${esc(rp.u.short)}</b> · ${fmtD(rp.time)} · tiến độ <b>${rp.progress}%</b></div>${esc(rp.content)}${mediaHTML(rp.media,d.id,rp._ui,rp._ri)}</div>`).join("")}
@@ -1595,6 +1728,7 @@ function orgEditor(){
       <div class="field"><label>Điện thoại</label><input id="o-sdt" value="${esc(u.dienthoai||"")}"></div>
     </div>
     <div class="field"><label>Email liên hệ</label><input id="o-email" value="${esc(u.email||"")}"></div>
+    <div class="field"><label>Webhook Discord (nhận thông báo văn bản mới — tùy chọn)</label><input id="o-webhook" value="${esc(u.webhook||"")}" placeholder="https://discord.com/api/webhooks/…"><div class="hint" style="margin-top:4px">Miễn phí: trong máy chủ Discord của đơn vị → Cài đặt kênh → Tích hợp → Webhook → Sao chép URL. Khi cấp trên phát hành văn bản cho đơn vị này, hệ thống tự nhắn vào kênh.</div></div>
     <button class="btn btn-primary" id="o-save" onclick="orgSave()">${isAdd?"＋ Tạo đơn vị & cấp tài khoản":"💾 Lưu thay đổi"}</button>
     ${!isAdd?memberSection(u):""}
     ${!isAdd?passSection(u,isSelf):""}
@@ -1826,7 +1960,7 @@ async function orgSave(){
   const ed=S.orgEdit,m=me();if(!ed)return;
   const g=id=>{const el=document.getElementById(id);return el?el.value.trim():""};
   const name=g("o-name"),short=g("o-short")||name,code=g("o-code").toUpperCase().replace(/\s+/g,"");
-  const extra={diachi:g("o-diachi"),dienthoai:g("o-sdt"),email:g("o-email")};
+  const extra={diachi:g("o-diachi"),dienthoai:g("o-sdt"),email:g("o-email"),webhook:g("o-webhook")};
   if(!name||!code){toast("Cần nhập tối thiểu Tên đầy đủ và Mã ký hiệu.");return}
   const btn=document.getElementById("o-save");if(btn)btn.disabled=true;
   try{
@@ -2492,7 +2626,7 @@ async function cloudAfterLogin(user){
     liveRender()};
   FB.unsub.push(FB.fs.collection("docs").where("recipIds","array-contains",mine.id).onSnapshot(apply,e=>toast("Lỗi đồng bộ VB đến: "+e.message)));
   FB.unsub.push(FB.fs.collection("docs").where("from","==",mine.id).onSnapshot(apply,e=>toast("Lỗi đồng bộ VB đi: "+e.message)));
-  DB.targets=DB.targets||[];DB.events=DB.events||[];
+  DB.targets=DB.targets||[];DB.events=DB.events||[];DB.periodic=DB.periodic||[];
   const applyCol=(arr)=>s2=>{s2.docChanges().forEach(ch=>{
       const d={id:ch.doc.id,...ch.doc.data()};
       const i=arr.findIndex(x=>x.id===d.id);
@@ -2503,6 +2637,8 @@ async function cloudAfterLogin(user){
   FB.unsub.push(FB.fs.collection("targets").where("unit","==",mine.id).onSnapshot(applyCol(DB.targets),()=>{}));
   FB.unsub.push(FB.fs.collection("events").where("from","==",mine.id).onSnapshot(applyCol(DB.events),()=>{}));
   FB.unsub.push(FB.fs.collection("events").where("moi","array-contains",mine.id).onSnapshot(applyCol(DB.events),()=>{}));
+  FB.unsub.push(FB.fs.collection("periodic").where("from","==",mine.id).onSnapshot(applyCol(DB.periodic),()=>{}));
+  FB.unsub.push(FB.fs.collection("periodic").where("recipIds","array-contains",mine.id).onSnapshot(applyCol(DB.periodic),()=>{}));
   DB.library=DB.library||[];
   FB.unsub.push(FB.fs.collection("library").where("from","==",mine.id).onSnapshot(applyCol(DB.library),()=>{}));
   FB.unsub.push(FB.fs.collection("library").where("shareTo","array-contains",mine.id).onSnapshot(applyCol(DB.library),()=>{}));
@@ -2625,14 +2761,201 @@ ${d.audit.map(a=>"<tr><td>"+fmtD(a.time)+"</td><td>"+esc((unit(a.unit)||{}).shor
   audit(d,"In phiếu xử lý","");commit(d);if(MODE==="local")save();
 }
 
+/* ========== v4.0 · GIAI ĐOẠN 2: BÁO CÁO ĐỊNH KỲ & BIỂU MẪU SỐ LIỆU TỰ TỔNG HỢP ==========
+   Cấp trên tạo "đợt báo cáo" (kỳ: tháng/quý/6 tháng/năm) kèm biểu mẫu gồm các chỉ tiêu
+   số liệu. Gửi xuống các đơn vị trong nhánh. Mỗi đơn vị nhập số liệu của mình; hệ thống
+   TỰ TỔNG HỢP (cộng dồn theo cây đơn vị) lên cấp trên theo thời gian thực. Xuất Word/CSV.
+   Lưu ở collection "periodic" riêng để không đụng trần 1MB của document văn bản. */
+const PKY={thang:"Tháng",quy:"Quý",sauthang:"6 tháng",nam:"Năm"};
+function periodicMine(){return (DB.periodic||[]).filter(p=>p.from===DB.session)}
+function periodicAssigned(){return (DB.periodic||[]).filter(p=>(p.recipIds||[]).includes(DB.session))}
+function periodicDueCount(){
+  if(!DB||!DB.session)return 0;
+  return periodicAssigned().filter(p=>{const e=(p.entries||{})[DB.session];return !e||!e.submitted}).length;
+}
+async function commitPeriodic(p){
+  if(MODE==="local"){save();return}
+  await FB.fs.collection("periodic").doc(p.id).set(JSON.parse(JSON.stringify(p)));
+}
+/* Tổng hợp số liệu: cộng dồn số của đơn vị u + toàn bộ hậu duệ đã nộp */
+function periodicRollup(p,unitId){
+  const acc={};(p.fields||[]).forEach(f=>acc[f.key]=0);
+  const ids=[unitId,...DB.units.filter(x=>managedBy(x,unitId)).map(x=>x.id)];
+  let filled=0,expected=0;
+  (p.recipIds||[]).forEach(rid=>{
+    if(!ids.includes(rid)&&rid!==unitId)return;
+    expected++;
+    const e=(p.entries||{})[rid];
+    if(e&&e.submitted){filled++;(p.fields||[]).forEach(f=>{acc[f.key]+=Number(e.values&&e.values[f.key]||0)})}
+  });
+  return {acc,filled,expected};
+}
+function viewPeriodic(){
+  const m=me();
+  const given=periodicMine(),assigned=periodicAssigned();
+  if(!S.pkTab)S.pkTab=assigned.length&&!given.length?"nop":"tao";
+  const subs=myDescendants();
+  return `
+  <div class="page-head"><div><div class="eyebrow">Báo cáo định kỳ · biểu mẫu số liệu tự tổng hợp</div><h2>Báo cáo định kỳ</h2></div></div>
+  <div class="card"><div class="card-b">
+  <div class="tabs">
+    <button class="${S.pkTab==="tao"?"active":""}" onclick="S.pkTab='tao';render()">Đợt báo cáo tôi phát động<span class="cnt">${given.length}</span></button>
+    <button class="${S.pkTab==="nop"?"active":""}" onclick="S.pkTab='nop';render()">Cấp trên yêu cầu<span class="cnt">${assigned.length}</span></button>
+  </div>
+  ${S.pkTab==="tao"?viewPeriodicCreate(subs,given):viewPeriodicSubmit(assigned)}
+  </div></div>`;
+}
+function viewPeriodicCreate(subs,given){
+  return `
+  ${subs.length?`<div class="recip-group" style="margin-bottom:14px"><h5>Phát động đợt báo cáo mới</h5><div style="padding:10px 12px">
+    <div class="form-grid">
+      <div class="field"><label>Tên đợt báo cáo *</label><input id="pk-ten" placeholder="vd: Báo cáo công tác Đoàn tháng ${new Date().getMonth()+1}/${new Date().getFullYear()}"></div>
+      <div class="field"><label>Loại kỳ</label><select id="pk-ky">${Object.entries(PKY).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select></div>
+    </div>
+    <div class="form-grid">
+      <div class="field"><label>Kỳ báo cáo (nhãn)</label><input id="pk-kylabel" value="Tháng ${new Date().getMonth()+1}/${new Date().getFullYear()}"></div>
+      <div class="field"><label>Hạn nộp *</label><input id="pk-han" type="date"></div>
+    </div>
+    <div class="field"><label>Các chỉ tiêu số liệu của biểu mẫu *</label>
+      <div class="hint" style="margin:2px 0 6px">Mỗi dòng một chỉ tiêu, dạng <b>Tên chỉ tiêu | đơn vị tính</b>. VD: Đoàn viên kết nạp mới | đoàn viên</div>
+      <textarea id="pk-fields" rows="5" placeholder="Đoàn viên kết nạp mới | đoàn viên&#10;Số công trình, phần việc thanh niên | công trình&#10;Số buổi hoạt động tình nguyện | buổi&#10;Kinh phí vận động | nghìn đồng"></textarea>
+    </div>
+    <div class="recip-group"><h5>Đơn vị phải báo cáo</h5>
+      <label class="recip-row" style="font-weight:600"><input type="checkbox" id="pk-all" onchange="document.querySelectorAll('.pk-cb').forEach(c=>c.checked=this.checked)"> Chọn tất cả đơn vị trong nhánh</label>
+      ${subs.map(u=>`<label class="recip-row"><input type="checkbox" class="pk-cb" value="${u.id}" checked> ${esc(u.name)} <span class="muted small">${"·".repeat(0)}${(u.level||0)>2?" (cấp cơ sở)":""}</span></label>`).join("")}
+    </div>
+    <button class="btn btn-gold" onclick="createPeriodic()">📣 Phát động đợt báo cáo</button>
+  </div></div>`
+   :'<div class="hint" style="margin-bottom:12px">Đơn vị chưa có cấp dưới trong nhánh để phát động báo cáo định kỳ.</div>'}
+  ${given.length?given.map(p=>{const ro=periodicRollup(p,me().id);
+    return `<div class="card" style="margin-bottom:12px"><div class="card-h"><h3>${esc(p.ten)}</h3>
+      <div class="spacer"></div>
+      <span class="pill role">${PKY[p.ky]||p.ky} · ${esc(p.kylabel||"")}</span>
+      <button class="btn btn-ghost btn-sm" onclick="exportPeriodicWord('${p.id}')">⬇ Word</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportPeriodicCSV('${p.id}')">⬇ CSV</button>
+      <button class="btn btn-sm" style="background:var(--danger-bg);color:var(--danger)" onclick="delPeriodic('${p.id}')">🗑</button></div>
+     <div class="card-b">
+      <div class="small muted" style="margin-bottom:8px">Hạn nộp ${fmtD(p.han)} · Đã nộp <b style="color:var(--ok)">${ro.filled}</b>/${ro.expected} đơn vị</div>
+      <div class="tbl-wrap"><table><thead><tr><th>Đơn vị</th>${(p.fields||[]).map(f=>`<th>${esc(f.name)}<div class="small muted">${esc(f.unit||"")}</div></th>`).join("")}<th>Trạng thái</th></tr></thead><tbody>
+      ${(p.recipIds||[]).map(rid=>{const e=(p.entries||{})[rid];
+        return `<tr><td>${esc((unit(rid)||{}).short||"?")}</td>${(p.fields||[]).map(f=>`<td class="c" style="text-align:center">${e&&e.submitted?Number(e.values&&e.values[f.key]||0).toLocaleString("vi-VN"):'<span class="muted">—</span>'}</td>`).join("")}
+        <td>${e&&e.submitted?`<span class="pill xong">Đã nộp</span>`:`<span class="pill cho">Chưa nộp</span>`}</td></tr>`}).join("")}
+      <tr style="background:var(--gold-soft);font-weight:700"><td>TỔNG HỢP TOÀN NHÁNH</td>${(p.fields||[]).map(f=>`<td class="c" style="text-align:center">${(ro.acc[f.key]||0).toLocaleString("vi-VN")}</td>`).join("")}<td>${ro.filled}/${ro.expected}</td></tr>
+      </tbody></table></div>
+     </div></div>`}).join("")
+   :'<div class="empty">Chưa phát động đợt báo cáo định kỳ nào.</div>'}`;
+}
+function viewPeriodicSubmit(assigned){
+  if(!assigned.length)return '<div class="empty">Cấp trên chưa yêu cầu báo cáo định kỳ nào.</div>';
+  return assigned.map(p=>{const e=(p.entries||{})[DB.session]||{values:{},submitted:false};
+    const overdue=p.han&&p.han<todayISO()&&!e.submitted;
+    return `<div class="card" style="margin-bottom:12px${overdue?';border-left:4px solid var(--danger)':''}"><div class="card-h"><h3>${esc(p.ten)}</h3>
+      <div class="spacer"></div><span class="pill role">${PKY[p.ky]||p.ky}</span>
+      ${e.submitted?'<span class="pill xong">Đã nộp</span>':(overdue?'<span class="pill qua">Quá hạn</span>':'<span class="pill cho">Chưa nộp</span>')}</div>
+     <div class="card-b">
+      <div class="small muted" style="margin-bottom:8px">Nơi phát động: <b>${esc((unit(p.from)||{}).short||"?")}</b> · Kỳ ${esc(p.kylabel||"")} · Hạn nộp ${fmtD(p.han)}${e.submitted&&e.time?" · đã nộp "+fmtTS(e.time):""}</div>
+      ${children(me().id).length?`<div class="hint" style="margin-bottom:8px">Đơn vị bạn có cấp dưới — số bạn nhập là số của <b>riêng cơ quan bạn</b>; hệ thống tự cộng thêm số các đơn vị trực thuộc khi tổng hợp lên trên.</div>`:""}
+      ${(p.fields||[]).map(f=>`<div class="form-grid" style="grid-template-columns:1fr 160px;align-items:center;margin-bottom:6px">
+        <label style="font-size:.9rem">${esc(f.name)} <span class="muted small">(${esc(f.unit||"")})</span></label>
+        <input id="pkv-${p.id}-${f.key}" type="number" min="0" value="${e.values&&e.values[f.key]!=null?e.values[f.key]:""}" style="padding:8px 11px;border:1px solid var(--line);border-radius:8px" ${e.submitted?"":""}>
+      </div>`).join("")}
+      <div class="field" style="margin-top:8px"><label>Ghi chú / đánh giá (tùy chọn)</label><textarea id="pknote-${p.id}" rows="2" placeholder="Thuận lợi, khó khăn, kiến nghị…">${esc(e.note||"")}</textarea></div>
+      <button class="btn btn-primary" onclick="submitPeriodic('${p.id}')">${e.submitted?"💾 Cập nhật số liệu":"📤 Nộp báo cáo"}</button>
+      ${children(me().id).length?`<button class="btn btn-ghost" style="margin-left:8px" onclick="S.pkView=S.pkView==='${p.id}'?null:'${p.id}';render()">${S.pkView===p.id?"Ẩn":"Xem"} tổng hợp cấp dưới</button>`:""}
+      ${S.pkView===p.id&&children(me().id).length?(()=>{const ro=periodicRollup(p,me().id);
+        return `<div style="margin-top:10px;border-top:1px dashed var(--line);padding-top:10px"><div class="eyebrow" style="margin-bottom:6px">Tổng hợp toàn nhánh của bạn (đã nộp ${ro.filled}/${ro.expected})</div>
+        <div class="tbl-wrap"><table><thead><tr>${(p.fields||[]).map(f=>`<th>${esc(f.name)}</th>`).join("")}</tr></thead><tbody><tr>${(p.fields||[]).map(f=>`<td class="c" style="text-align:center"><b>${(ro.acc[f.key]||0).toLocaleString("vi-VN")}</b></td>`).join("")}</tr></tbody></table></div></div>`})():""}
+     </div></div>`}).join("");
+}
+async function createPeriodic(){
+  const m=me(),g=id=>{const el=document.getElementById(id);return el?el.value.trim():""};
+  const ten=g("pk-ten"),ky=g("pk-ky")||"thang",kylabel=g("pk-kylabel"),han=g("pk-han");
+  if(!ten){toast("Nhập tên đợt báo cáo.");return}
+  if(!han){toast("Chọn hạn nộp.");return}
+  const fields=(g("pk-fields")||"").split(/\n+/).map(t=>t.trim()).filter(Boolean).map((t,i)=>{
+    const p2=t.split("|");return {key:"f"+i,name:(p2[0]||"").trim(),unit:(p2[1]||"").trim()}}).filter(f=>f.name);
+  if(!fields.length){toast("Khai ít nhất một chỉ tiêu số liệu cho biểu mẫu.");return}
+  const recipIds=[...document.querySelectorAll(".pk-cb:checked")].map(c=>c.value);
+  if(!recipIds.length){toast("Chọn đơn vị phải báo cáo.");return}
+  const p={id:uid("pk"),from:m.id,ten,ky,kylabel,han,fields,recipIds,entries:{},created:todayISO()};
+  (DB.periodic=DB.periodic||[]).push(p);
+  try{await commitPeriodic(p)}catch(e){DB.periodic.pop();toast("Lỗi lưu: "+e.message);return}
+  orgLog("Phát động báo cáo định kỳ","",ten+" ("+(PKY[ky]||ky)+") → "+recipIds.length+" đơn vị");
+  toast("Đã phát động “"+ten+"” tới "+recipIds.length+" đơn vị.");
+  /* Bắn thông báo Discord cho các đơn vị có webhook */
+  try{recipIds.forEach(rid=>{const u=unit(rid);
+    if(u&&u.webhook&&/^https:\/\/(discord\.com|discordapp\.com)\/api\/webhooks\//.test(u.webhook)){
+      const fd=new FormData();fd.append("payload_json",JSON.stringify({content:"🗂️ **"+m.name+"** yêu cầu báo cáo định kỳ: **"+ten+"**\n⏰ Hạn nộp: "+fmtD(han)+"\nĐăng nhập DoanOffice → Báo cáo định kỳ để nộp số liệu."}));
+      fetch(u.webhook,{method:"POST",body:fd}).catch(()=>{})}})}catch(e){}
+  render();
+}
+async function submitPeriodic(id){
+  const p=(DB.periodic||[]).find(x=>x.id===id);
+  if(!p||!(p.recipIds||[]).includes(DB.session)){toast("Đợt báo cáo không hợp lệ.");return}
+  const values={};(p.fields||[]).forEach(f=>{const el=document.getElementById("pkv-"+id+"-"+f.key);
+    values[f.key]=el?Math.max(0,Number(el.value||0)):0});
+  const note=((document.getElementById("pknote-"+id)||{}).value||"").trim();
+  p.entries=p.entries||{};
+  const prev=p.entries[DB.session];
+  p.entries[DB.session]={values,note,submitted:true,time:nowTS(),nguoi:memberLabel()};
+  try{await commitPeriodic(p)}catch(e){p.entries[DB.session]=prev;toast("Lỗi nộp: "+e.message);return}
+  orgLog("Nộp báo cáo định kỳ",p.from,p.ten);
+  toast("Đã nộp số liệu báo cáo “"+p.ten+"”.");render();
+}
+async function delPeriodic(id){
+  const p=(DB.periodic||[]).find(x=>x.id===id);
+  if(!p||p.from!==DB.session){toast("Chỉ nơi phát động được xóa đợt báo cáo.");return}
+  if(!confirm("Xóa đợt báo cáo “"+p.ten+"”? Toàn bộ số liệu đã nộp sẽ mất."))return;
+  if(MODE==="cloud"){try{await FB.fs.collection("periodic").doc(id).delete()}catch(e){toast("Lỗi: "+e.message);return}}
+  DB.periodic=DB.periodic.filter(x=>x.id!==id);if(MODE==="local")save();
+  orgLog("Xóa báo cáo định kỳ","",p.ten);toast("Đã xóa đợt báo cáo.");render();
+}
+function periodicRows(p){
+  const rows=[["BÁO CÁO ĐỊNH KỲ — "+p.ten],["Nơi phát động",(unit(p.from)||{}).name||"",""],["Kỳ",(PKY[p.ky]||p.ky)+" · "+(p.kylabel||""),"Hạn nộp",fmtD(p.han)],[],
+    ["TT","Đơn vị",...(p.fields||[]).map(f=>f.name+(f.unit?" ("+f.unit+")":"")),"Trạng thái","Ghi chú"]];
+  (p.recipIds||[]).forEach((rid,i)=>{const e=(p.entries||{})[rid];
+    rows.push([i+1,(unit(rid)||{}).name||"?",...(p.fields||[]).map(f=>e&&e.submitted?Number(e.values&&e.values[f.key]||0):""),e&&e.submitted?"Đã nộp":"Chưa nộp",e&&e.note?e.note:""])});
+  const ro=periodicRollup(p,me().id);
+  rows.push(["","TỔNG HỢP TOÀN NHÁNH",...(p.fields||[]).map(f=>ro.acc[f.key]||0),ro.filled+"/"+ro.expected,""]);
+  return rows;
+}
+function exportPeriodicCSV(id){const p=(DB.periodic||[]).find(x=>x.id===id);if(!p)return;
+  exportCSV(periodicRows(p),"bao-cao-dinh-ky-"+(p.ten||"").slice(0,30).replace(/[\/\\\s]+/g,"-")+".csv");}
+function exportPeriodicWord(id){
+  const p=(DB.periodic||[]).find(x=>x.id===id);if(!p)return;const m=me(),ro=periodicRollup(p,m.id);
+  const th=(p.fields||[]).map(f=>`<th>${esc(f.name)}<br><i style="font-weight:400">${esc(f.unit||"")}</i></th>`).join("");
+  const body=(p.recipIds||[]).map((rid,i)=>{const e=(p.entries||{})[rid];
+    return `<tr><td class="c">${i+1}</td><td>${esc((unit(rid)||{}).name||"?")}</td>${(p.fields||[]).map(f=>`<td class="c">${e&&e.submitted?Number(e.values&&e.values[f.key]||0).toLocaleString("vi-VN"):"—"}</td>`).join("")}</tr>`}).join("");
+  const html=`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><title>${esc(p.ten)}</title>
+<style>@page{size:A4 landscape;margin:15mm}body{font-family:"Times New Roman",serif;font-size:13pt;color:#000}
+.hd{display:flex;justify-content:space-between;text-align:center;font-size:12.5pt}.hd b{display:block}.line{width:42%;border-bottom:1.2pt solid #000;margin:2px auto 8px}
+h1{text-align:center;font-size:15pt;text-transform:uppercase;margin:14px 0 2px}.sub{text-align:center;font-style:italic;margin-bottom:12px}
+table{width:100%;border-collapse:collapse}td,th{border:.9pt solid #000;padding:4px 7px;font-size:12pt}th{background:#eee;text-align:center}.c{text-align:center}
+tr.sum td{background:#f4e8c8;font-weight:bold}.sig{margin-top:20px;text-align:right}.sig .in{display:inline-block;text-align:center;width:64mm}</style></head><body>
+<div class="hd"><div style="width:48%"><b>ĐOÀN TNCS HỒ CHÍ MINH</b><b>${esc(m.name.toUpperCase())}</b><div class="line"></div></div>
+<div style="width:48%"><i>${esc((m.diachi||"…").split(",").pop().trim()||"…")}, ngày ${new Date().getDate()} tháng ${new Date().getMonth()+1} năm ${new Date().getFullYear()}</i></div></div>
+<h1>${esc(p.ten)}</h1><div class="sub">Kỳ báo cáo: ${esc((PKY[p.ky]||p.ky)+" · "+(p.kylabel||""))} — tổng hợp từ Hệ thống DoanOffice</div>
+<table><thead><tr><th>TT</th><th>Đơn vị</th>${th}</tr></thead><tbody>${body}
+<tr class="sum"><td class="c"></td><td>TỔNG HỢP TOÀN NHÁNH (đã nộp ${ro.filled}/${ro.expected})</td>${(p.fields||[]).map(f=>`<td class="c">${(ro.acc[f.key]||0).toLocaleString("vi-VN")}</td>`).join("")}</tr>
+</tbody></table>
+<div class="sig"><div class="in"><b>TM. BAN THƯỜNG VỤ</b><br><b>BÍ THƯ</b><i><br>(Ký, đóng dấu)</i></div></div>
+</body></html>`;
+  const blob=new Blob(["\ufeff"+html],{type:"application/msword;charset=utf-8"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download="bao-cao-dinh-ky-"+m.code+"-"+todayISO()+".doc";a.click();
+  toast("Đã xuất biểu tổng hợp Word (.doc).");
+}
+
 /* ---------- Lớp tích hợp mở (Open Integration Layer) ----------
    Các hệ thống khác / connector tương lai (iOffice tỉnh, Zalo bot…)
    truy cập qua window.DoanOffice — không đụng vào lõi. */
 window.DoanOffice={
-  version:"3.7",
+  version:"4.0",
   unit:()=>DB&&DB.session?{...me()}:null,
   docs:()=>DB?JSON.parse(JSON.stringify(searchCorpus())):[],
   targets:()=>DB?JSON.parse(JSON.stringify([...myTargets(),...myAssignedTargets()])):[],
+  periodic:()=>DB?JSON.parse(JSON.stringify([...periodicMine(),...periodicAssigned()])):[],
+  overdueInbox:()=>DB?myInbox().filter(d=>dstat(d)==="phathanh"&&d.hanXuLy&&d.hanXuLy<todayISO()&&(myRecip(d)||{}).status!=="daxuly").map(d=>({so:d.so,trichYeu:d.trichYeu,han:d.hanXuLy})):[],
   openDoc:(id)=>openDoc(id),
   exportAll:()=>backupJSON()
 };
