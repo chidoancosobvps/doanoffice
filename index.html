@@ -187,6 +187,17 @@ tr.rowlink:hover td{background:#F4F9FF}
 .rp-note{background:var(--info-bg);border-radius:8px;padding:8px 11px;margin:6px 0;line-height:1.4}
 .rp-auto{background:var(--gold-soft);border-radius:8px;padding:7px 11px;margin:6px 0;font-weight:600}
 code{background:var(--line-soft);padding:1px 5px;border-radius:5px;font-family:ui-monospace,monospace;font-size:.86em}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:11px;overflow:hidden;background:#fff;flex-wrap:wrap}
+.seg button{background:#fff;border:none;padding:8px 14px;font-size:.83rem;font-weight:600;color:var(--doan-deep);cursor:pointer;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:none}
+.seg button.on{background:linear-gradient(120deg,#F6C24A,var(--gold));color:var(--doan-ink)}
+.pchips{display:flex;flex-wrap:wrap;gap:6px}
+.pchip{border:1.5px solid var(--line);background:#fff;border-radius:9px;padding:5px 11px;font-size:.8rem;font-weight:700;color:var(--doan-deep);cursor:pointer;position:relative;transition:all .14s}
+.pchip:hover{border-color:var(--gold)}
+.pchip.on{background:linear-gradient(120deg,#F6C24A,var(--gold));color:var(--doan-ink);border-color:var(--gold-2)}
+.pchip.derived{border-style:dashed;color:var(--gold-2)}
+.pchip.derived.on{color:var(--doan-ink)}
+.pchip .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ok);margin-left:3px;vertical-align:middle}
 .empty::before{content:"";display:block;width:52px;height:52px;margin:0 auto 12px;opacity:.5;
   background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235F7488' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'><path d='M22 12h-6l-2 3h-4l-2-3H2'/><path d='M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z'/></svg>") center/contain no-repeat}
 
@@ -242,6 +253,40 @@ code{background:var(--line-soft);padding:1px 5px;border-radius:5px;font-family:u
 .bell-item{padding:10px 15px;border-bottom:1px solid var(--line-soft);cursor:pointer;font-size:.8rem;transition:background .12s}
 .bell-item:hover{background:#F4F9FF}
 .bell-item:last-child{border-bottom:none}
+.hm-back{position:fixed;inset:0;background:rgba(7,32,56,.5);backdrop-filter:blur(3px);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;animation:fade .2s var(--ease)}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.hm{background:var(--card);border-radius:18px;box-shadow:var(--shadow-lg);width:min(880px,96vw);max-height:92vh;display:flex;flex-direction:column;overflow:hidden;animation:pop .22s var(--ease)}
+.hm-top{display:flex;align-items:center;gap:12px;padding:16px 22px;background:linear-gradient(120deg,var(--doan-deep),var(--doan-ink));color:#fff}
+.hm-top .stardot{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#F6C24A,var(--gold));display:flex;align-items:center;justify-content:center;color:var(--doan-ink);flex-shrink:0}
+.hm-top h3{margin:0;font-size:1.06rem;font-weight:800;letter-spacing:-.01em}
+.hm-top .sub{font-size:.72rem;opacity:.82;font-weight:500}
+.hm-x{margin-left:auto;background:rgba(255,255,255,.14);border:none;color:#fff;width:32px;height:32px;border-radius:9px;cursor:pointer;font-size:1.1rem;line-height:1}
+.hm-x:hover{background:rgba(255,255,255,.26)}
+.hm-tabs{display:flex;gap:2px;padding:0 16px;background:#F6F9FD;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.hm-tabs button{background:none;border:none;padding:12px 16px;font-size:.85rem;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2.5px solid transparent;margin-bottom:-1px}
+.hm-tabs button.on{color:var(--doan-deep);border-bottom-color:var(--gold)}
+.hm-body{padding:22px 26px;overflow-y:auto;line-height:1.6;font-size:.9rem;color:var(--doan-ink)}
+.hm-body h4{color:var(--doan-deep);font-size:1.02rem;margin:20px 0 8px;padding-bottom:5px;border-bottom:1.5px solid var(--line-soft)}
+.hm-body h4:first-child{margin-top:0}
+.hm-body h5{color:var(--doan-deep);font-size:.92rem;margin:16px 0 5px}
+.hm-body p{margin:7px 0}
+.hm-body ul,.hm-body ol{margin:7px 0;padding-left:22px}
+.hm-body li{margin:5px 0}
+.hm-body .lead{font-size:.96rem;color:var(--doan-ink);background:var(--info-bg);padding:12px 15px;border-radius:11px;border-left:3px solid var(--doan-blue)}
+.hm-feat{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin:12px 0}
+.hm-card{border:1.5px solid var(--line);border-radius:12px;padding:13px 15px;background:#FBFDFF}
+.hm-card .ic{width:30px;height:30px;border-radius:8px;background:var(--gold-soft);display:flex;align-items:center;justify-content:center;color:var(--gold-2);margin-bottom:7px}
+.hm-card b{color:var(--doan-deep);display:block;font-size:.9rem;margin-bottom:3px}
+.hm-card span{font-size:.8rem;color:var(--muted);line-height:1.45}
+.hm-step{display:flex;gap:12px;margin:10px 0;align-items:flex-start}
+.hm-step .num{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#F6C24A,var(--gold));color:var(--doan-ink);font-weight:800;font-size:.82rem;display:flex;align-items:center;justify-content:center}
+.hm-step .tx{flex:1}.hm-step .tx b{color:var(--doan-deep)}
+.hm-role{border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:8px 0;background:#fff}
+.hm-role b{color:var(--doan-deep)}
+.hm-tip{background:var(--gold-soft);border-radius:10px;padding:10px 14px;margin:10px 0;font-size:.85rem}
+.hm-kbd{background:var(--doan-deep);color:#fff;padding:1px 7px;border-radius:5px;font-size:.8rem;font-weight:600}
+.hm-faq{border-bottom:1px solid var(--line-soft);padding:10px 0}
+.hm-faq b{color:var(--doan-deep);display:block;margin-bottom:3px}
 
 /* ---------- Responsive ---------- */
 @media(max-width:980px){
@@ -315,6 +360,7 @@ const ICO={
   org:_sv('<path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>'),
   gear:_sv('<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>'),
   bell:_sv('<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>'),
+  help:_sv('<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>'),
   menu:_sv('<path d="M4 6h16M4 12h16M4 18h16"/>'),
   clip:_sv('<path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/>'),
   tmpl:_sv('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h4"/>'),
@@ -504,7 +550,7 @@ function logout(){
   if(MODE==="cloud"){FB.unsub.forEach(f=>f());FB.unsub=[];DB.session=null;FB.auth.signOut();render();return}
   DB.session=null;save();render();
 }
-function nav(v,extra){S.view=v;S.bell=false;if(v!=="danhba")S.orgEdit=null;if(v!=="soan"){S.draftId=null;S.quick=false}if(extra)Object.assign(S,extra);render();window.scrollTo(0,0)}
+function nav(v,extra){S.view=v;S.bell=false;S.help=null;if(v!=="danhba")S.orgEdit=null;if(v!=="soan"){S.draftId=null;S.quick=false}if(extra)Object.assign(S,extra);render();window.scrollTo(0,0)}
 /* commit(d): ghi một văn bản đã thay đổi.
    - local  : lưu toàn bộ DB vào localStorage
    - cloud  : ghi đúng document đó lên Firestore (các máy khác nhận qua onSnapshot) */
@@ -1054,7 +1100,7 @@ function shell(content){
       <h6>Quản trị</h6>
       ${item("hethong",ICO.gear,"Dữ liệu & sao lưu")}
     </nav>
-    <div class="side-foot">${MODE==="cloud"?"● Đồng bộ Firestore · offline-first":"Dữ liệu lưu cục bộ trên máy này"}<br>DoanOffice 4.0 · mã nguồn mở</div>
+    <div class="side-foot">${MODE==="cloud"?"● Đồng bộ Firestore · offline-first":"Dữ liệu lưu cục bộ trên máy này"}<br>DoanOffice 4.2 · mã nguồn mở</div>
    </aside>
    <div class="sb-backdrop" id="sb-backdrop" onclick="toggleSidebar(false)"></div>
    <div class="main">
@@ -1062,6 +1108,7 @@ function shell(content){
       <button class="menu-btn" title="Mở menu" onclick="toggleSidebar(true)"><span class="ico">${ICO.menu}</span></button>
       <div class="unit">${esc(m.name)}<small>${m.parent?("Trực thuộc: "+esc(unit(m.parent).name)):"Đơn vị cấp cao nhất trong hệ thống"}</small></div>
       <div class="spacer"></div>
+      <button class="btn btn-ghost btn-sm" style="width:38px;height:38px;padding:0" title="Giới thiệu & Hướng dẫn sử dụng" onclick="openHelp('intro')"><span class="ico">${ICO.help}</span></button>
       ${bellHtml()}
       <div class="userbox"><div class="avatar">${esc(m.short[0])}</div>
         <span>${curMember()?esc(curMember().name)+' <span class="muted small">('+ROLES[curMember().role]+')</span>':esc(m.user)}</span>
@@ -1069,7 +1116,7 @@ function shell(content){
         <button class="btn btn-ghost btn-sm" onclick="logout()">Đăng xuất</button></div>
     </div>
     <div class="content">${content}</div>
-   </div></div>`;
+   </div>${S.help?helpModalHtml():""}</div>`;
 }
 function myRecipOf(d,uid_){return d.recips.find(r=>r.unit===uid_)}
 function statusPill(d,r){
@@ -2590,10 +2637,11 @@ function viewSystem(){
     <p style="margin-bottom:6px">③ <b>Google Drive API</b> — lưu tệp PDF/Word đính kèm (15GB miễn phí mỗi tài khoản đơn vị).</p>
     <p>④ Bộ nhớ cục bộ (IndexedDB) vẫn giữ vai trò cache để làm việc offline, tự đồng bộ khi có mạng.</p>
   </div></div>
-  <div class="card"><div class="card-h"><h3>Mới ở 4.1 · Mẫu báo cáo & Nhắc lịch</h3></div><div class="card-b small">
+  <div class="card"><div class="card-h"><h3>Mới ở 4.2 · Mẫu báo cáo · Nhắc lịch · Tự tổng hợp tháng→quý→năm</h3></div><div class="card-b small">
     <p style="margin-bottom:6px">⑤ <b>Mẫu báo cáo</b> — cơ sở chọn mẫu chuẩn (theo Công văn 76-CV/ĐTN) hoặc tạo mẫu riêng, điền nội dung, tự lấy số liệu từ <b>Báo cáo định kỳ</b>, rồi <b>xuất Word đúng thể thức</b> và/hoặc <b>gửi bản điện tử lên cấp trên</b> (thành văn bản đi loại Báo cáo).</p>
-    <p style="margin-bottom:6px">⑥ <b>Nhắc lịch báo cáo</b> — nạp sẵn mốc CV76 (tháng/quý/6-9 tháng/năm), cảnh báo trước hạn 1–2 ngày (tùy chọn), lặp định kỳ; cơ sở tạo thêm lịch riêng. Nhắc trong app + Discord; muốn nhắc Email/Discord kể cả khi không ai mở web thì đặt trigger <code>dueReminders</code> trong <b>Code.gs</b>.</p>
-    <p style="margin-bottom:6px"><b>Firestore rules cần bổ sung</b> cho 4.1 (dán vào <code>firestore.rules</code> rồi publish):</p>
+    <p style="margin-bottom:6px">⑥ <b>Nhắc lịch báo cáo</b> — nạp sẵn mốc CV76 (tháng/quý/6-9 tháng/năm), cảnh báo trước hạn 1–2 ngày (tùy chọn), lặp định kỳ; cơ sở tạo thêm lịch riêng và gắn mẫu báo cáo. Nhắc trong app + Discord; muốn nhắc Email/Discord kể cả khi không ai mở web thì đặt trigger <code>dueReminders</code> trong <b>Code.gs</b>.</p>
+    <p style="margin-bottom:6px">⑦ <b>Tự tổng hợp theo kỳ</b> — trong <b>Báo cáo định kỳ</b>, chọn "Chương trình cả năm" để phát động một lần: hệ thống sinh 12 tháng + 4 quý + 1 năm liên kết. Cơ sở chỉ nhập số <b>tháng</b>; <b>quý tự cộng từ 3 tháng, năm tự cộng từ 4 quý</b> theo cách gộp của từng chỉ tiêu (cộng dồn / lấy cuối kỳ / trung bình). Số liệu quý/năm có thể đổ thẳng vào mẫu báo cáo văn bản.</p>
+    <p style="margin-bottom:6px"><b>Firestore rules cần bổ sung</b> (dán vào <code>firestore.rules</code> rồi publish):</p>
     <pre style="background:var(--line-soft);padding:10px;border-radius:8px;overflow:auto;font-size:.78rem;line-height:1.4">match /reportTemplates/{id} {
   allow read: if request.auth != null;      // mọi đơn vị đọc mẫu dùng chung
   allow write: if request.auth != null
@@ -2604,7 +2652,12 @@ function viewSystem(){
 match /reminders/{id} {
   allow read, write: if request.auth != null; // lịch nhắc của từng đơn vị
 }</pre>
-    <p class="muted">Nguyên tắc: mẫu chỉ đơn vị tạo ra mới sửa/xóa; lịch nhắc thuộc đơn vị sở hữu (trường <code>from</code>). Trường <code>webhook</code>, <code>email</code> vẫn dùng chung quyền của <code>units</code>.</p>
+    <p class="muted">Chương trình báo cáo năm dùng chung collection <code>periodic</code> (thêm trường <code>campaignId</code>, <code>periodKey</code>, <code>derived</code>) nên không cần quyền mới. Mẫu chỉ đơn vị tạo ra mới sửa/xóa; lịch nhắc thuộc đơn vị sở hữu (<code>from</code>). Trường <code>webhook</code>, <code>email</code> vẫn dùng chung quyền của <code>units</code>.</p>
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line-soft)">
+      <b style="color:var(--doan-deep)">📩 Nhắc Email/Discord tự động (kể cả khi không ai mở web)</b>
+      <p style="margin:6px 0">Cài tệp <b>Code.gs</b> lên Google Apps Script (miễn phí). Hướng dẫn từng bước có ảnh minh hoạ và trình chọn giờ ngay trong app — không phải cấu hình trigger thủ công.</p>
+      <button class="btn btn-gold btn-sm" onclick="openHelp('nhactudong')">▶ Mở hướng dẫn cài nhắc tự động</button>
+    </div>
   </div></div></div>`;
 }
 
@@ -2682,7 +2735,7 @@ async function cloudAfterLogin(user){
   render();
 }
 /* Không vẽ lại đè lên biểu mẫu người dùng đang nhập; dữ liệu mới sẽ hiện khi chuyển trang */
-function liveRender(){if(!DB.session)return;if(["soan","detail","chitieu","lich","timkiem","kho","nhaclich"].includes(S.view)||(S.view==="maubc"&&S.rpSel)||(S.view==="danhba"&&S.orgEdit)){S._stale=true;return}render()}
+function liveRender(){if(!DB.session)return;if(S.help)return;if(["soan","detail","chitieu","lich","timkiem","kho","nhaclich"].includes(S.view)||(S.view==="maubc"&&S.rpSel)||(S.view==="dinhky"&&S.pkTab==="tao")||(S.view==="danhba"&&S.orgEdit)){S._stale=true;return}render()}
 /* Màn hình khởi tạo lần đầu: ghi cây đơn vị + bảng tra cứu tài khoản lên Firestore */
 function viewSetup(){
   const sample=JSON.stringify([
@@ -2804,8 +2857,50 @@ ${d.audit.map(a=>"<tr><td>"+fmtD(a.time)+"</td><td>"+esc((unit(a.unit)||{}).shor
    TỰ TỔNG HỢP (cộng dồn theo cây đơn vị) lên cấp trên theo thời gian thực. Xuất Word/CSV.
    Lưu ở collection "periodic" riêng để không đụng trần 1MB của document văn bản. */
 const PKY={thang:"Tháng",quy:"Quý",sauthang:"6 tháng",nam:"Năm"};
+/* Cách gộp số liệu khi tổng hợp theo THỜI GIAN (tháng→quý→năm):
+   sum  = cộng dồn (chỉ tiêu phát sinh trong kỳ: kết nạp mới, số buổi…)
+   last = lấy giá trị KỲ CUỐI (chỉ tiêu tồn/hiện có: tổng số đoàn viên…)
+   avg  = trung bình các kỳ con (tỷ lệ %…) */
+const AGG={sum:"Cộng dồn",last:"Cuối kỳ",avg:"Trung bình"};
+/* Quan hệ kỳ con → kỳ cha trong một chương trình năm */
+const QUY_OF_THANG={1:"Q1",2:"Q1",3:"Q1",4:"Q2",5:"Q2",6:"Q2",7:"Q3",8:"Q3",9:"Q3",10:"Q4",11:"Q4",12:"Q4"};
+const THANG_OF_QUY={Q1:[1,2,3],Q2:[4,5,6],Q3:[7,8,9],Q4:[10,11,12]};
+const QUY_ROMAN={Q1:"I",Q2:"II",Q3:"III",Q4:"IV"};
+/* Mốc hạn nộp mặc định theo Công văn 76 (ngày trong tháng kết thúc kỳ) */
+function defaultHan(ky,y,idx){
+  const p2=n=>String(n).padStart(2,"0");
+  if(ky==="thang")return y+"-"+p2(idx)+"-23";            /* idx = tháng 1..12, hạn 23 */
+  if(ky==="quy"){const endM={Q1:3,Q2:6,Q3:9,Q4:12}[idx];return y+"-"+p2(endM)+"-21"}
+  if(ky==="nam")return y+"-11-23";
+  return y+"-12-31";
+}
 function periodicMine(){return (DB.periodic||[]).filter(p=>p.from===DB.session)}
 function periodicAssigned(){return (DB.periodic||[]).filter(p=>(p.recipIds||[]).includes(DB.session))}
+/* Các đợt cùng một chương trình năm */
+function periodsOfCampaign(cid){return (DB.periodic||[]).filter(p=>p.campaignId===cid)}
+function periodByKey(cid,periodKey){return (DB.periodic||[]).find(p=>p.campaignId===cid&&p.periodKey===periodKey)}
+/* Tổng hợp theo THỜI GIAN: gộp giá trị của một đơn vị qua các kỳ con.
+   Trả {values:{key:val}, meta} theo agg từng field. */
+function aggregateOverPeriods(childPeriods,fields,unitId){
+  const out={},meta={};
+  /* Giá trị của một kỳ con: nếu kỳ con cũng là dẫn xuất thì đệ quy (năm←quý←tháng) */
+  const childVal=(cp)=>periodValuesForUnit(cp,unitId);
+  const cache=childPeriods.map(cp=>({cp,pv:childVal(cp)}));
+  fields.forEach(f=>{
+    const vals=[];
+    cache.forEach(({cp,pv})=>{
+      if(pv.filled>0)vals.push({k:cp.periodKey,v:Number(pv.values[f.key]||0)});
+    });
+    const nums=vals.map(x=>x.v);
+    let val=0;
+    if(!nums.length)val=0;
+    else if(f.agg==="last")val=nums[nums.length-1];
+    else if(f.agg==="avg")val=Math.round(nums.reduce((a,b)=>a+b,0)/nums.length);
+    else val=nums.reduce((a,b)=>a+b,0); /* sum mặc định */
+    out[f.key]=val;meta[f.key]=vals;
+  });
+  return {values:out,meta};
+}
 function periodicDueCount(){
   if(!DB||!DB.session)return 0;
   return periodicAssigned().filter(p=>{const e=(p.entries||{})[DB.session];return !e||!e.submitted}).length;
@@ -2843,44 +2938,151 @@ function viewPeriodic(){
   </div></div>`;
 }
 function viewPeriodicCreate(subs,given){
+  if(!S.pkMode)S.pkMode="camp"; /* mặc định khuyến nghị chế độ chương trình năm */
+  const y=new Date().getFullYear(),mo=new Date().getMonth()+1;
+  const campaigns={};given.forEach(p=>{if(p.campaignId){(campaigns[p.campaignId]=campaigns[p.campaignId]||{name:p.campaignName,year:p.year,items:[]}).items.push(p)}});
+  const singles=given.filter(p=>!p.campaignId);
   return `
-  ${subs.length?`<div class="recip-group" style="margin-bottom:14px"><h5>Phát động đợt báo cáo mới</h5><div style="padding:10px 12px">
-    <div class="form-grid">
-      <div class="field"><label>Tên đợt báo cáo *</label><input id="pk-ten" placeholder="vd: Báo cáo công tác Đoàn tháng ${new Date().getMonth()+1}/${new Date().getFullYear()}"></div>
-      <div class="field"><label>Loại kỳ</label><select id="pk-ky">${Object.entries(PKY).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select></div>
+  ${subs.length?`<div class="recip-group" style="margin-bottom:14px"><h5>Phát động báo cáo mới</h5><div style="padding:10px 12px">
+    <div class="seg" style="margin-bottom:12px">
+      <button class="${S.pkMode==="camp"?"on":""}" onclick="S.pkMode='camp';render()">📅 Chương trình cả năm (tự tổng hợp tháng→quý→năm)</button>
+      <button class="${S.pkMode==="single"?"on":""}" onclick="S.pkMode='single';render()">Một đợt riêng lẻ</button>
     </div>
-    <div class="form-grid">
-      <div class="field"><label>Kỳ báo cáo (nhãn)</label><input id="pk-kylabel" value="Tháng ${new Date().getMonth()+1}/${new Date().getFullYear()}"></div>
-      <div class="field"><label>Hạn nộp *</label><input id="pk-han" type="date"></div>
-    </div>
-    <div class="field"><label>Các chỉ tiêu số liệu của biểu mẫu *</label>
-      <div class="hint" style="margin:2px 0 6px">Mỗi dòng một chỉ tiêu, dạng <b>Tên chỉ tiêu | đơn vị tính</b>. VD: Đoàn viên kết nạp mới | đoàn viên</div>
-      <textarea id="pk-fields" rows="5" placeholder="Đoàn viên kết nạp mới | đoàn viên&#10;Số công trình, phần việc thanh niên | công trình&#10;Số buổi hoạt động tình nguyện | buổi&#10;Kinh phí vận động | nghìn đồng"></textarea>
-    </div>
-    <div class="recip-group"><h5>Đơn vị phải báo cáo</h5>
-      <label class="recip-row" style="font-weight:600"><input type="checkbox" id="pk-all" onchange="document.querySelectorAll('.pk-cb').forEach(c=>c.checked=this.checked)"> Chọn tất cả đơn vị trong nhánh</label>
-      ${subs.map(u=>`<label class="recip-row"><input type="checkbox" class="pk-cb" value="${u.id}" checked> ${esc(u.name)} <span class="muted small">${"·".repeat(0)}${(u.level||0)>2?" (cấp cơ sở)":""}</span></label>`).join("")}
-    </div>
-    <button class="btn btn-gold" onclick="createPeriodic()">📣 Phát động đợt báo cáo</button>
+    ${S.pkMode==="camp"?`
+      <div class="hint" style="margin-bottom:10px">Phát động <b>một lần cho cả năm</b>: hệ thống tự sinh các kỳ tháng/quý/năm liên kết. Cơ sở chỉ nhập số liệu <b>tháng</b>; <b>quý tự cộng từ 3 tháng</b>, <b>năm tự cộng từ 4 quý</b> theo cách gộp của từng chỉ tiêu.</div>
+      <div class="form-grid">
+        <div class="field"><label>Tên chương trình *</label><input id="cp-ten" placeholder="vd: Báo cáo công tác Đoàn & PTTN"></div>
+        <div class="field"><label>Năm *</label><input id="cp-year" type="number" min="2020" max="2100" value="${y}"></div>
+      </div>
+      <div class="field"><label>Các cấp kỳ cần sinh</label>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;padding:4px 0">
+          <label class="small" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="cp-gen-thang" checked> 12 tháng (cơ sở nhập)</label>
+          <label class="small" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="cp-gen-quy" checked> 4 quý (tự cộng)</label>
+          <label class="small" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="cp-gen-nam" checked> 1 năm (tự cộng)</label>
+        </div></div>
+      <div class="field"><label>Chỉ tiêu số liệu *</label>
+        <div class="hint" style="margin:2px 0 6px">Mỗi dòng: <b>Tên chỉ tiêu | đơn vị tính | cách gộp</b>. Cách gộp: <b>sum</b> = cộng dồn (mặc định, cho chỉ tiêu phát sinh trong kỳ), <b>last</b> = lấy kỳ cuối (chỉ tiêu tổng/hiện có), <b>avg</b> = trung bình. VD:<br><code>Đoàn viên kết nạp mới | đoàn viên | sum</code><br><code>Tổng số đoàn viên hiện có | đoàn viên | last</code></div>
+        <textarea id="cp-fields" rows="5" placeholder="Đoàn viên kết nạp mới | đoàn viên | sum&#10;Tổng số đoàn viên hiện có | đoàn viên | last&#10;Số công trình, phần việc thanh niên | công trình | sum&#10;Số buổi hoạt động tình nguyện | buổi | sum"></textarea></div>
+      <div class="recip-group"><h5>Đơn vị phải báo cáo</h5>
+        <label class="recip-row" style="font-weight:600"><input type="checkbox" onchange="document.querySelectorAll('.cp-cb').forEach(c=>c.checked=this.checked)"> Chọn tất cả trong nhánh</label>
+        ${subs.map(u=>`<label class="recip-row"><input type="checkbox" class="cp-cb" value="${u.id}" checked> ${esc(u.name)}</label>`).join("")}
+      </div>
+      <button class="btn btn-gold" onclick="createCampaign()">📅 Phát động chương trình cả năm</button>
+    `:`
+      <div class="form-grid">
+        <div class="field"><label>Tên đợt báo cáo *</label><input id="pk-ten" placeholder="vd: Báo cáo công tác Đoàn tháng ${mo}/${y}"></div>
+        <div class="field"><label>Loại kỳ</label><select id="pk-ky">${Object.entries(PKY).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select></div>
+      </div>
+      <div class="form-grid">
+        <div class="field"><label>Kỳ báo cáo (nhãn)</label><input id="pk-kylabel" value="Tháng ${mo}/${y}"></div>
+        <div class="field"><label>Hạn nộp *</label><input id="pk-han" type="date"></div>
+      </div>
+      <div class="field"><label>Các chỉ tiêu số liệu *</label>
+        <div class="hint" style="margin:2px 0 6px">Mỗi dòng: <b>Tên chỉ tiêu | đơn vị tính | cách gộp</b> (sum/last/avg, mặc định sum).</div>
+        <textarea id="pk-fields" rows="5" placeholder="Đoàn viên kết nạp mới | đoàn viên | sum&#10;Tổng số đoàn viên hiện có | đoàn viên | last&#10;Số buổi hoạt động tình nguyện | buổi | sum"></textarea>
+      </div>
+      <div class="recip-group"><h5>Đơn vị phải báo cáo</h5>
+        <label class="recip-row" style="font-weight:600"><input type="checkbox" id="pk-all" onchange="document.querySelectorAll('.pk-cb').forEach(c=>c.checked=this.checked)"> Chọn tất cả đơn vị trong nhánh</label>
+        ${subs.map(u=>`<label class="recip-row"><input type="checkbox" class="pk-cb" value="${u.id}" checked> ${esc(u.name)}</label>`).join("")}
+      </div>
+      <button class="btn btn-gold" onclick="createPeriodic()">📣 Phát động đợt báo cáo</button>
+    `}
   </div></div>`
    :'<div class="hint" style="margin-bottom:12px">Đơn vị chưa có cấp dưới trong nhánh để phát động báo cáo định kỳ.</div>'}
-  ${given.length?given.map(p=>{const ro=periodicRollup(p,me().id);
-    return `<div class="card" style="margin-bottom:12px"><div class="card-h"><h3>${esc(p.ten)}</h3>
-      <div class="spacer"></div>
-      <span class="pill role">${PKY[p.ky]||p.ky} · ${esc(p.kylabel||"")}</span>
-      <button class="btn btn-ghost btn-sm" onclick="exportPeriodicWord('${p.id}')">⬇ Word</button>
-      <button class="btn btn-ghost btn-sm" onclick="exportPeriodicCSV('${p.id}')">⬇ CSV</button>
-      <button class="btn btn-sm" style="background:var(--danger-bg);color:var(--danger)" onclick="delPeriodic('${p.id}')">🗑</button></div>
-     <div class="card-b">
-      <div class="small muted" style="margin-bottom:8px">Hạn nộp ${fmtD(p.han)} · Đã nộp <b style="color:var(--ok)">${ro.filled}</b>/${ro.expected} đơn vị</div>
-      <div class="tbl-wrap"><table><thead><tr><th>Đơn vị</th>${(p.fields||[]).map(f=>`<th>${esc(f.name)}<div class="small muted">${esc(f.unit||"")}</div></th>`).join("")}<th>Trạng thái</th></tr></thead><tbody>
-      ${(p.recipIds||[]).map(rid=>{const e=(p.entries||{})[rid];
-        return `<tr><td>${esc((unit(rid)||{}).short||"?")}</td>${(p.fields||[]).map(f=>`<td class="c" style="text-align:center">${e&&e.submitted?Number(e.values&&e.values[f.key]||0).toLocaleString("vi-VN"):'<span class="muted">—</span>'}</td>`).join("")}
-        <td>${e&&e.submitted?`<span class="pill xong">Đã nộp</span>`:`<span class="pill cho">Chưa nộp</span>`}</td></tr>`}).join("")}
-      <tr style="background:var(--gold-soft);font-weight:700"><td>TỔNG HỢP TOÀN NHÁNH</td>${(p.fields||[]).map(f=>`<td class="c" style="text-align:center">${(ro.acc[f.key]||0).toLocaleString("vi-VN")}</td>`).join("")}<td>${ro.filled}/${ro.expected}</td></tr>
-      </tbody></table></div>
-     </div></div>`}).join("")
-   :'<div class="empty">Chưa phát động đợt báo cáo định kỳ nào.</div>'}`;
+  ${Object.keys(campaigns).length?Object.entries(campaigns).map(([cid,c])=>renderCampaignCard(cid,c)).join(""):""}
+  ${singles.length?singles.map(p=>renderSinglePeriodCard(p)).join(""):""}
+  ${!Object.keys(campaigns).length&&!singles.length?'<div class="empty">Chưa phát động đợt báo cáo định kỳ nào.</div>':""}`;
+}
+/* Thẻ một đợt riêng lẻ (không thuộc chương trình) */
+function renderSinglePeriodCard(p){
+  const ro=periodicRollup(p,me().id);
+  return `<div class="card" style="margin-bottom:12px"><div class="card-h"><h3>${esc(p.ten)}</h3>
+    <div class="spacer"></div>
+    <span class="pill role">${PKY[p.ky]||p.ky} · ${esc(p.kylabel||"")}</span>
+    <button class="btn btn-ghost btn-sm" onclick="exportPeriodicWord('${p.id}')">⬇ Word</button>
+    <button class="btn btn-ghost btn-sm" onclick="exportPeriodicCSV('${p.id}')">⬇ CSV</button>
+    <button class="btn btn-sm" style="background:var(--danger-bg);color:var(--danger)" onclick="delPeriodic('${p.id}')">🗑</button></div>
+   <div class="card-b">
+    <div class="small muted" style="margin-bottom:8px">Hạn nộp ${fmtD(p.han)} · Đã nộp <b style="color:var(--ok)">${ro.filled}</b>/${ro.expected} đơn vị</div>
+    ${periodTableHTML(p,ro)}
+   </div></div>`;
+}
+/* Bảng theo dõi số liệu từng đơn vị + dòng tổng hợp nhánh (dùng chung) */
+function periodTableHTML(p,ro){
+  return `<div class="tbl-wrap"><table><thead><tr><th>Đơn vị</th>${(p.fields||[]).map(f=>`<th>${esc(f.name)}<div class="small muted">${esc(f.unit||"")} · ${AGG[f.agg||"sum"]}</div></th>`).join("")}<th>Trạng thái</th></tr></thead><tbody>
+    ${(p.recipIds||[]).map(rid=>{const e=(p.entries||{})[rid];
+      return `<tr><td>${esc((unit(rid)||{}).short||"?")}</td>${(p.fields||[]).map(f=>`<td class="c" style="text-align:center">${e&&e.submitted?Number(e.values&&e.values[f.key]||0).toLocaleString("vi-VN"):'<span class="muted">—</span>'}</td>`).join("")}
+      <td>${e&&e.submitted?`<span class="pill xong">Đã nộp</span>`:`<span class="pill cho">Chưa nộp</span>`}</td></tr>`}).join("")}
+    <tr style="background:var(--gold-soft);font-weight:700"><td>TỔNG HỢP TOÀN NHÁNH</td>${(p.fields||[]).map(f=>`<td class="c" style="text-align:center">${(ro.acc[f.key]||0).toLocaleString("vi-VN")}</td>`).join("")}<td>${ro.filled}/${ro.expected}</td></tr>
+    </tbody></table></div>`;
+}
+/* Thẻ CHƯƠNG TRÌNH NĂM: chọn kỳ để xem; quý/năm hiển thị số tự tổng hợp từ tháng */
+function renderCampaignCard(cid,c){
+  const items=c.items;
+  const thangs=items.filter(p=>p.ky==="thang").sort((a,b)=>a.periodKey.localeCompare(b.periodKey));
+  const quys=items.filter(p=>p.ky==="quy").sort((a,b)=>a.periodKey.localeCompare(b.periodKey));
+  const nam=items.find(p=>p.ky==="nam");
+  const fields=(items[0]||{}).fields||[];
+  const sel=S.pkPeriod&&items.find(p=>p.id===S.pkPeriod)?items.find(p=>p.id===S.pkPeriod):(thangs[0]||quys[0]||nam);
+  const chip=(p)=>{const active=sel&&sel.id===p.id;const ro=periodicRollup(p,me().id);
+    const done=ro.filled>0;
+    return `<button class="pchip ${active?'on':''} ${p.derived?'derived':''}" onclick="S.pkPeriod='${p.id}';render()" title="${p.derived?'Tự tổng hợp':'Cơ sở nhập'}">${esc(shortKy(p))}${done?' <span class="dot"></span>':''}</button>`};
+  return `<div class="card" style="margin-bottom:14px"><div class="card-h"><h3>📅 ${esc(c.name)} — năm ${c.year}</h3>
+    <div class="spacer"></div>
+    <span class="pill role">${items.length} kỳ liên kết</span>
+    <button class="btn btn-sm" style="background:var(--danger-bg);color:var(--danger)" onclick="delCampaign('${cid}')">🗑 Xóa cả chương trình</button></div>
+   <div class="card-b">
+    ${thangs.length?`<div class="eyebrow" style="margin-bottom:4px">Kỳ tháng (cơ sở nhập)</div><div class="pchips">${thangs.map(chip).join("")}</div>`:""}
+    ${quys.length?`<div class="eyebrow" style="margin:10px 0 4px">Kỳ quý (tự cộng từ 3 tháng)</div><div class="pchips">${quys.map(chip).join("")}</div>`:""}
+    ${nam?`<div class="eyebrow" style="margin:10px 0 4px">Kỳ năm (tự cộng từ 4 quý)</div><div class="pchips">${chip(nam)}</div>`:""}
+    ${sel?renderPeriodDetail(sel,cid):""}
+   </div></div>`;
+}
+function shortKy(p){
+  if(p.ky==="thang")return "T"+(p.periodKey.split("-")[1]?Number(p.periodKey.split("-")[1]):"");
+  if(p.ky==="quy")return p.periodKey.split("-")[1];
+  if(p.ky==="nam")return "Năm";
+  return p.kylabel||"";
+}
+/* Chi tiết một kỳ được chọn: nếu là kỳ dẫn xuất (quý/năm) thì hiện số TỰ TỔNG HỢP */
+function renderPeriodDetail(p,cid){
+  const me_=me();
+  const exBtns=`<button class="btn btn-ghost btn-sm" onclick="exportPeriodicWord('${p.id}')">⬇ Word</button>
+     <button class="btn btn-ghost btn-sm" onclick="exportPeriodicCSV('${p.id}')">⬇ CSV</button>
+     <button class="btn btn-gold btn-sm" onclick="reportFromPeriod('${p.id}')">📝 Đổ vào mẫu báo cáo</button>`;
+  if(!p.derived){
+    const ro=periodicRollup(p,me_.id);
+    return `<div style="margin-top:12px;border-top:1px dashed var(--line);padding-top:10px">
+      <div class="card-h" style="padding:0 0 8px;background:none;border:none"><h3 style="font-size:1rem">${esc(p.kylabel)}</h3><div class="spacer"></div>${exBtns}</div>
+      <div class="small muted" style="margin-bottom:8px">Hạn nộp ${fmtD(p.han)} · Đã nộp <b style="color:var(--ok)">${ro.filled}</b>/${ro.expected} đơn vị · <i>cơ sở trực tiếp nhập</i></div>
+      ${periodTableHTML(p,ro)}
+    </div>`;
+  }
+  /* Kỳ dẫn xuất: xác định các kỳ con */
+  let childKeys=[];
+  if(p.ky==="quy"){const q=p.periodKey.split("-")[1];childKeys=THANG_OF_QUY[q].map(mm=>p.year+"-"+String(mm).padStart(2,"0"))}
+  if(p.ky==="nam"){childKeys=["Q1","Q2","Q3","Q4"].map(q=>p.year+"-"+q)}
+  const children=childKeys.map(k=>periodByKey(cid,k)).filter(Boolean);
+  const fields=p.fields||[];
+  const agg=aggregateOverPeriods(children,fields,me_.id);
+  const childLabel=k=>{const cp=periodByKey(cid,k);return cp?shortKy(cp):k};
+  return `<div style="margin-top:12px;border-top:1px dashed var(--line);padding-top:10px">
+    <div class="card-h" style="padding:0 0 8px;background:none;border:none"><h3 style="font-size:1rem">${esc(p.kylabel)} <span class="pill role" style="margin-left:6px">Tự tổng hợp</span></h3><div class="spacer"></div>${exBtns}</div>
+    <div class="small muted" style="margin-bottom:8px">Cộng từ ${children.length} kỳ con: ${children.map(c=>shortKy(c)).join(", ")||"(chưa có kỳ con)"} — theo cách gộp từng chỉ tiêu.</div>
+    <div class="tbl-wrap"><table><thead><tr><th>Chỉ tiêu</th>${children.map(c=>`<th class="c">${shortKy(c)}</th>`).join("")}<th class="c" style="background:var(--gold-soft)">${p.ky==="quy"?"QUÝ":"NĂM"}</th><th>Cách gộp</th></tr></thead><tbody>
+    ${fields.map(f=>{const cells=children.map(c=>{const ro=periodicRollup(c,me_.id);return `<td class="c">${ro.filled>0?Number(ro.acc[f.key]||0).toLocaleString("vi-VN"):'<span class="muted">—</span>'}</td>`}).join("");
+      return `<tr><td>${esc(f.name)} <span class="muted small">(${esc(f.unit||"")})</span></td>${cells}<td class="c" style="background:var(--gold-soft);font-weight:700">${(agg.values[f.key]||0).toLocaleString("vi-VN")}</td><td class="small muted">${AGG[f.agg||"sum"]}</td></tr>`}).join("")}
+    </tbody></table></div>
+    <div class="hint" style="margin-top:8px">Số cột <b>${p.ky==="quy"?"QUÝ":"NĂM"}</b> là kết quả tự tổng hợp; không cần đơn vị nhập lại. Bấm <b>Đổ vào mẫu báo cáo</b> để đưa số này vào báo cáo văn bản.</div>
+  </div>`;
+}
+async function delCampaign(cid){
+  const items=periodsOfCampaign(cid).filter(p=>p.from===DB.session);
+  if(!items.length){toast("Không có quyền xóa.");return}
+  if(!confirm("Xóa cả chương trình báo cáo năm này ("+items.length+" kỳ)? Toàn bộ số liệu đã nộp sẽ mất."))return;
+  if(MODE==="cloud"){try{for(const p of items)await FB.fs.collection("periodic").doc(p.id).delete()}catch(e){toast("Lỗi: "+e.message);return}}
+  DB.periodic=(DB.periodic||[]).filter(p=>p.campaignId!==cid);if(MODE==="local")save();
+  S.pkPeriod=null;toast("Đã xóa chương trình báo cáo.");render();
 }
 function viewPeriodicSubmit(assigned){
   if(!assigned.length)return '<div class="empty">Cấp trên chưa yêu cầu báo cáo định kỳ nào.</div>';
@@ -2904,13 +3106,61 @@ function viewPeriodicSubmit(assigned){
         <div class="tbl-wrap"><table><thead><tr>${(p.fields||[]).map(f=>`<th>${esc(f.name)}</th>`).join("")}</tr></thead><tbody><tr>${(p.fields||[]).map(f=>`<td class="c" style="text-align:center"><b>${(ro.acc[f.key]||0).toLocaleString("vi-VN")}</b></td>`).join("")}</tr></tbody></table></div></div>`})():""}
      </div></div>`}).join("");
 }
+/* Phân tích chỉ tiêu: "Tên | đơn vị | agg"  (agg: sum|last|avg, mặc định sum) */
+function parseFields(raw){
+  return (raw||"").split(/\n+/).map(t=>t.trim()).filter(Boolean).map((t,i)=>{
+    const p2=t.split("|");
+    let agg=(p2[2]||"").trim().toLowerCase();
+    if(!["sum","last","avg"].includes(agg)){
+      /* đoán theo tên: có "tổng số/hiện có/số lượng đang" → last */
+      const nm=(p2[0]||"").toLowerCase();
+      agg=/(tổng số|hiện có|đang quản lý|tính đến|lũy kế đến)/.test(nm)?"last":"sum";
+    }
+    return {key:"f"+i,name:(p2[0]||"").trim(),unit:(p2[1]||"").trim(),agg}}).filter(f=>f.name);
+}
+function notifyPeriodicRecips(recipIds,m,ten,han){
+  try{recipIds.forEach(rid=>{const u=unit(rid);
+    if(u&&u.webhook&&/^https:\/\/(discord\.com|discordapp\.com)\/api\/webhooks\//.test(u.webhook)){
+      const fd=new FormData();fd.append("payload_json",JSON.stringify({content:"🗂️ **"+m.name+"** yêu cầu báo cáo định kỳ: **"+ten+"**\n⏰ Hạn nộp: "+fmtD(han)+"\nĐăng nhập DoanOffice → Báo cáo định kỳ để nộp số liệu."}));
+      fetch(u.webhook,{method:"POST",body:fd}).catch(()=>{})}})}catch(e){}
+}
+/* PHÁT ĐỘNG CHƯƠNG TRÌNH BÁO CÁO CẢ NĂM — tự sinh 12 tháng + 4 quý + 1 năm,
+   liên kết qua campaignId + periodKey. Quý tự cộng từ 3 tháng, năm từ 4 quý. */
+async function createCampaign(){
+  const m=me(),g=id=>{const el=document.getElementById(id);return el?el.value.trim():""};
+  const ten=g("cp-ten"),year=Number(g("cp-year")||new Date().getFullYear());
+  if(!ten){toast("Nhập tên chương trình báo cáo.");return}
+  const fields=parseFields(g("cp-fields"));
+  if(!fields.length){toast("Khai ít nhất một chỉ tiêu số liệu.");return}
+  const recipIds=[...document.querySelectorAll(".cp-cb:checked")].map(c=>c.value);
+  if(!recipIds.length){toast("Chọn đơn vị phải báo cáo.");return}
+  const genThang=(document.getElementById("cp-gen-thang")||{}).checked;
+  const genQuy=(document.getElementById("cp-gen-quy")||{}).checked;
+  const genNam=(document.getElementById("cp-gen-nam")||{}).checked;
+  if(!genThang&&!genQuy&&!genNam){toast("Chọn ít nhất một cấp kỳ để sinh (tháng/quý/năm).");return}
+  const cid=uid("camp");const created=[];const rom=["I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII"];
+  const mk=(ky,periodKey,kylabel,han,derived)=>{
+    const p={id:uid("pk"),from:m.id,campaignId:cid,campaignName:ten,year,ky,periodKey,kylabel,han,
+      fields:JSON.parse(JSON.stringify(fields)),recipIds:[...recipIds],entries:{},derived:!!derived,created:todayISO()};
+    created.push(p);return p;
+  };
+  if(genThang)for(let mo=1;mo<=12;mo++)mk("thang",year+"-"+String(mo).padStart(2,"0"),"Tháng "+mo+"/"+year,defaultHan("thang",year,mo),false);
+  if(genQuy)["Q1","Q2","Q3","Q4"].forEach(q=>mk("quy",year+"-"+q,"Quý "+QUY_ROMAN[q]+"/"+year,defaultHan("quy",year,q),genThang));
+  if(genNam)mk("nam",year+"-Y","Năm "+year,defaultHan("nam",year,null),genQuy||genThang);
+  (DB.periodic=DB.periodic||[]).push(...created);
+  try{for(const p of created)await commitPeriodic(p);}
+  catch(e){created.forEach(p=>{DB.periodic=DB.periodic.filter(x=>x.id!==p.id)});toast("Lỗi lưu: "+e.message);return}
+  orgLog("Phát động chương trình báo cáo năm","",ten+" "+year+" → "+created.length+" kỳ, "+recipIds.length+" đơn vị");
+  notifyPeriodicRecips(recipIds,m,ten+" (năm "+year+")",defaultHan("thang",year,new Date().getMonth()+1));
+  toast("Đã tạo chương trình “"+ten+"” năm "+year+": "+created.length+" kỳ liên kết.");
+  S.pkCampaign=cid;render();
+}
 async function createPeriodic(){
   const m=me(),g=id=>{const el=document.getElementById(id);return el?el.value.trim():""};
   const ten=g("pk-ten"),ky=g("pk-ky")||"thang",kylabel=g("pk-kylabel"),han=g("pk-han");
   if(!ten){toast("Nhập tên đợt báo cáo.");return}
   if(!han){toast("Chọn hạn nộp.");return}
-  const fields=(g("pk-fields")||"").split(/\n+/).map(t=>t.trim()).filter(Boolean).map((t,i)=>{
-    const p2=t.split("|");return {key:"f"+i,name:(p2[0]||"").trim(),unit:(p2[1]||"").trim()}}).filter(f=>f.name);
+  const fields=parseFields(g("pk-fields"));
   if(!fields.length){toast("Khai ít nhất một chỉ tiêu số liệu cho biểu mẫu.");return}
   const recipIds=[...document.querySelectorAll(".pk-cb:checked")].map(c=>c.value);
   if(!recipIds.length){toast("Chọn đơn vị phải báo cáo.");return}
@@ -2918,12 +3168,8 @@ async function createPeriodic(){
   (DB.periodic=DB.periodic||[]).push(p);
   try{await commitPeriodic(p)}catch(e){DB.periodic.pop();toast("Lỗi lưu: "+e.message);return}
   orgLog("Phát động báo cáo định kỳ","",ten+" ("+(PKY[ky]||ky)+") → "+recipIds.length+" đơn vị");
+  notifyPeriodicRecips(recipIds,m,ten,han);
   toast("Đã phát động “"+ten+"” tới "+recipIds.length+" đơn vị.");
-  /* Bắn thông báo Discord cho các đơn vị có webhook */
-  try{recipIds.forEach(rid=>{const u=unit(rid);
-    if(u&&u.webhook&&/^https:\/\/(discord\.com|discordapp\.com)\/api\/webhooks\//.test(u.webhook)){
-      const fd=new FormData();fd.append("payload_json",JSON.stringify({content:"🗂️ **"+m.name+"** yêu cầu báo cáo định kỳ: **"+ten+"**\n⏰ Hạn nộp: "+fmtD(han)+"\nĐăng nhập DoanOffice → Báo cáo định kỳ để nộp số liệu."}));
-      fetch(u.webhook,{method:"POST",body:fd}).catch(()=>{})}})}catch(e){}
   render();
 }
 async function submitPeriodic(id){
@@ -2957,13 +3203,40 @@ function periodicRows(p){
   return rows;
 }
 function exportPeriodicCSV(id){const p=(DB.periodic||[]).find(x=>x.id===id);if(!p)return;
-  exportCSV(periodicRows(p),"bao-cao-dinh-ky-"+(p.ten||"").slice(0,30).replace(/[\/\\\s]+/g,"-")+".csv");}
+  const rows=p.derived?periodicDerivedRows(p):periodicRows(p);
+  exportCSV(rows,"bao-cao-dinh-ky-"+((p.campaignName||p.ten)||"").slice(0,30).replace(/[\/\\\s]+/g,"-")+".csv");}
+function periodicDerivedRows(p){
+  const m=me();let childKeys=[];
+  if(p.ky==="quy"){const q=p.periodKey.split("-")[1];childKeys=THANG_OF_QUY[q].map(mm=>p.year+"-"+String(mm).padStart(2,"0"))}
+  else if(p.ky==="nam"){childKeys=["Q1","Q2","Q3","Q4"].map(q=>p.year+"-"+q)}
+  const children=childKeys.map(k=>periodByKey(p.campaignId,k)).filter(Boolean);
+  const agg=aggregateOverPeriods(children,p.fields||[],m.id);
+  const head=["Chỉ tiêu","Đơn vị tính",...children.map(c=>shortKy(c)),(p.ky==="quy"?"QUÝ":"NĂM"),"Cách gộp"];
+  const rows=[["TỔNG HỢP "+(p.ky==="quy"?"QUÝ":"NĂM")+" — "+(p.campaignName||p.ten)+" · "+(p.kylabel||"")],[],head];
+  (p.fields||[]).forEach(f=>{rows.push([f.name,f.unit||"",...children.map(c=>{const ro=periodicRollup(c,m.id);return ro.filled>0?(ro.acc[f.key]||0):""}),agg.values[f.key]||0,AGG[f.agg||"sum"]])});
+  return rows;
+}
 function exportPeriodicWord(id){
-  const p=(DB.periodic||[]).find(x=>x.id===id);if(!p)return;const m=me(),ro=periodicRollup(p,m.id);
+  const p=(DB.periodic||[]).find(x=>x.id===id);if(!p)return;const m=me();
   const th=(p.fields||[]).map(f=>`<th>${esc(f.name)}<br><i style="font-weight:400">${esc(f.unit||"")}</i></th>`).join("");
-  const body=(p.recipIds||[]).map((rid,i)=>{const e=(p.entries||{})[rid];
+  const tenBC=p.campaignName?p.campaignName+" — "+(p.kylabel||""):p.ten;
+  let body,sumRow,subtitle;
+  if(p.derived){
+    /* Kỳ dẫn xuất: bảng theo KỲ CON, cột cuối là tổng hợp */
+    let childKeys=[];
+    if(p.ky==="quy"){const q=p.periodKey.split("-")[1];childKeys=THANG_OF_QUY[q].map(mm=>p.year+"-"+String(mm).padStart(2,"0"))}
+    else if(p.ky==="nam"){childKeys=["Q1","Q2","Q3","Q4"].map(q=>p.year+"-"+q)}
+    const children=childKeys.map(k=>periodByKey(p.campaignId,k)).filter(Boolean);
+    const agg=aggregateOverPeriods(children,p.fields||[],m.id);
+    const th2=children.map(c=>`<th class="c">${shortKy(c)}</th>`).join("")+`<th class="c" style="background:#f4e8c8">${p.ky==="quy"?"QUÝ":"NĂM"}</th>`;
+    const rows=(p.fields||[]).map(f=>`<tr><td>${esc(f.name)} <i>(${esc(f.unit||"")})</i></td>${children.map(c=>{const ro=periodicRollup(c,m.id);return `<td class="c">${ro.filled>0?Number(ro.acc[f.key]||0).toLocaleString("vi-VN"):"—"}</td>`}).join("")}<td class="c" style="background:#f4e8c8;font-weight:bold">${(agg.values[f.key]||0).toLocaleString("vi-VN")}</td></tr>`).join("");
+    subtitle="Tự tổng hợp từ "+children.length+" kỳ con — Hệ thống DoanOffice";
+    return exportPeriodicDerivedDoc(p,m,tenBC,subtitle,th2,rows);
+  }
+  const ro=periodicRollup(p,m.id);
+  body=(p.recipIds||[]).map((rid,i)=>{const e=(p.entries||{})[rid];
     return `<tr><td class="c">${i+1}</td><td>${esc((unit(rid)||{}).name||"?")}</td>${(p.fields||[]).map(f=>`<td class="c">${e&&e.submitted?Number(e.values&&e.values[f.key]||0).toLocaleString("vi-VN"):"—"}</td>`).join("")}</tr>`}).join("");
-  const html=`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><title>${esc(p.ten)}</title>
+  const html=`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><title>${esc(tenBC)}</title>
 <style>@page{size:A4 landscape;margin:15mm}body{font-family:"Times New Roman",serif;font-size:13pt;color:#000}
 .hd{display:flex;justify-content:space-between;text-align:center;font-size:12.5pt}.hd b{display:block}.line{width:42%;border-bottom:1.2pt solid #000;margin:2px auto 8px}
 h1{text-align:center;font-size:15pt;text-transform:uppercase;margin:14px 0 2px}.sub{text-align:center;font-style:italic;margin-bottom:12px}
@@ -2971,7 +3244,7 @@ table{width:100%;border-collapse:collapse}td,th{border:.9pt solid #000;padding:4
 tr.sum td{background:#f4e8c8;font-weight:bold}.sig{margin-top:20px;text-align:right}.sig .in{display:inline-block;text-align:center;width:64mm}</style></head><body>
 <div class="hd"><div style="width:48%"><b>ĐOÀN TNCS HỒ CHÍ MINH</b><b>${esc(m.name.toUpperCase())}</b><div class="line"></div></div>
 <div style="width:48%"><i>${esc((m.diachi||"…").split(",").pop().trim()||"…")}, ngày ${new Date().getDate()} tháng ${new Date().getMonth()+1} năm ${new Date().getFullYear()}</i></div></div>
-<h1>${esc(p.ten)}</h1><div class="sub">Kỳ báo cáo: ${esc((PKY[p.ky]||p.ky)+" · "+(p.kylabel||""))} — tổng hợp từ Hệ thống DoanOffice</div>
+<h1>${esc(tenBC)}</h1><div class="sub">Kỳ báo cáo: ${esc((PKY[p.ky]||p.ky)+" · "+(p.kylabel||""))} — tổng hợp từ Hệ thống DoanOffice</div>
 <table><thead><tr><th>TT</th><th>Đơn vị</th>${th}</tr></thead><tbody>${body}
 <tr class="sum"><td class="c"></td><td>TỔNG HỢP TOÀN NHÁNH (đã nộp ${ro.filled}/${ro.expected})</td>${(p.fields||[]).map(f=>`<td class="c">${(ro.acc[f.key]||0).toLocaleString("vi-VN")}</td>`).join("")}</tr>
 </tbody></table>
@@ -2981,6 +3254,25 @@ tr.sum td{background:#f4e8c8;font-weight:bold}.sig{margin-top:20px;text-align:ri
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);
   a.download="bao-cao-dinh-ky-"+m.code+"-"+todayISO()+".doc";a.click();
   toast("Đã xuất biểu tổng hợp Word (.doc).");
+}
+/* Xuất Word cho kỳ dẫn xuất (quý/năm): bảng theo kỳ con + cột tổng hợp */
+function exportPeriodicDerivedDoc(p,m,tenBC,subtitle,th2,rows){
+  const html=`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><title>${esc(tenBC)}</title>
+<style>@page{size:A4 landscape;margin:15mm}body{font-family:"Times New Roman",serif;font-size:13pt;color:#000}
+.hd{display:flex;justify-content:space-between;text-align:center;font-size:12.5pt}.hd b{display:block}.line{width:42%;border-bottom:1.2pt solid #000;margin:2px auto 8px}
+h1{text-align:center;font-size:15pt;text-transform:uppercase;margin:14px 0 2px}.sub{text-align:center;font-style:italic;margin-bottom:12px}
+table{width:100%;border-collapse:collapse}td,th{border:.9pt solid #000;padding:4px 7px;font-size:12pt}th{background:#eee;text-align:center}.c{text-align:center}
+.sig{margin-top:20px;text-align:right}.sig .in{display:inline-block;text-align:center;width:64mm}</style></head><body>
+<div class="hd"><div style="width:48%"><b>ĐOÀN TNCS HỒ CHÍ MINH</b><b>${esc(m.name.toUpperCase())}</b><div class="line"></div></div>
+<div style="width:48%"><i>${esc((m.diachi||"…").split(",").pop().trim()||"…")}, ngày ${new Date().getDate()} tháng ${new Date().getMonth()+1} năm ${new Date().getFullYear()}</i></div></div>
+<h1>${esc(tenBC)}</h1><div class="sub">${esc(subtitle)}</div>
+<table><thead><tr><th>Chỉ tiêu</th>${th2}</tr></thead><tbody>${rows}</tbody></table>
+<div class="sig"><div class="in"><b>TM. BAN THƯỜNG VỤ</b><br><b>BÍ THƯ</b><i><br>(Ký, đóng dấu)</i></div></div>
+</body></html>`;
+  const blob=new Blob(["\ufeff"+html],{type:"application/msword;charset=utf-8"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download="tong-hop-"+p.ky+"-"+m.code+"-"+todayISO()+".doc";a.click();
+  toast("Đã xuất biểu tổng hợp "+(p.ky==="quy"?"quý":"năm")+" (.doc).");
 }
 
 /* ==================================================================
@@ -3071,20 +3363,46 @@ function allTemplates(){
 function findTemplate(id){return allTemplates().find(t=>t.id===id)||REPORT_TEMPLATES_BUILTIN.find(t=>t.id===id)}
 /* Thay biến trong chuỗi mẫu */
 function fillVars(s,ctx){return (s||"").replace(/\{tenDonVi\}/g,ctx.tenDonVi).replace(/\{ky\}/g,ctx.ky).replace(/\{capTren\}/g,ctx.capTren).replace(/\{ngay\}/g,ctx.ngay)}
-/* Lấy số liệu Báo cáo định kỳ gần nhất mà đơn vị đã nộp/tổng hợp — để auto-fill */
-function autoNumbersForUnit(){
+/* Giá trị số liệu của một kỳ cho đơn vị hiện tại.
+   - kỳ nhập trực tiếp: cộng dồn nhánh (periodicRollup)
+   - kỳ dẫn xuất (quý/năm): tự tổng hợp theo thời gian từ các kỳ con */
+function periodValuesForUnit(p,unitId){
+  if(!p.derived){const ro=periodicRollup(p,unitId);return {values:ro.acc,filled:ro.filled}}
+  let childKeys=[];
+  if(p.ky==="quy"){const q=p.periodKey.split("-")[1];childKeys=THANG_OF_QUY[q].map(mm=>p.year+"-"+String(mm).padStart(2,"0"))}
+  else if(p.ky==="nam"){childKeys=["Q1","Q2","Q3","Q4"].map(q=>p.year+"-"+q)}
+  const children=childKeys.map(k=>periodByKey(p.campaignId,k)).filter(Boolean);
+  const agg=aggregateOverPeriods(children,p.fields||[],unitId);
+  const filled=children.some(c=>periodicRollup(c,unitId).filled>0)?1:0;
+  return {values:agg.values,filled};
+}
+/* Lấy số liệu Báo cáo định kỳ mà đơn vị đã nộp/tổng hợp — để auto-fill mẫu.
+   Nếu seedId chỉ định (từ nút "Đổ vào mẫu"), ưu tiên đúng kỳ đó lên đầu. */
+function autoNumbersForUnit(seedId){
   const m=me();const out=[];
   (DB.periodic||[]).forEach(p=>{
-    /* đợt mà đơn vị mình được yêu cầu HOẶC do mình phát động */
     const involved=(p.recipIds||[]).includes(m.id)||p.from===m.id;
     if(!involved)return;
-    const ro=periodicRollup(p,m.id); /* cộng dồn nhánh của mình */
-    const anyData=(p.fields||[]).some(f=>(ro.acc[f.key]||0)>0);
-    if(!anyData)return;
-    out.push({ten:p.ten,ky:(PKY[p.ky]||p.ky)+" · "+(p.kylabel||""),
-      rows:(p.fields||[]).map(f=>({name:f.name,unit:f.unit||"",val:ro.acc[f.key]||0}))});
+    const pv=periodValuesForUnit(p,m.id);
+    const anyData=(p.fields||[]).some(f=>(pv.values[f.key]||0)>0);
+    if(!anyData&&p.id!==seedId)return;
+    const label=(p.campaignName?p.campaignName+" · ":"")+(p.kylabel||PKY[p.ky]||p.ky)+(p.derived?" (tự tổng hợp)":"");
+    out.push({id:p.id,ten:p.campaignName||p.ten,ky:label,seed:p.id===seedId,
+      rows:(p.fields||[]).map(f=>({name:f.name,unit:f.unit||"",val:pv.values[f.key]||0}))});
   });
+  /* đưa kỳ được chỉ định lên đầu */
+  out.sort((a,b)=>(b.seed?1:0)-(a.seed?1:0));
   return out;
+}
+/* Nút "Đổ vào mẫu báo cáo" từ một kỳ định kỳ → mở view mẫu, ghim số liệu kỳ đó */
+function reportFromPeriod(pid){
+  const p=(DB.periodic||[]).find(x=>x.id===pid);if(!p)return;
+  S.reportSeedPeriod=pid;
+  /* gợi ý mẫu & kỳ theo loại kỳ */
+  S.rpSel=null;S.rpTab="soan";
+  S.reportKyGuess=(p.kylabel||"");
+  nav("maubc");
+  toast("Đã chuyển sang Mẫu báo cáo — số liệu kỳ “"+(p.kylabel||p.ten)+"” đã sẵn để chèn.");
 }
 
 /* ----------- (1b) GIAO DIỆN MẪU BÁO CÁO ----------- */
@@ -3116,18 +3434,19 @@ function viewReportsCompose(){
         <button class="btn btn-gold btn-sm" style="margin-top:8px" onclick="S.rpSel='${t.id}';render()">Dùng mẫu này →</button>
       </div>`).join("")}</div>`;
   }
-  const autos=autoNumbersForUnit();
-  const kyGuess="tháng "+(new Date().getMonth()+1)+"/"+new Date().getFullYear();
+  const autos=autoNumbersForUnit(S.reportSeedPeriod);
+  const kyGuess=S.reportKyGuess||("tháng "+(new Date().getMonth()+1)+"/"+new Date().getFullYear());
   return `
    <button class="btn btn-ghost btn-sm" onclick="S.rpSel=null;render()">← Chọn mẫu khác</button>
    <h3 style="margin:10px 0 4px">${esc(tpl.ten)}</h3>
    <div class="small muted" style="margin-bottom:12px">${esc(tpl.moTa||"")}</div>
+   ${S.reportSeedPeriod?`<div class="hint" style="margin-bottom:10px;border-left:3px solid var(--gold)">Đang dùng số liệu kỳ vừa chọn từ Báo cáo định kỳ (đánh dấu ★ bên dưới). <a href="#" onclick="S.reportSeedPeriod=null;S.reportKyGuess=null;render();return false">Bỏ ghim</a></div>`:""}
    <div class="form-grid">
      <div class="field"><label>Kỳ báo cáo *</label><input id="rp-ky" value="${esc(kyGuess)}" placeholder="vd: tháng 7/2026 / Quý III/2026 / năm 2026"></div>
      <div class="field"><label>Nơi nhận (cấp trên)</label><input id="rp-capTren" value="${esc(m.parent?(unit(m.parent)||{}).name:"Ban Thường vụ Đoàn cấp trên")}"></div>
    </div>
    ${autos.length?`<div class="recip-group" style="margin-bottom:12px"><h5>Số liệu tự lấy từ Báo cáo định kỳ (sẽ chèn vào báo cáo)</h5>
-     <div style="padding:8px 12px">${autos.map(a=>`<div style="margin-bottom:6px"><b class="small">${esc(a.ten)}</b> <span class="muted small">(${esc(a.ky)})</span>
+     <div style="padding:8px 12px">${autos.map(a=>`<div style="margin-bottom:6px"><b class="small">${a.seed?"★ ":""}${esc(a.ten)}</b> <span class="muted small">(${esc(a.ky)})</span>
        <div class="tbl-wrap"><table><tbody>${a.rows.map(r=>`<tr><td>${esc(r.name)}</td><td class="c" style="text-align:right;font-weight:600">${r.val.toLocaleString("vi-VN")}</td><td class="muted small">${esc(r.unit)}</td></tr>`).join("")}</tbody></table></div></div>`).join("")}
      <label class="small" style="display:flex;align-items:center;gap:6px;margin-top:4px"><input type="checkbox" id="rp-useauto" checked> Chèn bảng số liệu này vào phần \"Số liệu chủ yếu\" của báo cáo</label></div></div>`
     :`<div class="hint" style="margin-bottom:12px">Chưa có số liệu Báo cáo định kỳ để tự điền. Bạn vẫn soạn báo cáo bình thường; có thể sang <b>Báo cáo định kỳ</b> nhập số trước để tự tổng hợp.</div>`}
@@ -3175,7 +3494,7 @@ function collectReport(tpl){
   const ky=g("rp-ky")||"";const capTren=g("rp-capTren")||(m.parent?(unit(m.parent)||{}).name:"");
   const ctx={tenDonVi:m.name,ky,capTren,ngay:new Date().getDate()+"/"+(new Date().getMonth()+1)+"/"+new Date().getFullYear()};
   const useAuto=(document.getElementById("rp-useauto")||{}).checked;
-  const autos=useAuto?autoNumbersForUnit():[];
+  const autos=useAuto?autoNumbersForUnit(S.reportSeedPeriod):[];
   const parts=[];
   tpl.blocks.forEach((b,i)=>{
     if(b.t==="h"){parts.push({t:"h",v:b.v});}
@@ -3308,12 +3627,23 @@ const RCYCLE={none:"Không lặp",daily:"Hằng ngày",monthly:"Hằng tháng",q
 /* Lịch chuẩn theo Công văn 76-CV/ĐTN (mốc hạn nộp). Dùng để nạp sẵn.
    next = hạn kế tiếp (YYYY-MM-DD) tính động; ở đây lưu quy tắc, tính khi cần. */
 const CV76_SEED=[
-  {key:"cv76_ctd_thang", ten:"Báo cáo công tác Đoàn & PTTN — THÁNG", note:"Chậm nhất ngày 23 hằng tháng (mốc: 21 tháng trước → 20 tháng này). CV76 khoản 1.", cycle:"monthly", dueDay:23, lead:2},
-  {key:"cv76_ctd_quy",   ten:"Báo cáo công tác Đoàn & PTTN — QUÝ", note:"Chậm nhất 15h ngày 21/3, 21/6, 21/9, 21/12. CV76 khoản 1.", cycle:"quarterly", dueDay:21, dueMonthOffset:3, lead:2},
-  {key:"cv76_ctd_nam",   ten:"Báo cáo công tác Đoàn & PTTN — NĂM", note:"Chậm nhất ngày 23/11. CV76 khoản 1.", cycle:"yearly", dueDay:23, dueMonth:11, lead:3},
-  {key:"cv76_tc_thang",  ten:"Báo cáo tổ chức xây dựng đoàn, KTGS — THÁNG", note:"Chậm nhất ngày 22 hằng tháng. CV76 khoản 2.", cycle:"monthly", dueDay:22, lead:2},
-  {key:"cv76_tc_nam",    ten:"Báo cáo tổ chức xây dựng đoàn, KTGS — NĂM", note:"Chậm nhất ngày 22/10. CV76 khoản 2.", cycle:"yearly", dueDay:22, dueMonth:10, lead:3},
+  {key:"cv76_ctd_thang", ten:"Báo cáo công tác Đoàn & PTTN — THÁNG", note:"Chậm nhất ngày 23 hằng tháng (mốc: 21 tháng trước → 20 tháng này). CV76 khoản 1.", cycle:"monthly", dueDay:23, lead:2, tplId:"tpl_ctd_pttn"},
+  {key:"cv76_ctd_quy",   ten:"Báo cáo công tác Đoàn & PTTN — QUÝ", note:"Chậm nhất 15h ngày 21/3, 21/6, 21/9, 21/12. CV76 khoản 1.", cycle:"quarterly", dueDay:21, lead:2, tplId:"tpl_ctd_pttn"},
+  {key:"cv76_ctd_nam",   ten:"Báo cáo công tác Đoàn & PTTN — NĂM", note:"Chậm nhất ngày 23/11. CV76 khoản 1.", cycle:"yearly", dueDay:23, dueMonth:11, lead:3, tplId:"tpl_ctd_pttn"},
+  {key:"cv76_tc_thang",  ten:"Báo cáo tổ chức xây dựng đoàn, KTGS — THÁNG", note:"Chậm nhất ngày 22 hằng tháng. CV76 khoản 2.", cycle:"monthly", dueDay:22, lead:2, tplId:"tpl_tcxd_ktgs"},
+  {key:"cv76_tc_nam",    ten:"Báo cáo tổ chức xây dựng đoàn, KTGS — NĂM", note:"Chậm nhất ngày 22/10. CV76 khoản 2.", cycle:"yearly", dueDay:22, dueMonth:10, lead:3, tplId:"tpl_tcxd_ktgs"},
 ];
+/* Mở mẫu báo cáo gợi ý từ một lịch nhắc, kèm gợi ý kỳ */
+function openReportFromReminder(id){
+  const r=(DB.reminders||[]).find(x=>x.id===id);
+  if(r&&r.tplId){S.rpSel=r.tplId;S.rpTab="soan";
+    const nd=nextDue(r);const d=new Date(nd);
+    if(r.cycle==="monthly")S.reportKyGuess="tháng "+(d.getMonth()+1)+"/"+d.getFullYear();
+    else if(r.cycle==="quarterly")S.reportKyGuess="Quý "+QUY_ROMAN[QUY_OF_THANG[d.getMonth()+1]]+"/"+d.getFullYear();
+    else if(r.cycle==="yearly")S.reportKyGuess="năm "+d.getFullYear();
+  }
+  nav("maubc");
+}
 /* Tính hạn kế tiếp cho một reminder dựa trên hôm nay */
 function nextDue(r){
   if(r.next)return r.next; /* nếu đã ấn định cụ thể */
@@ -3347,7 +3677,7 @@ function ensureReminderSeed(){
   const m=me();if(!m)return;
   CV76_SEED.forEach(s=>{
     const r={id:uid("rmd"),from:m.id,seedKey:s.key,ten:s.ten,note:s.note,cycle:s.cycle,
-      dueDay:s.dueDay,dueMonth:s.dueMonth,off:false,lead:s.lead||2,builtin:true,created:todayISO()};
+      dueDay:s.dueDay,dueMonth:s.dueMonth,off:false,lead:s.lead||2,builtin:true,tplId:s.tplId||null,created:todayISO()};
     (DB.reminders=DB.reminders||[]).push(r);
     if(MODE==="cloud"){FB.fs.collection("reminders").doc(r.id).set(JSON.parse(JSON.stringify(r))).catch(()=>{})}
   });
@@ -3365,7 +3695,7 @@ function viewReminders(){
     ${due.map(r=>`<div class="report-item" style="border-left-color:var(--gold)"><div class="rp-h"><b>${esc(r.ten)}</b> <span class="pill ${r._diff===0?'qua':'cho'}">${r._diff===0?"HẠN HÔM NAY":"còn "+r._diff+" ngày"}</span></div>
       <div class="small muted">Hạn: ${fmtD(r._due)} · ${esc(r.note||"")}</div>
       <button class="btn btn-ghost btn-sm" style="margin-top:6px" onclick="pushReminderDiscord('${r.id}')">📣 Gửi nhắc Discord ngay</button>
-      <button class="btn btn-ghost btn-sm" onclick="nav('maubc')">✎ Soạn báo cáo</button></div>`).join("")}
+      <button class="btn btn-gold btn-sm" onclick="openReportFromReminder('${r.id}')">✎ Soạn báo cáo${r.tplId?" theo mẫu":""}</button></div>`).join("")}
    </div></div>`:""}
   <div class="detail-grid">
    <div class="card"><div class="card-h"><h3>Danh sách lịch nhắc (${list.length})</h3></div><div class="card-b">
@@ -3377,7 +3707,8 @@ function viewReminders(){
         <label class="small" style="display:flex;align-items:center;gap:4px"><input type="checkbox" ${r.off?"":"checked"} onchange="toggleReminder('${r.id}',this.checked)"> Bật</label>
         <button class="btn btn-ghost btn-sm" onclick="delReminder('${r.id}')">🗑</button>
       </div>
-      <div class="small muted">Hạn kế tiếp: <b>${fmtD(r._due)}</b> ${r._diff>=0?`(còn ${r._diff} ngày)`:`(đã qua ${-r._diff} ngày)`} · cảnh báo trước ${r.lead||2} ngày${r.note?" · "+esc(r.note):""}</div>
+      <div class="small muted">Hạn kế tiếp: <b>${fmtD(r._due)}</b> ${r._diff>=0?`(còn ${r._diff} ngày)`:`(đã qua ${-r._diff} ngày)`} · cảnh báo trước ${r.lead||2} ngày${r.note?" · "+esc(r.note):""}${r.tplId?` · mẫu: ${esc((findTemplate(r.tplId)||{}).ten||"")}`:""}</div>
+      ${r.tplId?`<button class="btn btn-ghost btn-sm" style="margin-top:6px" onclick="openReportFromReminder('${r.id}')">✎ Soạn báo cáo theo mẫu</button>`:""}
     </div>`).join(""):'<div class="empty">Chưa có lịch nhắc nào. Lịch chuẩn CV76 sẽ tự nạp; bạn có thể thêm lịch riêng bên phải.</div>'}
    </div></div>
    <div class="card"><div class="card-h"><h3>Thêm lịch nhắc riêng</h3></div><div class="card-b">
@@ -3391,9 +3722,12 @@ function viewReminders(){
       <div class="field" id="rm-month-wrap" style="display:none"><label>Tháng (với lặp năm)</label><input id="rm-duemonth" type="number" min="1" max="12" value="11"></div>
     </div>
     <div class="field" id="rm-date-wrap" style="display:none"><label>Ngày cụ thể (không lặp)</label><input id="rm-date" type="date" value="${today}"></div>
+    <div class="field"><label>Mẫu báo cáo gắn kèm (tùy chọn)</label>
+      <select id="rm-tpl"><option value="">— Không gắn mẫu —</option>${allTemplates().map(t=>`<option value="${t.id}">${esc(t.ten)}</option>`).join("")}</select>
+      <div class="hint" style="margin-top:4px">Khi đến hạn, nút "Soạn báo cáo" sẽ mở đúng mẫu này.</div></div>
     <div class="field"><label>Ghi chú</label><input id="rm-note" placeholder="Mốc thời gian, phạm vi số liệu…"></div>
     <button class="btn btn-primary" onclick="createReminder()">＋ Thêm lịch nhắc</button>
-    <div class="hint" style="margin-top:10px">Cảnh báo hiện trong app và có nút <b>gửi Discord</b>. Muốn tự động gửi <b>Email/Discord kể cả khi không ai mở web</b>, dùng tệp <b>Code.gs</b> (hàm <code>dueReminders</code>) theo Hướng dẫn triển khai.</div>
+    <div class="hint" style="margin-top:10px">Cảnh báo hiện trong app và có nút <b>gửi Discord</b>. Muốn tự động gửi <b>Email/Discord kể cả khi không ai mở web</b>: <a href="javascript:void(0)" onclick="openHelp('nhactudong')"><b>▶ Xem hướng dẫn cài nhắc tự động</b></a> (chọn giờ, sao chép cấu hình, chạy một hàm là xong).</div>
    </div></div>
   </div>`;
 }
@@ -3409,7 +3743,7 @@ async function createReminder(){
   const m=me(),g=id=>{const el=document.getElementById(id);return el?el.value.trim():""};
   const ten=g("rm-ten");if(!ten){toast("Nhập tên lịch nhắc.");return}
   const cycle=g("rm-cycle")||"monthly";
-  const r={id:uid("rmd"),from:m.id,ten,note:g("rm-note"),cycle,lead:Number(g("rm-lead")||2),off:false,builtin:false,created:todayISO()};
+  const r={id:uid("rmd"),from:m.id,ten,note:g("rm-note"),cycle,lead:Number(g("rm-lead")||2),off:false,builtin:false,tplId:g("rm-tpl")||null,created:todayISO()};
   if(cycle==="none"){r.next=g("rm-date")||todayISO();}
   else if(cycle!=="daily"){r.dueDay=Number(g("rm-dueday")||1);if(cycle==="yearly")r.dueMonth=Number(g("rm-duemonth")||1);}
   (DB.reminders=DB.reminders||[]).push(r);
@@ -3443,6 +3777,302 @@ function pushReminderDiscord(id){
   fetch(m.webhook,{method:"POST",body:fd}).then(()=>toast("Đã gửi nhắc vào Discord.")).catch(()=>toast("Không gửi được — kiểm tra webhook."));
 }
 
+/* ==================================================================
+   GIỚI THIỆU PHẦN MỀM & HƯỚNG DẪN SỬ DỤNG (modal, mở từ icon ? trên topbar)
+   ================================================================== */
+function openHelp(tab){S.help=tab||"intro";S.bell=false;render()}
+function closeHelp(){S.help=null;render()}
+function helpGo(v){S.help=null;nav(v)}
+const HELP_TABS={intro:"Giới thiệu",start:"Bắt đầu nhanh",vanban:"Văn bản",baocao:"Báo cáo & tổng hợp",maunhac:"Mẫu & Nhắc lịch",nhactudong:"Cài nhắc tự động",khac:"Tiện ích khác",faq:"Hỏi–đáp"};
+function helpModalHtml(){
+  return `<div class="hm-back" onclick="if(event.target===this)closeHelp()">
+    <div class="hm">
+      <div class="hm-top">
+        <div class="stardot">★</div>
+        <div><h3>DoanOffice — Giới thiệu & Hướng dẫn sử dụng</h3><div class="sub">Hệ thống điều hành văn bản & báo cáo cho tổ chức Đoàn · phiên bản 4.2</div></div>
+        <button class="hm-x" onclick="closeHelp()" title="Đóng">✕</button>
+      </div>
+      <div class="hm-tabs">
+        ${Object.entries(HELP_TABS).map(([k,v])=>`<button class="${S.help===k?"on":""}" onclick="openHelp('${k}')">${v}</button>`).join("")}
+      </div>
+      <div class="hm-body">${helpContent(S.help)}</div>
+    </div></div>`;
+}
+function helpContent(tab){
+  if(tab==="start")return helpStart();
+  if(tab==="vanban")return helpVanban();
+  if(tab==="baocao")return helpBaocao();
+  if(tab==="maunhac")return helpMaunhac();
+  if(tab==="nhactudong")return helpNhacTuDong();
+  if(tab==="khac")return helpKhac();
+  if(tab==="faq")return helpFaq();
+  return helpIntro();
+}
+function helpIntro(){
+  return `
+  <p class="lead">DoanOffice là phần mềm điều hành tác nghiệp giúp tổ chức Đoàn quản lý văn bản đi – đến, giao việc, theo dõi tiến độ, tổng hợp số liệu báo cáo theo cây đơn vị và theo kỳ (tháng → quý → năm), soạn báo cáo đúng thể thức và nhắc lịch tự động. Toàn bộ chạy trên một trang web duy nhất, miễn phí, hoạt động cả khi không có mạng.</p>
+
+  <h4>Phần mềm giúp gì cho đơn vị?</h4>
+  <div class="hm-feat">
+    <div class="hm-card"><div class="ic">${ICO.inbox}</div><b>Văn bản đi – đến</b><span>Soạn, phát hành, tiếp nhận, bút phê, chuyển tiếp xuống cấp dưới, truy vết xuyên cấp.</span></div>
+    <div class="hm-card"><div class="ic">${ICO.period}</div><b>Báo cáo định kỳ tự tổng hợp</b><span>Cộng dồn số liệu theo cây đơn vị và tự tổng hợp tháng→quý→năm, không phải cộng tay.</span></div>
+    <div class="hm-card"><div class="ic">${ICO.tmpl}</div><b>Mẫu báo cáo đúng thể thức</b><span>Soạn báo cáo theo mẫu chuẩn của Đoàn, xuất Word và gửi bản điện tử lên cấp trên.</span></div>
+    <div class="hm-card"><div class="ic">${ICO.alarm}</div><b>Nhắc lịch báo cáo</b><span>Nạp sẵn mốc theo Công văn 76, cảnh báo trước hạn, nhắc qua Discord/Email.</span></div>
+    <div class="hm-card"><div class="ic">${ICO.chart}</div><b>Thống kê & KPI</b><span>Theo dõi khối lượng, tiến độ xử lý, chỉ tiêu thi đua của toàn nhánh.</span></div>
+    <div class="hm-card"><div class="ic">${ICO.org}</div><b>Sơ đồ tổ chức</b><span>Quản lý cây đơn vị, thông tin liên hệ, webhook Discord, email nhận nhắc việc.</span></div>
+  </div>
+
+  <h4>Ba điểm mạnh cốt lõi</h4>
+  <ul>
+    <li><b>Tự tổng hợp hai chiều.</b> Số liệu vừa cộng dồn <i>theo chiều dọc</i> (đơn vị con + cháu lên cấp trên), vừa cộng <i>theo thời gian</i> (12 tháng gộp thành quý, 4 quý gộp thành năm). Cấp huyện/tỉnh không phải gom Excel của từng xã.</li>
+    <li><b>Đúng thể thức, đúng quy trình.</b> Báo cáo xuất ra chuẩn văn bản của Đoàn (quốc hiệu, số ký hiệu, nơi nhận, ký tên). Người chưa phải lãnh đạo thì văn bản ở trạng thái chờ duyệt đúng quy trình văn thư.</li>
+    <li><b>Miễn phí & bền bỉ.</b> Chạy được ngay trên máy (chế độ cục bộ) hoặc đồng bộ nhiều đơn vị qua Firestore. Hoạt động offline, tự đồng bộ khi có mạng. Không tốn phí bản quyền.</li>
+  </ul>
+
+  <div class="hm-tip">💡 Mẹo: Bạn có thể mở lại bảng hướng dẫn này bất cứ lúc nào bằng biểu tượng <b>?</b> ở góc trên bên phải, cạnh chuông thông báo.</div>
+
+  <p style="margin-top:14px"><a href="javascript:void(0)" onclick="openHelp('start')"><b>→ Xem "Bắt đầu nhanh"</b></a> để thao tác lần đầu chỉ trong vài phút.</p>`;
+}
+function helpStart(){
+  return `
+  <p class="lead">Ba bước để bắt đầu sử dụng. Không cần cài đặt gì thêm ở chế độ cục bộ.</p>
+  <div class="hm-step"><div class="num">1</div><div class="tx"><b>Đăng nhập & chọn vai làm việc.</b> Chọn đúng đơn vị của bạn. Nếu đơn vị có nhiều cán bộ, chọn vai (Bí thư, Phó Bí thư, Văn thư, cán bộ…). Vai quyết định quyền phát hành, phê duyệt, bút phê.</div></div>
+  <div class="hm-step"><div class="num">2</div><div class="tx"><b>Làm quen Bảng điều hành.</b> Trang chủ hiển thị nhanh: văn bản chờ xử lý, đang xử lý, quá hạn, đã hoàn thành, văn bản đến gần đây và việc đã giao chờ cấp dưới báo cáo.</div></div>
+  <div class="hm-step"><div class="num">3</div><div class="tx"><b>Bắt đầu tác nghiệp.</b> Dùng menu bên trái: <b>Soạn &amp; phát hành</b> để ra văn bản; <b>Văn bản đến</b> để xử lý việc; <b>Báo cáo định kỳ</b> để tổng hợp số liệu; <b>Mẫu báo cáo</b> để làm báo cáo gửi cấp trên; <b>Nhắc lịch báo cáo</b> để không lỡ hạn.</div></div>
+
+  <h4>Các vai trò và quyền hạn</h4>
+  <div class="hm-role"><b>Bí thư / Phó Bí thư</b> — phát hành văn bản ngay, phê duyệt dự thảo, bút phê chỉ đạo, duyệt phát hành báo cáo.</div>
+  <div class="hm-role"><b>Văn thư / Chuyên viên</b> — soạn thảo, trình duyệt, nhập số liệu báo cáo; văn bản/báo cáo sẽ ở trạng thái chờ lãnh đạo phê duyệt.</div>
+  <div class="hm-role"><b>Cán bộ được phân công</b> — tiếp nhận, cập nhật tiến độ, báo cáo kết quả xử lý văn bản được giao.</div>
+
+  <h4>Hai chế độ vận hành</h4>
+  <p><b>Cục bộ:</b> mở file HTML là dùng được ngay, dữ liệu lưu trong trình duyệt máy này — phù hợp dùng thử, tập huấn, hoặc một đơn vị độc lập.</p>
+  <p><b>Đồng bộ Firestore:</b> nhiều đơn vị cùng dùng, dữ liệu chia sẻ theo cây tổ chức, có thông báo Discord/Email. Xem <b>Dữ liệu &amp; sao lưu</b> để thiết lập.</p>`;
+}
+function helpVanban(){
+  return `
+  <p class="lead">Quản lý trọn vòng đời văn bản: soạn → phát hành → tiếp nhận → xử lý → hoàn thành, kèm bút phê và chuyển tiếp xuyên cấp.</p>
+
+  <h4>Soạn &amp; phát hành văn bản đi</h4>
+  <div class="hm-step"><div class="num">1</div><div class="tx">Vào <b>Soạn &amp; phát hành</b>, nhập số ký hiệu, trích yếu, nội dung, độ khẩn, hạn xử lý. Có thể đính kèm tệp và tham chiếu văn bản liên quan.</div></div>
+  <div class="hm-step"><div class="num">2</div><div class="tx">Chọn <b>nơi nhận</b> (một hoặc nhiều đơn vị). Nếu yêu cầu báo cáo kết quả, bật tùy chọn tương ứng để theo dõi tiến độ.</div></div>
+  <div class="hm-step"><div class="num">3</div><div class="tx">Nếu bạn là Bí thư/Phó Bí thư: <b>Phát hành</b> ngay. Nếu không: văn bản chuyển <b>trình duyệt</b> để lãnh đạo phê duyệt phát hành.</div></div>
+
+  <h4>Xử lý văn bản đến</h4>
+  <p>Vào <b>Văn bản đến</b>, mở văn bản để xem chi tiết. Bạn có thể:</p>
+  <ul>
+    <li><b>Bút phê chỉ đạo</b> (Bí thư/Phó Bí thư): ghi ý kiến, chọn cán bộ chủ trì, đặt hạn nội bộ. Bút phê chỉ hiển thị trong đơn vị và in kèm Phiếu xử lý, không gửi ngược lên nơi ban hành.</li>
+    <li><b>Chuyển tiếp xuống cấp dưới</b>: tạo văn bản triển khai mới (kèm nội dung, tệp, bản chụp văn bản gốc) gửi các đơn vị con. Chuỗi gốc → chuyển tiếp được giữ để truy vết xuyên cấp.</li>
+    <li><b>Cập nhật tiến độ &amp; báo cáo kết quả</b>: đánh dấu đang xử lý / đã xử lý, ghi kết quả để cấp trên theo dõi.</li>
+  </ul>
+
+  <div class="hm-tip">📌 Cảnh báo hạn: các văn bản quá hạn/sắp đến hạn hiển thị ở Bảng điều hành và trong chuông thông báo. Nếu đã bật Code.gs, hệ thống còn nhắc qua Email/Discord kể cả khi không ai mở web.</div>
+
+  <p style="margin-top:12px"><a href="javascript:void(0)" onclick="helpGo('soan')"><b>→ Mở Soạn &amp; phát hành</b></a> · <a href="javascript:void(0)" onclick="helpGo('vbden')"><b>Mở Văn bản đến</b></a></p>`;
+}
+function helpBaocao(){
+  return `
+  <p class="lead">Đây là phần mạnh nhất của DoanOffice: số liệu tự tổng hợp theo cả cây đơn vị lẫn theo thời gian (tháng → quý → năm), nên cấp trên không phải cộng tay từ báo cáo của từng đơn vị.</p>
+
+  <h4>A. Báo cáo định kỳ — số liệu</h4>
+  <h5>Nếu bạn là cấp phát động (có đơn vị cấp dưới)</h5>
+  <p>Vào <b>Báo cáo định kỳ</b> → tab <b>Đợt báo cáo tôi phát động</b>. Có hai cách:</p>
+  <div class="hm-step"><div class="num">1</div><div class="tx"><b>Chương trình cả năm</b> (khuyến nghị): đặt tên, chọn năm, chọn các cấp kỳ cần sinh (12 tháng, 4 quý, 1 năm). Hệ thống tự tạo và <b>liên kết</b> các kỳ. Cơ sở chỉ nhập số <b>tháng</b>; <b>quý tự cộng từ 3 tháng, năm tự cộng từ 4 quý</b>.</div></div>
+  <div class="hm-step"><div class="num">2</div><div class="tx"><b>Một đợt riêng lẻ</b>: phát động nhanh một kỳ độc lập khi cần.</div></div>
+  <p>Khai chỉ tiêu mỗi dòng theo cú pháp <span class="hm-kbd">Tên chỉ tiêu | đơn vị tính | cách gộp</span>. Cách gộp gồm:</p>
+  <ul>
+    <li><b>sum</b> — cộng dồn (chỉ tiêu phát sinh trong kỳ: đoàn viên kết nạp mới, số buổi hoạt động…). Mặc định.</li>
+    <li><b>last</b> — lấy giá trị kỳ cuối (chỉ tiêu tổng/hiện có: tổng số đoàn viên hiện có…).</li>
+    <li><b>avg</b> — trung bình các kỳ con (tỷ lệ %…).</li>
+  </ul>
+  <p>Bảng theo dõi hiển thị số từng đơn vị và dòng <b>TỔNG HỢP TOÀN NHÁNH</b>. Với kỳ quý/năm, bảng hiện từng kỳ con + cột tổng hợp. Xuất <b>Word</b> (đúng thể thức, có chữ ký) và <b>CSV</b>.</p>
+
+  <h5>Nếu bạn là cấp dưới (được yêu cầu báo cáo)</h5>
+  <p>Vào tab <b>Cấp trên yêu cầu</b>, nhập số liệu của riêng cơ quan mình rồi <b>Nộp</b>. Nếu đơn vị bạn có cấp dưới, xem được tổng hợp nhánh của mình trước khi nộp.</p>
+
+  <h4>B. Đổ số liệu vào báo cáo văn bản</h4>
+  <p>Ở một kỳ bất kỳ (kể cả quý/năm tự tổng hợp), bấm <b>📝 Đổ vào mẫu báo cáo</b>. Hệ thống chuyển sang <b>Mẫu báo cáo</b> và ghim sẵn số liệu kỳ đó (đánh dấu ★) để chèn vào phần "Số liệu chủ yếu".</p>
+
+  <h4>C. Thống kê &amp; Chỉ tiêu (KPI)</h4>
+  <p><b>Báo cáo · Thống kê</b> cho bức tranh khối lượng và tiến độ xử lý. <b>Chỉ tiêu · KPI</b> theo dõi các mục tiêu thi đua của nhánh.</p>
+
+  <p style="margin-top:12px"><a href="javascript:void(0)" onclick="helpGo('dinhky')"><b>→ Mở Báo cáo định kỳ</b></a> · <a href="javascript:void(0)" onclick="helpGo('thongke')"><b>Mở Thống kê</b></a></p>`;
+}
+function helpMaunhac(){
+  return `
+  <p class="lead">Soạn báo cáo đúng thể thức từ mẫu chuẩn và không bao giờ lỡ hạn nộp nhờ nhắc lịch tự động.</p>
+
+  <h4>Mẫu báo cáo</h4>
+  <p>Vào <b>Mẫu báo cáo</b> → tab <b>Soạn báo cáo theo mẫu</b>. Có sẵn 3 mẫu chuẩn theo Công văn 76-CV/ĐTN:</p>
+  <ul>
+    <li><b>Công tác Đoàn &amp; phong trào thanh niên</b> — khung đầy đủ I→V.</li>
+    <li><b>Tổ chức xây dựng đoàn, kiểm tra – giám sát</b> — bản ngắn kèm số liệu.</li>
+    <li><b>Báo cáo nhanh tháng/quý (rút gọn)</b>.</li>
+  </ul>
+  <div class="hm-step"><div class="num">1</div><div class="tx">Chọn mẫu → nhập <b>kỳ báo cáo</b> và <b>nơi nhận</b> (mặc định là cấp trên trực tiếp). Khung đề mục cố định giữ nguyên; bạn chỉ điền phần nội dung.</div></div>
+  <div class="hm-step"><div class="num">2</div><div class="tx">Nếu đã có số liệu ở Báo cáo định kỳ, hệ thống tự lấy và chèn vào phần "Số liệu chủ yếu".</div></div>
+  <div class="hm-step"><div class="num">3</div><div class="tx"><b>⬇ Xuất Word</b> để trình ký, và/hoặc <b>📤 Gửi lên cấp trên</b> để tạo bản điện tử gửi đơn vị cấp trên theo dõi.</div></div>
+  <p>Tab <b>Quản lý mẫu</b> cho phép tạo mẫu riêng của đơn vị (mỗi dòng một mục: <span class="hm-kbd">#</span> đề mục cố định, <span class="hm-kbd">?</span> mục cần nhập, <span class="hm-kbd">=</span> đoạn văn cố định, <span class="hm-kbd">$</span> chèn bảng số liệu), và có thể chia sẻ cho đơn vị khác.</p>
+
+  <h4>Nhắc lịch báo cáo</h4>
+  <p>Vào <b>Nhắc lịch báo cáo</b>. Hệ thống nạp sẵn các mốc theo Công văn 76 (báo cáo tháng, quý, năm cho công tác Đoàn và tổ chức xây dựng đoàn), bạn chỉ bật/tắt.</p>
+  <ul>
+    <li><b>Cảnh báo trước hạn</b> 1–7 ngày (tùy chọn), <b>lặp</b> ngày/tháng/quý/năm.</li>
+    <li>Mỗi lịch gắn <b>mẫu báo cáo gợi ý</b> — bấm "Soạn báo cáo theo mẫu" là mở đúng mẫu, đúng kỳ.</li>
+    <li>Tự tạo thêm lịch riêng cho nhu cầu của đơn vị.</li>
+    <li>Nhắc trong app + nút gửi <b>Discord</b> ngay. Muốn nhắc <b>Email/Discord tự động</b> kể cả khi không ai mở web, đặt trigger <span class="hm-kbd">dueReminders</span> trong Code.gs.</li>
+  </ul>
+  <div class="hm-tip">🔔 Số trên biểu tượng "Nhắc lịch báo cáo" ở menu là số lịch sắp đến hạn — hãy để ý mỗi ngày.</div>
+
+  <p style="margin-top:12px"><a href="javascript:void(0)" onclick="helpGo('maubc')"><b>→ Mở Mẫu báo cáo</b></a> · <a href="javascript:void(0)" onclick="helpGo('nhaclich')"><b>Mở Nhắc lịch báo cáo</b></a></p>`;
+}
+/* ---- Ảnh minh hoạ dạng SVG (không cần tải ảnh ngoài) ---- */
+function svgStep_newProject(){
+  return `<svg viewBox="0 0 460 150" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:460px;border:1px solid var(--line);border-radius:10px;background:#fff">
+    <rect x="0" y="0" width="460" height="34" fill="#F6F9FD"/><circle cx="16" cy="17" r="5" fill="#4285F4"/>
+    <text x="30" y="21" font-size="11" font-family="Arial" fill="#333">script.google.com</text>
+    <rect x="16" y="52" width="150" height="34" rx="7" fill="#1a73e8"/>
+    <text x="34" y="73" font-size="12" font-family="Arial" fill="#fff">＋ New project</text>
+    <rect x="16" y="98" width="428" height="38" rx="6" fill="#F1F5FA" stroke="#dbe4ee"/>
+    <text x="28" y="121" font-size="11" font-family="monospace" fill="#5b6b7d">function myFunction() { …dán Code.gs vào đây… }</text>
+  </svg>`;
+}
+function svgStep_runFn(fn){
+  return `<svg viewBox="0 0 460 60" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:460px;border:1px solid var(--line);border-radius:10px;background:#fff">
+    <rect x="0" y="0" width="460" height="60" fill="#F6F9FD"/>
+    <path d="M16 22 l14 8 l-14 8 z" fill="#137333"/>
+    <text x="40" y="35" font-size="12" font-family="Arial" fill="#137333" font-weight="bold">Run</text>
+    <rect x="92" y="16" width="120" height="28" rx="6" fill="#fff" stroke="#dbe4ee"/>
+    <text x="104" y="34" font-size="11" font-family="monospace" fill="#1a3a5c">${fn} ▾</text>
+    <text x="230" y="34" font-size="10.5" font-family="Arial" fill="#8a97a6">← chọn hàm rồi bấm Run</text>
+  </svg>`;
+}
+function svgStep_triggerClock(){
+  return `<svg viewBox="0 0 460 130" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:460px;border:1px solid var(--line);border-radius:10px;background:#fff">
+    <rect x="0" y="0" width="52" height="130" fill="#F6F9FD"/>
+    <circle cx="26" cy="30" r="11" fill="none" stroke="#5b6b7d" stroke-width="2"/><path d="M26 24 v6 l4 3" stroke="#5b6b7d" stroke-width="2" fill="none"/>
+    <text x="20" y="58" font-size="8" font-family="Arial" fill="#8a97a6">Triggers</text>
+    <text x="72" y="30" font-size="12" font-family="Arial" fill="#1a3a5c" font-weight="bold">Triggers</text>
+    <rect x="330" y="96" width="118" height="26" rx="13" fill="#1a73e8"/>
+    <text x="346" y="113" font-size="11" font-family="Arial" fill="#fff">＋ Add Trigger</text>
+    <text x="72" y="66" font-size="10.5" font-family="Arial" fill="#5b6b7d">Đã cài tự động — bảng này sẽ hiện 2–3 dòng</text>
+    <rect x="72" y="78" width="240" height="20" rx="4" fill="#eef7ee"/><text x="80" y="92" font-size="9.5" font-family="monospace" fill="#137333">dueReminders · Day timer · 6am</text>
+  </svg>`;
+}
+function helpNhacTuDong(){
+  if(!S.trgConf)S.trgConf={due:6,daily:7,weekly:7,weekday:"MONDAY",enableWeekly:true};
+  const c=S.trgConf;
+  const cfg=triggerConfigCode(c);
+  return `
+  <p class="lead">Trình duyệt chỉ nhắc khi có người mở trang. Để hệ thống <b>tự gửi Email/Discord nhắc hạn kể cả khi không ai online</b>, cần cài tệp <b>Code.gs</b> lên Google Apps Script (miễn phí). Làm một lần, ~10 phút.</p>
+
+  <h4>Bước 1 — Lấy 2 thông số kết nối</h4>
+  <p>Hai thông số này nằm trong cấu hình Firebase của app (mục <b>Dữ liệu &amp; sao lưu</b>): <b>projectId</b> và <b>apiKey</b>. Ghi lại để điền ở Bước 3.</p>
+
+  <h4>Bước 2 — Tạo project Apps Script &amp; dán Code.gs</h4>
+  <div style="margin:8px 0">${svgStep_newProject()}</div>
+  <div class="hm-step"><div class="num">1</div><div class="tx">Mở <b>script.google.com</b> → bấm <b>New project</b>.</div></div>
+  <div class="hm-step"><div class="num">2</div><div class="tx">Xóa code mẫu, dán <b>toàn bộ</b> nội dung tệp <b>Code.gs</b> (kèm theo phần mềm) vào.</div></div>
+
+  <h4>Bước 3 — Dán cấu hình (chọn giờ nhắc bên dưới)</h4>
+  <p>Chọn giờ theo ý bạn, hệ thống tự sinh đoạn cấu hình. Bấm <b>Sao chép</b> rồi thay phần CONFIG ở đầu Code.gs. Nhớ điền <b>PROJECT_ID</b> và <b>API_KEY</b> lấy ở Bước 1.</p>
+  <div style="background:#F6F9FD;border:1px solid var(--line);border-radius:12px;padding:14px;margin:10px 0">
+    <div class="form-grid">
+      <div class="field"><label>Giờ nhắc lịch báo cáo (dueReminders)</label>
+        <select onchange="S.trgConf.due=+this.value;render()">${hourOpts(c.due)}</select></div>
+      <div class="field"><label>Giờ nhắc văn bản quá hạn (dailyReminders)</label>
+        <select onchange="S.trgConf.daily=+this.value;render()">${hourOpts(c.daily)}</select></div>
+    </div>
+    <label class="small" style="display:flex;align-items:center;gap:6px;margin:4px 0 8px"><input type="checkbox" ${c.enableWeekly?"checked":""} onchange="S.trgConf.enableWeekly=this.checked;render()"> Bật nhắc báo cáo định kỳ theo tuần (weeklyPeriodic)</label>
+    ${c.enableWeekly?`<div class="form-grid">
+      <div class="field"><label>Thứ trong tuần</label><select onchange="S.trgConf.weekday=this.value;render()">${weekdayOpts(c.weekday)}</select></div>
+      <div class="field"><label>Giờ nhắc định kỳ</label><select onchange="S.trgConf.weekly=+this.value;render()">${hourOpts(c.weekly)}</select></div>
+    </div>`:""}
+    <div style="position:relative;margin-top:8px">
+      <pre id="trg-cfg" style="background:var(--doan-ink);color:#e6edf5;padding:12px 14px;border-radius:9px;overflow:auto;font-size:.76rem;line-height:1.5;margin:0">${esc(cfg)}</pre>
+      <button class="btn btn-gold btn-sm" style="position:absolute;top:8px;right:8px" onclick="copyTrgCfg()">⧉ Sao chép</button>
+    </div>
+  </div>
+
+  <h4>Bước 4 — Chạy thử &amp; cấp quyền</h4>
+  <div style="margin:8px 0">${svgStep_runFn("testRun")}</div>
+  <p>Chọn hàm <b>testRun</b> ở thanh trên → bấm <b>Run</b>. Google hỏi cấp quyền lần đầu: chọn tài khoản → <b>Advanced</b> → <b>Go to project (unsafe)</b> → <b>Allow</b>. Xem <b>Execution log</b> để chắc đọc được dữ liệu.</p>
+
+  <h4>Bước 5 — Cài lịch tự động chỉ bằng một hàm</h4>
+  <div style="margin:8px 0">${svgStep_triggerClock()}</div>
+  <p>Thay vì bấm tay từng trigger, chỉ cần: chọn hàm <b>setupTriggers</b> ở thanh trên → bấm <b>Run</b>. Hàm này tự tạo đủ các lịch nhắc theo giờ bạn đã cấu hình ở Bước 3.</p>
+  <div class="hm-tip">✅ Xong! Từ nay hệ thống tự nhắc mỗi ngày. Muốn đổi giờ: sửa lại ở Bước 3, dán CONFIG mới, rồi chạy lại <b>setupTriggers</b>. Muốn gỡ: chạy <b>removeTriggers</b>. Muốn kiểm tra: chạy <b>listTriggers</b> rồi xem log.</p></div>
+
+  <h5>Các hàm có sẵn trong Code.gs</h5>
+  <ul>
+    <li><b>setupTriggers</b> — cài/đặt lại toàn bộ lịch nhắc tự động (chạy 1 lần).</li>
+    <li><b>testRun</b> — chạy thử ngay, gửi nhắc luôn để kiểm tra.</li>
+    <li><b>removeTriggers</b> — gỡ toàn bộ lịch nhắc.</li>
+    <li><b>listTriggers</b> — liệt kê lịch đang đặt.</li>
+    <li><b>dueReminders / dailyReminders / weeklyPeriodic</b> — các hàm nhắc (hệ thống tự gọi theo lịch).</li>
+  </ul>
+  <p class="small muted">Hạn mức miễn phí tài khoản Google thường: 100 email/ngày — đủ cho một huyện/tỉnh đoàn. Không cần thẻ tín dụng, không nâng cấp Firebase.</p>`;
+}
+function hourOpts(sel){let s="";for(let h=0;h<24;h++){s+=`<option value="${h}" ${h===sel?"selected":""}>${String(h).padStart(2,"0")}:00${h<12?" sáng":h<18?" chiều":" tối"}</option>`}return s}
+function weekdayOpts(sel){const d=[["MONDAY","Thứ Hai"],["TUESDAY","Thứ Ba"],["WEDNESDAY","Thứ Tư"],["THURSDAY","Thứ Năm"],["FRIDAY","Thứ Sáu"],["SATURDAY","Thứ Bảy"],["SUNDAY","Chủ Nhật"]];return d.map(x=>`<option value="${x[0]}" ${x[0]===sel?"selected":""}>${x[1]}</option>`).join("")}
+function triggerConfigCode(c){
+  return `/*===== CONFIG — DoanOffice nhắc tự động =====*/
+var PROJECT_ID  = 'doanoffice-xxxxx';   // ← điền projectId Firebase
+var API_KEY     = 'AIza...';            // ← điền apiKey Firebase
+var ADMIN_EMAIL = '';                   // ← (tùy chọn) email nhận tổng hợp
+var LOGIN_DOMAIN = 'doanoffice.local';
+
+var HOUR_DUE_REMINDERS = ${c.due};   // nhắc lịch báo cáo
+var HOUR_DAILY         = ${c.daily};   // nhắc văn bản quá hạn
+var HOUR_WEEKLY        = ${c.weekly};   // nhắc báo cáo định kỳ
+var WEEKLY_DAY         = ScriptApp.WeekDay.${c.weekday};
+var ENABLE_WEEKLY      = ${c.enableWeekly};
+/*===========================================*/`;
+}
+function copyTrgCfg(){
+  const el=document.getElementById("trg-cfg");if(!el)return;
+  const txt=el.textContent;
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>toast("Đã sao chép cấu hình. Dán vào đầu Code.gs.")).catch(()=>fallbackCopy(txt))}
+  else fallbackCopy(txt);
+}
+function fallbackCopy(txt){
+  try{const ta=document.createElement("textarea");ta.value=txt;ta.style.cssText="position:fixed;left:-9999px";document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);toast("Đã sao chép cấu hình.")}
+  catch(e){toast("Không sao chép được — hãy bôi đen và copy thủ công.")}
+}
+function helpKhac(){
+  return `
+  <p class="lead">Các công cụ hỗ trợ tác nghiệp và quản trị hệ thống.</p>
+  <h4>Lịch công tác</h4>
+  <p>Quản lý sự kiện, hoạt động của đơn vị; hiển thị trực quan theo thời gian.</p>
+  <h4>Tìm kiếm toàn văn</h4>
+  <p>Tìm nhanh trong toàn bộ văn bản theo số ký hiệu, trích yếu, nội dung.</p>
+  <h4>Kho tài liệu</h4>
+  <p>Lưu và chia sẻ tài liệu dùng chung (biểu mẫu, bộ nhận diện, hướng dẫn…) cho các đơn vị trong nhánh.</p>
+  <h4>Sơ đồ tổ chức</h4>
+  <p>Xem và quản lý cây đơn vị. Trong <b>Sửa thông tin đơn vị</b> có thể khai <b>Webhook Discord</b> (để nhận thông báo tức thời) và <b>Email</b> (để nhận nhắc việc tự động). Webhook chỉ gửi được, không đọc dữ liệu nên an toàn.</p>
+  <h4>Dữ liệu &amp; sao lưu (Quản trị)</h4>
+  <p>Thiết lập chế độ đồng bộ Firestore, sao lưu/khôi phục dữ liệu, và xem các quy tắc bảo mật cần bổ sung. Đây cũng là nơi hướng dẫn cấu hình Code.gs cho thông báo Email/Discord tự động.</p>
+  <h4>Thông báo Discord &amp; Email</h4>
+  <div class="hm-step"><div class="num">1</div><div class="tx">Trong máy chủ Discord của đơn vị: Cài đặt kênh → Tích hợp → Webhook → New Webhook → Copy URL.</div></div>
+  <div class="hm-step"><div class="num">2</div><div class="tx">Dán URL vào <b>Sơ đồ tổ chức → Sửa thông tin đơn vị → Webhook Discord</b>.</div></div>
+  <div class="hm-step"><div class="num">3</div><div class="tx">Từ đó, mỗi khi có văn bản phát hành/chuyển tiếp hoặc phát động báo cáo, kênh Discord nhận thông báo ngay.</div></div>
+  <p style="margin-top:12px"><a href="javascript:void(0)" onclick="helpGo('danhba')"><b>→ Mở Sơ đồ tổ chức</b></a> · <a href="javascript:void(0)" onclick="helpGo('hethong')"><b>Mở Dữ liệu &amp; sao lưu</b></a></p>`;
+}
+function helpFaq(){
+  const faqs=[
+    ["Dữ liệu của tôi lưu ở đâu, có an toàn không?","Ở chế độ cục bộ, dữ liệu lưu trong trình duyệt máy bạn. Ở chế độ đồng bộ, dữ liệu lưu trên Firestore của đơn vị và chia sẻ theo cây tổ chức với quy tắc bảo mật rõ ràng. Webhook Discord chỉ gửi được, không đọc được dữ liệu."],
+    ["Tôi không phải Bí thư, có phát hành văn bản/báo cáo được không?","Bạn vẫn soạn được, nhưng văn bản/báo cáo sẽ ở trạng thái chờ duyệt để Bí thư/Phó Bí thư phê duyệt phát hành — đúng quy trình văn thư."],
+    ["Quý và năm có phải nhập số liệu lại không?","Không. Nếu dùng \"Chương trình cả năm\", bạn chỉ nhập số theo tháng; quý tự cộng từ 3 tháng và năm tự cộng từ 4 quý theo cách gộp của từng chỉ tiêu."],
+    ["Vì sao có chỉ tiêu cộng dồn, có chỉ tiêu lại lấy số cuối kỳ?","Chỉ tiêu \"phát sinh trong kỳ\" (kết nạp mới, số buổi…) thì cộng dồn (sum). Chỉ tiêu \"tổng/hiện có\" (tổng số đoàn viên…) thì lấy giá trị kỳ cuối (last) để không bị cộng trùng."],
+    ["Làm sao để được nhắc hạn khi không ai mở phần mềm?","Cấu hình tệp Code.gs trên Google Apps Script và đặt lịch trigger. Hệ thống sẽ gửi Email/Discord tự động hằng ngày. Xem Dữ liệu & sao lưu để biết chi tiết."],
+    ["Báo cáo xuất ra có đúng thể thức văn bản của Đoàn không?","Có. Bản Word gồm quốc hiệu, tên cơ quan, số ký hiệu, địa danh–ngày tháng, tên báo cáo, nơi nhận và phần ký (TM. BAN CHẤP HÀNH – BÍ THƯ) theo đúng thể thức."],
+    ["Có tốn phí không?","Không. Phần mềm, Firebase gói Spark, Discord webhook và Google Apps Script đều nằm trong hạn mức miễn phí."],
+  ];
+  return `<p class="lead">Những câu hỏi thường gặp khi sử dụng DoanOffice.</p>
+    ${faqs.map(f=>`<div class="hm-faq"><b>${esc(f[0])}</b><span>${esc(f[1])}</span></div>`).join("")}
+    <p style="margin-top:14px">Chưa tìm thấy câu trả lời? Liên hệ quản trị hệ thống của đơn vị hoặc xem mục <b>Dữ liệu &amp; sao lưu</b> để biết thông tin cấu hình.</p>`;
+}
+
 /* ---------- Lớp tích hợp mở (Open Integration Layer) ----------
    Các hệ thống khác / connector tương lai (iOffice tỉnh, Zalo bot…)
    truy cập qua window.DoanOffice — không đụng vào lõi. */
@@ -3461,6 +4091,7 @@ window.DoanOffice={
 };
 /* ---------- init ---------- */
 try{const h=(location.hash||"").match(/#vb=([A-Za-z0-9]+)/);if(h)S.pendingDoc=h[1]}catch(e){}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&S.help){S.help=null;render()}});
 boot();
 </script>
 </body>
