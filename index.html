@@ -340,6 +340,30 @@ const FIREBASE_CONFIG = {
   appId: "1:1003949643846:web:5fe24b22e058d4eb8cd247"
 };
 const LOGIN_DOMAIN = "doan-office.app";   // tên đăng nhập + @domain này = email tài khoản Firebase
+/* Bộ luật Firestore đầy đủ (dán vào Firebase Console → Rules → Publish) */
+const FIRESTORE_RULES=`rules_version = '2';
+service cloud.firestore {
+  match /databases/\${database}/documents {
+    function signedIn() { return request.auth != null; }
+
+    match /units/{id}          { allow read, write: if signedIn(); }
+    match /userIndex/{id}      { allow read, write: if signedIn(); }
+    match /docs/{id}           { allow read, write: if signedIn(); }
+    match /seq/{id}            { allow read, write: if signedIn(); }
+    match /orgLog/{id} {
+      allow read, create: if signedIn();
+      allow update, delete: if false;   // nhật ký bất biến
+    }
+    match /targets/{id}        { allow read, write: if signedIn(); }
+    match /events/{id}         { allow read, write: if signedIn(); }
+    match /library/{id}        { allow read, write: if signedIn(); }
+    match /periodic/{id}       { allow read, write: if signedIn(); }
+    match /reportTemplates/{id}{ allow read, write: if signedIn(); }
+    match /reminders/{id}      { allow read, write: if signedIn(); }
+
+    match /{document=**}       { allow read, write: if false; }
+  }
+}`;
 const MODE = FIREBASE_CONFIG ? "cloud" : "local";
 const FB = {auth:null, fs:null, unsub:[]};
 const LS_KEY="doanoffice_v2";
@@ -493,6 +517,16 @@ function memberLabel(){const c=curMember();return c?c.name+" · "+ROLES[c.role]:
 function isApprover(){if(!members(me()).length)return true;const c=curMember();return !!c&&(c.role==="bithu"||c.role==="phobithu")}
 function me(){return unit(DB.session)}
 function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),2600)}
+/* Nhận diện lỗi thiếu quyền Firestore và báo bằng tiếng Việt dễ hiểu */
+function isPermErr(e){const s=((e&&(e.message||e.code))||"").toLowerCase();return s.includes("permission")||s.includes("insufficient")||s.includes("permission-denied")}
+function friendlyErr(e,what){
+  if(isPermErr(e)){
+    toast("Chưa đủ quyền ghi lên máy chủ ("+(what||"dữ liệu")+"). Cần cập nhật Firestore Rules — mở hướng dẫn ở Dữ liệu & sao lưu.");
+    S._permErr=true;
+    return;
+  }
+  toast("Lỗi lưu"+(what?" "+what:"")+": "+((e&&e.message)||e));
+}
 
 /* ---------------- nghiệp vụ ---------------- */
 function children(uid_){return DB.units.filter(u=>u.parent===uid_&&!u.deleted)}
@@ -1116,7 +1150,15 @@ function shell(content){
         <button class="btn btn-ghost btn-sm" onclick="logout()">Đăng xuất</button></div>
     </div>
     <div class="content">${content}</div>
-   </div>${S.help?helpModalHtml():""}</div>`;
+   </div>${S._permErr?permBanner():""}${S.help?helpModalHtml():""}</div>`;
+}
+function permBanner(){
+  return `<div style="position:fixed;left:0;right:0;bottom:0;z-index:150;background:linear-gradient(90deg,#7a1020,#a01829);color:#fff;padding:12px 18px;display:flex;align-items:center;gap:14px;box-shadow:0 -4px 20px rgba(0,0,0,.3)">
+    <span style="font-size:1.3rem">🔒</span>
+    <div style="flex:1;font-size:.86rem;line-height:1.4"><b>Chưa đủ quyền ghi lên máy chủ (Firestore).</b> Một số dữ liệu (lịch nhắc, mẫu, báo cáo…) chưa lưu được vì quy tắc bảo mật Firestore chưa cấp quyền cho các collection mới. Cần cập nhật <b>Firestore Rules</b> một lần.</div>
+    <button class="btn btn-gold btn-sm" onclick="S._permErr=false;nav('hethong')">Xem cách khắc phục</button>
+    <button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff" onclick="S._permErr=false;render()">Đóng</button>
+  </div>`;
 }
 function myRecipOf(d,uid_){return d.recips.find(r=>r.unit===uid_)}
 function statusPill(d,r){
@@ -2092,7 +2134,7 @@ async function orgSave(){
     orgLog("Tạo đơn vị",nu.id,"trực thuộc "+pu.short+", tài khoản "+user);
     toast("Đã tạo "+short+" — tài khoản: "+user);
     S.orgEdit=null;render();
-  }catch(e){toast("Lỗi: "+e.message)}
+  }catch(e){friendlyErr(e,"thông tin đơn vị")}
   finally{if(btn)btn.disabled=false}
 }
 /* --- cấp lại mật khẩu --- */
@@ -2245,7 +2287,7 @@ async function giveTarget(){
   if(!ten||!(so>0)){toast("Nhập tên chỉ tiêu và số giao (>0).");return}
   const t={id:uid("t"),from:m.id,unit:uId,ten,donvi:dv,giao:so,dat:0,ky,updated:todayISO(),logs:[]};
   (DB.targets=DB.targets||[]).push(t);
-  try{await commitTarget(t)}catch(e){DB.targets.pop();toast("Lỗi lưu: "+e.message);return}
+  try{await commitTarget(t)}catch(e){DB.targets.pop();friendlyErr(e,"chỉ tiêu");render();return}
   orgLog("Giao chỉ tiêu",uId,ten+": "+so+" "+(dv||"")+" ("+ky+")");
   toast("Đã giao “"+ten+"” cho "+u.short+".");render();
 }
@@ -2606,7 +2648,7 @@ async function addLibItem(){
   (DB.library=DB.library||[]).push(x);
   if(MODE==="local"){save()}
   else{try{await FB.fs.collection("library").doc(x.id).set(JSON.parse(JSON.stringify(x)))}
-    catch(e){DB.library.pop();toast("Lỗi lưu: "+e.message);return}}
+    catch(e){DB.library.pop();friendlyErr(e,"tài liệu");render();return}}
   orgLog("Thêm tài liệu vào kho","",ten+(x.shareTo.length?" (chia sẻ "+x.shareTo.length+" đơn vị)":""));
   toast("Đã đưa “"+ten+"” vào kho.");render();
 }
@@ -2669,18 +2711,12 @@ function viewSystem(){
     <p style="margin-bottom:6px">⑤ <b>Mẫu báo cáo</b> — cơ sở chọn mẫu chuẩn (theo Công văn 76-CV/ĐTN) hoặc tạo mẫu riêng, điền nội dung, tự lấy số liệu từ <b>Báo cáo định kỳ</b>, rồi <b>xuất Word đúng thể thức</b> và/hoặc <b>gửi bản điện tử lên cấp trên</b> (thành văn bản đi loại Báo cáo).</p>
     <p style="margin-bottom:6px">⑥ <b>Nhắc lịch báo cáo</b> — nạp sẵn mốc CV76 (tháng/quý/6-9 tháng/năm), cảnh báo trước hạn 1–2 ngày (tùy chọn), lặp định kỳ; cơ sở tạo thêm lịch riêng và gắn mẫu báo cáo. Nhắc trong app + Discord; muốn nhắc Email/Discord kể cả khi không ai mở web thì đặt trigger <code>dueReminders</code> trong <b>Code.gs</b>.</p>
     <p style="margin-bottom:6px">⑦ <b>Tự tổng hợp theo kỳ</b> — trong <b>Báo cáo định kỳ</b>, chọn "Chương trình cả năm" để phát động một lần: hệ thống sinh 12 tháng + 4 quý + 1 năm liên kết. Cơ sở chỉ nhập số <b>tháng</b>; <b>quý tự cộng từ 3 tháng, năm tự cộng từ 4 quý</b> theo cách gộp của từng chỉ tiêu (cộng dồn / lấy cuối kỳ / trung bình). Số liệu quý/năm có thể đổ thẳng vào mẫu báo cáo văn bản.</p>
-    <p style="margin-bottom:6px"><b>Firestore rules cần bổ sung</b> (dán vào <code>firestore.rules</code> rồi publish):</p>
-    <pre style="background:var(--line-soft);padding:10px;border-radius:8px;overflow:auto;font-size:.78rem;line-height:1.4">match /reportTemplates/{id} {
-  allow read: if request.auth != null;      // mọi đơn vị đọc mẫu dùng chung
-  allow write: if request.auth != null
-    && request.resource.data.from == null
-       || resource == null
-       || resource.data.from == request.auth.token.email.split('@')[0];
-}
-match /reminders/{id} {
-  allow read, write: if request.auth != null; // lịch nhắc của từng đơn vị
-}</pre>
-    <p class="muted">Chương trình báo cáo năm dùng chung collection <code>periodic</code> (thêm trường <code>campaignId</code>, <code>periodKey</code>, <code>derived</code>) nên không cần quyền mới. Mẫu chỉ đơn vị tạo ra mới sửa/xóa; lịch nhắc thuộc đơn vị sở hữu (<code>from</code>). Trường <code>webhook</code>, <code>email</code> vẫn dùng chung quyền của <code>units</code>.</p>
+    <p style="margin-bottom:6px"><b style="color:var(--danger)">⚠ Nếu gặp lỗi "Missing or insufficient permissions"</b> khi thêm lịch nhắc, tạo mẫu, hay báo cáo định kỳ: nghĩa là <b>Firestore rules chưa cấp quyền</b> cho các collection mới. Dán TOÀN BỘ bộ luật dưới đây vào <b>Firebase Console → Firestore Database → Rules</b> (đè lên nội dung cũ) rồi bấm <b>Publish</b>:</p>
+    <div style="position:relative">
+      <pre id="fs-rules" style="background:var(--doan-ink);color:#e6edf5;padding:12px 14px;border-radius:9px;overflow:auto;font-size:.72rem;line-height:1.45;margin:0">${esc(FIRESTORE_RULES)}</pre>
+      <button class="btn btn-gold btn-sm" style="position:absolute;top:8px;right:8px" onclick="copyRules()">⧉ Sao chép</button>
+    </div>
+    <p class="muted" style="margin-top:8px">Bộ luật này cấp quyền cho <b>tất cả</b> collection mà phần mềm dùng (gồm <code>reminders</code>, <code>reportTemplates</code>, <code>periodic</code>…). Nguyên tắc: người đã đăng nhập (cán bộ được cấp tài khoản) được đọc/ghi; phân quyền theo nhánh do phần mềm kiểm soát; nhật ký <code>orgLog</code> bất biến. Trường <code>webhook</code>, <code>email</code> nằm trong <code>units</code>.</p>
     <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line-soft)">
       <b style="color:var(--doan-deep)">📩 Nhắc Email/Discord tự động (kể cả khi không ai mở web)</b>
       <p style="margin:6px 0">Cài tệp <b>Code.gs</b> lên Google Apps Script (miễn phí). Hướng dẫn từng bước có ảnh minh hoạ và trình chọn giờ ngay trong app — không phải cấu hình trigger thủ công.</p>
@@ -3177,7 +3213,7 @@ async function createCampaign(){
   if(genNam)mk("nam",year+"-Y","Năm "+year,defaultHan("nam",year,null),genQuy||genThang);
   (DB.periodic=DB.periodic||[]).push(...created);
   try{for(const p of created)await commitPeriodic(p);}
-  catch(e){created.forEach(p=>{DB.periodic=DB.periodic.filter(x=>x.id!==p.id)});toast("Lỗi lưu: "+e.message);return}
+  catch(e){created.forEach(p=>{DB.periodic=DB.periodic.filter(x=>x.id!==p.id)});friendlyErr(e,"chương trình báo cáo");render();return}
   orgLog("Phát động chương trình báo cáo năm","",ten+" "+year+" → "+created.length+" kỳ, "+recipIds.length+" đơn vị");
   notifyPeriodicRecips(recipIds,m,ten+" (năm "+year+")",defaultHan("thang",year,new Date().getMonth()+1));
   toast("Đã tạo chương trình “"+ten+"” năm "+year+": "+created.length+" kỳ liên kết.");
@@ -3194,7 +3230,7 @@ async function createPeriodic(){
   if(!recipIds.length){toast("Chọn đơn vị phải báo cáo.");return}
   const p={id:uid("pk"),from:m.id,ten,ky,kylabel,han,fields,recipIds,entries:{},created:todayISO()};
   (DB.periodic=DB.periodic||[]).push(p);
-  try{await commitPeriodic(p)}catch(e){DB.periodic.pop();toast("Lỗi lưu: "+e.message);return}
+  try{await commitPeriodic(p)}catch(e){DB.periodic.pop();friendlyErr(e,"đợt báo cáo");render();return}
   orgLog("Phát động báo cáo định kỳ","",ten+" ("+(PKY[ky]||ky)+") → "+recipIds.length+" đơn vị");
   notifyPeriodicRecips(recipIds,m,ten,han);
   toast("Đã phát động “"+ten+"” tới "+recipIds.length+" đơn vị.");
@@ -3638,7 +3674,7 @@ async function createTemplate(){
     loai:"baocao",shared:(document.getElementById("rt-shared")||{}).checked||false,blocks,created:todayISO()};
   (DB.reports=DB.reports||[]).push(tpl);
   try{if(MODE==="cloud"){await FB.fs.collection("reportTemplates").doc(tpl.id).set(JSON.parse(JSON.stringify(tpl)))}else save();}
-  catch(e){DB.reports.pop();toast("Lỗi lưu mẫu: "+e.message);return}
+  catch(e){DB.reports.pop();friendlyErr(e,"mẫu báo cáo");render();return}
   orgLog("Tạo mẫu báo cáo","",ten);toast("Đã lưu mẫu “"+ten+"”.");render();
 }
 async function delTemplate(id){
@@ -3776,7 +3812,7 @@ async function createReminder(){
   else if(cycle!=="daily"){r.dueDay=Number(g("rm-dueday")||1);if(cycle==="yearly")r.dueMonth=Number(g("rm-duemonth")||1);}
   (DB.reminders=DB.reminders||[]).push(r);
   try{if(MODE==="cloud"){await FB.fs.collection("reminders").doc(r.id).set(JSON.parse(JSON.stringify(r)))}else save();}
-  catch(e){DB.reminders.pop();toast("Lỗi lưu: "+e.message);return}
+  catch(e){DB.reminders.pop();friendlyErr(e,"lịch nhắc");render();return}
   orgLog("Tạo lịch nhắc báo cáo","",ten);toast("Đã thêm lịch nhắc “"+ten+"”.");render();
 }
 async function toggleReminder(id,on){
@@ -4102,6 +4138,11 @@ function copyTrgCfg(){
 function fallbackCopy(txt){
   try{const ta=document.createElement("textarea");ta.value=txt;ta.style.cssText="position:fixed;left:-9999px";document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);toast("Đã sao chép cấu hình.")}
   catch(e){toast("Không sao chép được — hãy bôi đen và copy thủ công.")}
+}
+function copyRules(){
+  const el=document.getElementById("fs-rules");if(!el)return;const txt=el.textContent;
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>toast("Đã sao chép bộ luật. Dán vào Firebase Console → Rules → Publish.")).catch(()=>fallbackCopy(txt))}
+  else fallbackCopy(txt);
 }
 function helpKhac(){
   return `
