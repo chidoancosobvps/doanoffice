@@ -3811,7 +3811,7 @@ function pushReminderDiscord(id){
 function openHelp(tab){S.help=tab||"intro";S.bell=false;render()}
 function closeHelp(){S.help=null;render()}
 function helpGo(v){S.help=null;nav(v)}
-const HELP_TABS={intro:"Giới thiệu",start:"Bắt đầu nhanh",vanban:"Văn bản",baocao:"Báo cáo & tổng hợp",maunhac:"Mẫu & Nhắc lịch",nhactudong:"Cài nhắc tự động",khac:"Tiện ích khác",faq:"Hỏi–đáp"};
+const HELP_TABS={intro:"Giới thiệu",start:"Bắt đầu nhanh",taikhoan:"Tài khoản & mật khẩu",vanban:"Văn bản",baocao:"Báo cáo & tổng hợp",maunhac:"Mẫu & Nhắc lịch",nhactudong:"Cài nhắc tự động",khac:"Tiện ích khác",faq:"Hỏi–đáp"};
 function helpModalHtml(){
   return `<div class="hm-back" onclick="if(event.target===this)closeHelp()">
     <div class="hm">
@@ -3828,6 +3828,7 @@ function helpModalHtml(){
 }
 function helpContent(tab){
   if(tab==="start")return helpStart();
+  if(tab==="taikhoan")return helpTaiKhoan();
   if(tab==="vanban")return helpVanban();
   if(tab==="baocao")return helpBaocao();
   if(tab==="maunhac")return helpMaunhac();
@@ -3835,6 +3836,40 @@ function helpContent(tab){
   if(tab==="khac")return helpKhac();
   if(tab==="faq")return helpFaq();
   return helpIntro();
+}
+function helpTaiKhoan(){
+  const isCloud=MODE==="cloud";
+  return `
+  <p class="lead">Mỗi đơn vị có <b>một tài khoản đăng nhập riêng</b>. Quyền quản trị kế thừa theo nhánh: cấp trên tạo, sửa, khóa/khôi phục và cấp lại mật khẩu cho mọi đơn vị cấp dưới trong nhánh của mình; mỗi đơn vị tự đổi mật khẩu của chính mình.</p>
+
+  <div class="hm-tip" style="background:${isCloud?'var(--info-bg)':'var(--gold-soft)'}">Hệ thống của bạn đang chạy ở chế độ <b>${isCloud?"Đồng bộ Firestore (nhiều đơn vị dùng chung)":"Cục bộ (dữ liệu trên máy này)"}</b>. Phần áp dụng cho chế độ này được đánh dấu bên dưới.</div>
+
+  <h4>1. Tài khoản ban đầu</h4>
+  <div class="hm-role"><b>Chế độ cục bộ (demo, tập huấn)</b> — có sẵn 7 tài khoản mẫu (Tỉnh đoàn, Huyện/Thành đoàn, Đoàn xã/phường…), <b>mật khẩu chung là <span class="hm-kbd">123456</span></b>. Màn đăng nhập có nút bấm vào nhanh. Chỉ dùng để dùng thử — <b>không dùng mật khẩu này cho hệ thống thật</b>.</div>
+  <div class="hm-role"><b>Chế độ đồng bộ Firestore (dùng thật)</b> — không dùng tài khoản demo. Tài khoản do quản trị viên (đơn vị cấp cao nhất) tạo cho từng đơn vị. Tên đăng nhập được ghép thành email nội bộ <span class="hm-kbd">tài_khoản@${esc(typeof LOGIN_DOMAIN!=="undefined"?LOGIN_DOMAIN:"doan-office.app")}</span> và mật khẩu lưu an toàn ở <b>Firebase Authentication</b> (không nằm trong dữ liệu Firestore).</div>
+
+  <h4>2. Thiết lập mật khẩu ban đầu khi tạo đơn vị</h4>
+  <p>Khi <b>Thêm đơn vị cấp dưới</b> (Sơ đồ tổ chức), form bắt buộc nhập:</p>
+  <div class="hm-step"><div class="num">1</div><div class="tx"><b>Tài khoản đăng nhập</b> — chữ thường không dấu, số, dấu chấm/gạch; không trùng đơn vị khác. VD: <span class="hm-kbd">cd.bvphusan</span>.</div></div>
+  <div class="hm-step"><div class="num">2</div><div class="tx"><b>Mật khẩu ban đầu</b> — tối thiểu 6 ký tự. Gửi cho đơn vị qua kênh an toàn và đề nghị họ đổi sau lần đăng nhập đầu.</div></div>
+  <p>Khi nhập hàng loạt bằng <b>file Excel</b>, dùng cột "Tài khoản đăng nhập" và "Mật khẩu ban đầu" trong file mẫu. ${isCloud?"Ở chế độ cloud, hệ thống tự tạo tài khoản trên Firebase Authentication.":""}</p>
+
+  <h4>3. Đổi mật khẩu của chính đơn vị mình</h4>
+  <div class="hm-step"><div class="num">1</div><div class="tx">Vào <b>Sơ đồ tổ chức</b> → bấm <b>✎ Sửa thông tin</b> ở dòng đơn vị của bạn.</div></div>
+  <div class="hm-step"><div class="num">2</div><div class="tx">Ở mục Mật khẩu, nhập mật khẩu mới (≥6 ký tự) → bấm <b>🔑 Đổi mật khẩu của tôi</b>.${isCloud?" Vì an toàn, Firebase có thể yêu cầu đăng nhập lại trước khi đổi.":""}</div></div>
+
+  <h4>4. Cấp lại mật khẩu cho đơn vị cấp dưới (khi họ quên)</h4>
+  <p>Vào <b>Sơ đồ tổ chức</b> → bấm <b>✎ Sửa</b> ở đơn vị cấp dưới cần xử lý (chỉ làm được với đơn vị trong nhánh của bạn), rồi ở mục "Cấp lại mật khẩu":</p>
+  <div class="hm-role"><b>Chế độ cục bộ:</b> nhập mật khẩu mới → <b>🔑 Đặt mật khẩu mới</b>. Có hiệu lực ngay.</div>
+  <div class="hm-role"><b>Chế độ đồng bộ Firestore:</b> nền tảng miễn phí không cho một tài khoản đổi thẳng mật khẩu của tài khoản khác. Hệ thống dùng cách <b>cấp định danh đăng nhập mới + mật khẩu mới</b> (app gợi ý sẵn tên mới); tài khoản cũ vô hiệu ngay. <br><b>Cách thay thế giữ nguyên tên đăng nhập:</b> vào <b>Firebase Console → Authentication</b>, tìm user <span class="hm-kbd">tài_khoản@${esc(typeof LOGIN_DOMAIN!=="undefined"?LOGIN_DOMAIN:"doan-office.app")}</span> → Reset password.</div>
+
+  <h4>5. Sửa thông tin tài khoản</h4>
+  <p>Trong <b>✎ Sửa</b> có thể đổi tên đơn vị, mã ký hiệu, địa chỉ, điện thoại, email, webhook. Riêng <b>tên đăng nhập bị khóa</b> (không sửa trực tiếp) vì gắn với danh tính đăng nhập — muốn đổi tên đăng nhập thì dùng chức năng cấp lại tài khoản ở mục 4.</p>
+
+  <div class="hm-tip" style="border-left:3px solid var(--warn);background:#fff7e6">⚠ <b>Khuyến nghị bảo mật:</b> nếu đang chạy hệ thống thật, hãy đảm bảo <b>không còn tài khoản nào dùng mật khẩu mặc định 123456</b>. Đặt mật khẩu riêng, đủ mạnh cho từng đơn vị và yêu cầu đổi định kỳ.</div>
+
+  <p style="margin-top:6px" class="small muted">Mọi thao tác tạo / sửa / khóa / khôi phục / cấp lại mật khẩu đều được ghi vào <b>Nhật ký hoạt động</b> (bất biến, không sửa/xóa) để truy vết.</p>
+  <p style="margin-top:8px"><a href="javascript:void(0)" onclick="helpGo('danhba')"><b>→ Mở Sơ đồ tổ chức</b></a></p>`;
 }
 function helpIntro(){
   return `
