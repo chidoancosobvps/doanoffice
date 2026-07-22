@@ -1721,6 +1721,7 @@ function viewOrg(){
     </div>`:""}
     <div class="hint" style="margin-top:12px">Quyền quản trị <b>kế thừa theo nhánh</b>: cấp trên được thêm / sửa / khóa / khôi phục / cấp lại mật khẩu cho <b>mọi đơn vị cấp dưới trong nhánh của mình</b> (con, cháu…); mỗi đơn vị tự sửa thông tin của chính mình. Khóa đơn vị giữ nguyên văn bản, truy vết cũ.</div>
   </div></div>
+  ${notifyAuditCard()}
   <div class="card"><div class="card-h"><h3>Nhật ký hoạt động</h3><div class="spacer"></div>
     <button class="btn btn-ghost btn-sm" onclick="loadLogs(true)">⟳ Tải lại</button></div>
    <div class="tbl-wrap"><table><thead><tr><th>Thời điểm</th><th>Đơn vị</th><th>Hoạt động</th><th>Đối tượng / ghi chú</th></tr></thead><tbody>
@@ -1741,6 +1742,33 @@ function viewOrg(){
     <p>Quan hệ tổ chức quyết định luồng văn bản: cấp trên → cấp dưới (chỉ đạo, giao việc), cấp dưới → cấp trên (báo cáo, tờ trình), ngang cấp (phối hợp).</p>
   </div></div>`}
   </div>`;
+}
+/* Thẻ kiểm tra cấu hình thông báo: đơn vị nào đã/chưa khai email + webhook */
+function isValidWebhook(w){return w&&/^https:\/\/(discord\.com|discordapp\.com)\/api\/webhooks\//.test(w)}
+function isValidEmail(e){return e&&e.indexOf("@")>0}
+function notifyAuditCard(){
+  const m=me();
+  const list=[m,...myDescendants()]; /* đơn vị mình + toàn bộ cấp dưới trong nhánh */
+  const canEdit=u=>u.id===m.id||managedBy(u,m.id);
+  const okE=list.filter(u=>isValidEmail(u.email)).length;
+  const okW=list.filter(u=>isValidWebhook(u.webhook)).length;
+  const rows=list.map(u=>{
+    const e=isValidEmail(u.email),w=isValidWebhook(u.webhook);
+    return `<tr>
+      <td>${esc(u.short||u.name)}${u.id===m.id?' <span class="pill role" style="font-size:.62rem">Đơn vị bạn</span>':""}</td>
+      <td class="c">${e?`<span class="pill xong" title="${esc(u.email)}">✓ Có</span>`:'<span class="pill cho">✗ Thiếu</span>'}</td>
+      <td class="c">${w?'<span class="pill xong">✓ Có</span>':'<span class="pill cho">✗ Thiếu</span>'}</td>
+      <td class="c">${canEdit(u)?`<button class="btn btn-ghost btn-sm" onclick="orgEdit('${u.id}')">✎ Khai</button>`:'<span class="muted small">—</span>'}</td>
+    </tr>`;
+  }).join("");
+  return `<div class="card"><div class="card-h"><h3>Kiểm tra cấu hình thông báo</h3><div class="spacer"></div>
+    <span class="pill ${okE===list.length?'xong':'cho'}">Email ${okE}/${list.length}</span>
+    <span class="pill ${okW===list.length?'xong':'cho'}" style="margin-left:4px">Webhook ${okW}/${list.length}</span></div>
+   <div class="card-b">
+    <div class="hint" style="margin-bottom:8px">Đơn vị cần có <b>Email</b> để nhận nhắc việc/nhắc lịch tự động, và <b>Webhook Discord</b> để nhận thông báo tức thời. Bấm <b>✎ Khai</b> để nhập ngay (app tự lưu vào hệ thống — không phải sửa tay trên Firestore).</div>
+    <div class="tbl-wrap"><table><thead><tr><th>Đơn vị</th><th class="c">Email</th><th class="c">Webhook Discord</th><th class="c">Thao tác</th></tr></thead><tbody>${rows}</tbody></table></div>
+    ${(okE<list.length||okW<list.length)?`<div class="hint" style="margin-top:8px;border-left:3px solid var(--warn)">Còn ${Math.max(list.length-okE,list.length-okW)} đơn vị chưa khai đủ. Hoàn tất để thông báo tự động hoạt động cho toàn nhánh.</div>`:`<div class="hint" style="margin-top:8px;border-left:3px solid var(--ok)">✓ Tất cả đơn vị trong nhánh đã khai đủ email và webhook.</div>`}
+   </div></div>`;
 }
 function logsVisible(){
   if(!Array.isArray(S.logs))return [];
@@ -4002,6 +4030,7 @@ function helpNhacTuDong(){
   <div style="margin:8px 0">${svgStep_triggerClock()}</div>
   <p>Thay vì bấm tay từng trigger, chỉ cần: chọn hàm <b>setupTriggers</b> ở thanh trên → bấm <b>Run</b>. Hàm này tự tạo đủ các lịch nhắc theo giờ bạn đã cấu hình ở Bước 3.</p>
   <div class="hm-tip">✅ Xong! Từ nay hệ thống tự nhắc mỗi ngày. Muốn đổi giờ: sửa lại ở Bước 3, dán CONFIG mới, rồi chạy lại <b>setupTriggers</b>. Muốn gỡ: chạy <b>removeTriggers</b>. Muốn kiểm tra: chạy <b>listTriggers</b> rồi xem log.</p></div>
+  <div class="hm-tip" style="background:var(--info-bg)">📌 Điều kiện để nhắc tới đúng nơi: mỗi đơn vị phải có <b>Email</b> (nhận nhắc) và/hoặc <b>Webhook Discord</b>. Kiểm tra nhanh đơn vị nào còn thiếu ở <b>Sơ đồ tổ chức → Kiểm tra cấu hình thông báo</b>, bấm ✎ Khai để nhập. <a href="javascript:void(0)" onclick="helpGo('danhba')"><b>→ Mở Sơ đồ tổ chức</b></a></div>
 
   <h5>Các hàm có sẵn trong Code.gs</h5>
   <ul>
@@ -4050,6 +4079,7 @@ function helpKhac(){
   <p>Lưu và chia sẻ tài liệu dùng chung (biểu mẫu, bộ nhận diện, hướng dẫn…) cho các đơn vị trong nhánh.</p>
   <h4>Sơ đồ tổ chức</h4>
   <p>Xem và quản lý cây đơn vị. Trong <b>Sửa thông tin đơn vị</b> có thể khai <b>Webhook Discord</b> (để nhận thông báo tức thời) và <b>Email</b> (để nhận nhắc việc tự động). Webhook chỉ gửi được, không đọc dữ liệu nên an toàn.</p>
+  <p>Thẻ <b>Kiểm tra cấu hình thông báo</b> (ngay trong Sơ đồ tổ chức) hiển thị đơn vị nào trong nhánh đã/chưa khai đủ email và webhook, kèm nút <b>✎ Khai</b> để nhập nhanh. Đây là cách dễ nhất để đảm bảo thông báo tự động phủ khắp các đơn vị — không cần mở Firestore kiểm tra tay.</p>
   <h4>Dữ liệu &amp; sao lưu (Quản trị)</h4>
   <p>Thiết lập chế độ đồng bộ Firestore, sao lưu/khôi phục dữ liệu, và xem các quy tắc bảo mật cần bổ sung. Đây cũng là nơi hướng dẫn cấu hình Code.gs cho thông báo Email/Discord tự động.</p>
   <h4>Thông báo Discord &amp; Email</h4>
