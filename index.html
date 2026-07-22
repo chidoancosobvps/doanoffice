@@ -2023,9 +2023,36 @@ function memberSection(u){
     <div class="hint" style="margin-top:6px">Sau đăng nhập, cán bộ chọn vai làm việc; chỉ Bí thư/Phó Bí thư được phê duyệt, phát hành, thu hồi văn bản.</div>
   </div>`;
 }
+/* Chuẩn hóa dữ liệu đơn vị khi ĐỌC từ Firestore: nếu còn trường rác
+   'e-mail' (nhập tay) thì hiển thị như 'email'. Không ghi ngược lên. */
+function migrateUnit(u){
+  if(u&&typeof u==="object"&&!u.email){
+    const k=Object.keys(u).find(x=>x!=="email"&&/mail/i.test(x));
+    if(k&&u[k])u.email=u[k];
+  }
+  return u;
+}
 async function saveUnitDoc(u){
+  cleanUnitFields(u);
   if(MODE==="local"){save();return}
   await FB.fs.collection("units").doc(u.id).set(JSON.parse(JSON.stringify(u)));
+}
+/* Dọn các trường rác/sai tên do nhập tay trên Firestore (vd 'e-mail' có gạch),
+   di trú giá trị về đúng tên trường 'email' mà phần mềm dùng. */
+function cleanUnitFields(u){
+  if(!u||typeof u!=="object")return u;
+  const badEmailKeys=["e-mail","E-mail","e_mail","Email","EMAIL"];
+  badEmailKeys.forEach(k=>{
+    if(k in u){ if(!u.email && u[k]) u.email=u[k]; try{delete u[k]}catch(e){} }
+  });
+  // xóa các key có ký tự gạch nối lạ chứa 'mail'
+  Object.keys(u).forEach(k=>{
+    if(k!=="email" && /mail/i.test(k) && /[-\u2010-\u2015\u00AD]/.test(k)){
+      if(!u.email && u[k]) u.email=u[k];
+      try{delete u[k]}catch(e){}
+    }
+  });
+  return u;
 }
 async function addMember(unitId){
   const m=me(),u=unit(unitId);
@@ -2100,6 +2127,7 @@ async function orgSave(){
       const u=unit(ed.target);
       if(!(u.id===m.id||managedBy(u,m.id))){toast("Không có quyền sửa đơn vị này.");return}
       Object.assign(u,{name,short,code},extra);
+      cleanUnitFields(u); /* loại bỏ trường rác 'e-mail' do nhập tay */
       if(MODE==="local"){save()}
       else{if(u.id!==m.id)u.anc=chainAnc(u); /* cấp trên sửa: tiện thể bổ sung chuỗi phân cấp */
         await FB.fs.collection("units").doc(u.id).set(JSON.parse(JSON.stringify(u)))}
@@ -2754,7 +2782,7 @@ async function cloudAfterLogin(user){
   let snap;
   try{snap=await FB.fs.collection("units").get()}
   catch(e){toast("Không đọc được danh sách đơn vị: "+e.message);return}
-  DB.units=snap.docs.map(d=>({id:d.id,...d.data()}));
+  DB.units=snap.docs.map(d=>migrateUnit({id:d.id,...d.data()}));
   const mine=DB.units.find(x=>x.user===uname);
   if(!mine){S.view="setup";S.setupUser=uname;render();return}  /* hệ thống chưa khởi tạo hoặc tài khoản chưa gắn đơn vị */
   if(mine.deleted){
@@ -2766,7 +2794,7 @@ async function cloudAfterLogin(user){
   ensureReminderSeed();
   try{if(!sessionStorage.getItem("do_lg")){orgLog("Đăng nhập");sessionStorage.setItem("do_lg","1")}}catch(e){}
   FB.unsub.push(FB.fs.collection("units").onSnapshot(s=>{
-    DB.units=s.docs.map(d=>({id:d.id,...d.data()}));liveRender()}));
+    DB.units=s.docs.map(d=>migrateUnit({id:d.id,...d.data()}));liveRender()}));
   const apply=s=>{s.docChanges().forEach(ch=>{
       const d={id:ch.doc.id,...ch.doc.data()};
       const i=DB.docs.findIndex(x=>x.id===d.id);
