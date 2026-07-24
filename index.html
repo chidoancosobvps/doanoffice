@@ -173,6 +173,9 @@ input.ty-filled{animation:tyflash 1.5s var(--ease)}
 .fx-sum{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:.78rem;color:var(--doan-ink);background:#FBFDFF;border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-top:9px}
 .fx-chip{border:1.5px solid;border-radius:99px;padding:1px 9px;font-size:.71rem;font-weight:700;background:#fff}
 .dv-file{display:flex;gap:7px;align-items:center;margin-bottom:4px;flex-wrap:wrap}
+.ty-loai{background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 10px;margin-top:6px;font-size:.79rem}
+.ty-pick{font-size:.8rem;color:#7A4700;background:var(--warn-bg);border:1px solid #F0D6A6;border-radius:10px;padding:9px 12px}
+select.ty-filled{animation:tyflash 1.5s var(--ease)}
 .pv-media{max-width:100%;max-height:62vh;border-radius:10px;box-shadow:var(--shadow)}
 .att-item .att-meta{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
 
@@ -824,7 +827,7 @@ function markDone(id){
 }
 let composeFiles=[];        /* v3.6: nhiều tệp đính kèm */
 let composeFile=null;       /* giữ tương thích mã cũ */
-function resetCompose(){composeFiles=[];composeFile=null;S.composeAtt=[];mainFileIdx=-1;tyExtract=null;driveQueue=[]}
+function resetCompose(){composeFiles=[];composeFile=null;S.composeAtt=[];mainFileIdx=-1;tyExtract=null;driveQueue=[];S._loaiTouched=false}
 /* Gộp tệp mới (files[]) + tệp kiểu cũ (file) của văn bản */
 function docFiles(d){const a=[...(d.files||[])];if(d.file)a.push(d.file);return a}
 const FILE_LIMIT_KB = MODE==="cloud"?400:800; /* cloud: chừa chỗ vì Firestore giới hạn ~1MB/document, base64 phình ~37% */
@@ -871,7 +874,10 @@ function autoPickMain(){
   const ty=document.getElementById("c-ty");
   if(ty&&ty.value.trim())return;               /* đã có trích yếu, không đụng */
   const cands=composeFiles.map((f,i)=>({f,i})).filter(x=>canExtract(x.f));
-  if(cands.length===1)setMainFile(cands[0].i);
+  if(cands.length===1){setMainFile(cands[0].i);return}
+  /* Nhiều tệp đọc được: KHÔNG tự chọn, nhưng nhắc rõ để người dùng bấm.
+     Đây là tình huống hay gặp khi gửi cả bộ hồ sơ nhiều văn bản. */
+  if(cands.length>1)tyStatus('<div class="ty-pick">📌 Có <b>'+cands.length+' tệp</b> đọc được. Hãy bấm <b>“★ Đặt làm văn bản chính”</b> ở tệp cần lấy trích yếu — kể cả tệp đang/đã đưa lên Drive.</div>');
 }
 /* Đưa một tệp quá khổ đang chờ trong danh sách lên Drive */
 function driveUploadPending(i){
@@ -961,62 +967,10 @@ function previewHtml(){
       <button class="hm-x" onclick="closePreview()">✕</button></div>
     <div class="hm-body" style="text-align:center">${body}</div></div></div>`;
 }
-function driveUploadPending(i){
-  const f=composeFiles[i];if(!f||!f._file)return;
-  if(!driveOn()){toast("Chưa cấu hình Google Drive — vào Dữ liệu & sao lưu → Google Drive để kết nối một lần.");nav("hethong");return}
-  const file=f._file;composeFiles.splice(i,1);updateFileListUI();
-  driveEnqueue(file,currentLoai());
-}
-function updateFileListUI(){
-  const el=document.getElementById("file-list");if(!el)return;
-  if(!composeFiles.length){el.innerHTML='<span class="muted">Chưa chọn tệp — chọn được nhiều tệp cùng lúc.</span>';mainFileIdx=-1;return}
-  const multi=composeFiles.filter(canExtract).length>1;
-  el.innerHTML=(multi?'<div class="ty-hint">📌 Có nhiều tệp — bấm <b>“Đặt làm văn bản chính”</b> ở tệp cần lấy trích yếu.</div>':"")
-   +composeFiles.map((f,i)=>{
-    const kind=f.link?"link":(f.oversize?"over":"emb");
-    const ic=kind==="link"?"☁️":(kind==="over"?"⚠️":"📎");
-    const isMain=i===mainFileIdx;
-    const meta=kind==="link"
-      ?`<a href="${esc(f.link)}" target="_blank" rel="noopener">Xem trên Drive ↗</a>${f.drivePath?` <span class="muted">· ${esc(f.drivePath)}</span>`:""}`
-      :kind==="over"
-        ?`<span style="color:var(--warn)">vượt ${FILE_LIMIT_KB}KB — mới chỉ lưu tên</span>
-          <button class="btn btn-gold btn-xs" style="margin-left:6px" onclick="driveUploadPending(${i})">☁ Đưa lên Drive</button>`
-        :`<span class="muted">${Math.round(f.size/1024)} KB · lưu kèm văn bản</span>`;
-    const mainBtn=canExtract(f)
-      ?(isMain?`<span class="ty-main-tag">★ Văn bản chính</span>
-                <button class="btn btn-ghost btn-xs" onclick="runExtract(${i})" ${tyBusy?"disabled":""}>⟳ Trích lại</button>`
-              :`<button class="btn btn-ghost btn-xs" onclick="setMainFile(${i})" ${tyBusy?"disabled":""}>★ Đặt làm văn bản chính</button>`)
-      :`<span class="muted small">không đọc được để trích yếu</span>`;
-    return `<div class="att-item ${kind}${isMain?" is-main":""}">
-      <span class="att-ic">${ic}</span>
-      <div class="att-body"><div class="att-name">${esc(f.name)}</div>
-        <div class="att-meta small">${meta}</div>
-        <div class="att-main">${mainBtn}</div></div>
-      <button class="att-x" title="Bỏ tệp này" onclick="removeComposeFile(${i})">✕</button></div>`}).join("");
-}
-function driveUploadPending(i){
-  const f=composeFiles[i];if(!f||!f._file)return;
-  if(!driveOn()){toast("Chưa cấu hình Google Drive — vào Dữ liệu & sao lưu → Google Drive để kết nối một lần.");nav("hethong");return}
-  const file=f._file;composeFiles.splice(i,1);updateFileListUI();
-  driveEnqueue(file,currentLoai());
-}
-function updateFileListUI(){
-  const el=document.getElementById("file-list");if(!el)return;
-  if(!composeFiles.length){el.innerHTML='<span class="muted">Chưa chọn tệp — chọn được nhiều tệp cùng lúc.</span>';return}
-  el.innerHTML=composeFiles.map((f,i)=>{
-    const kind=f.link?"link":(f.oversize?"over":"emb");
-    const ic=kind==="link"?"☁️":(kind==="over"?"⚠️":"📎");
-    const meta=kind==="link"
-      ?`<a href="${esc(f.link)}" target="_blank" rel="noopener">Xem trên Drive ↗</a>${f.drivePath?` <span class="muted">· ${esc(f.drivePath)}</span>`:""}`
-      :kind==="over"
-        ?`<span style="color:var(--warn)">vượt ${FILE_LIMIT_KB}KB — mới chỉ lưu tên</span>
-          <button class="btn btn-gold btn-xs" style="margin-left:6px" onclick="driveUploadPending(${i})">☁ Đưa lên Drive</button>`
-        :`<span class="muted">${Math.round(f.size/1024)} KB · lưu kèm văn bản</span>`;
-    return `<div class="att-item ${kind}">
-      <span class="att-ic">${ic}</span>
-      <div class="att-body"><div class="att-name">${esc(f.name)}</div><div class="att-meta small">${meta}</div></div>
-      <button class="att-x" title="Bỏ tệp này" onclick="removeComposeFile(${i})">✕</button></div>`}).join("");
-}
+
+
+
+
 function removeComposeFile(i){
   composeFiles.splice(i,1);
   if(mainFileIdx===i){mainFileIdx=-1;tyExtract=null;tyStatus("")}
@@ -1353,6 +1307,9 @@ async function driveRunOne(idx, file, loaiKey) {
     composeFiles.push({ name: res.name, size: res.size, link: res.link, driveId: res.driveId, drivePath: res.drivePath, _file: file });
     updateFileListUI(); driveQueueUI();
     toast("Đã đưa “" + res.name + "” lên Drive và gắn liên kết vào văn bản.");
+    /* Tệp đã lên Drive vẫn còn bản gốc trên máy nên vẫn trích yếu được —
+       gọi lại autoPickMain để trường hợp chỉ có 1 tệp thì tự trích luôn. */
+    setTimeout(autoPickMain, 50);
   } catch (e) {
     q.state = "err"; q.msg = e.message; q._file = file; q._loai = loaiKey;
     driveQueueUI();
@@ -1622,6 +1579,72 @@ function isNoise(line) {
 /* Loại văn bản hay đứng làm tiêu đề */
 const DOCTYPE_RE = /^(CÔNG\s*VĂN|KẾ\s*HOẠCH|THÔNG\s*BÁO|QUYẾT\s*ĐỊNH|BÁO\s*CÁO|HƯỚNG\s*DẪN|TỜ\s*TRÌNH|CHƯƠNG\s*TRÌNH|NGHỊ\s*QUYẾT|GIẤY\s*MỜI|BIÊN\s*BẢN)\b/i;
 
+/* ==================================================================
+   NHẬN DIỆN THỂ THỨC (LOẠI) VĂN BẢN TỪ NỘI DUNG TỆP
+   ------------------------------------------------------------------
+   Hai căn cứ, kết hợp cho chắc:
+     ① SỐ KÝ HIỆU — mạnh nhất, vì mã loại nằm ngay trong số:
+        "Số: 45-KH/TĐ" → KH → Kế hoạch;  "12-TTr/HĐ" → Tờ trình.
+     ② TIÊU ĐỀ viết hoa giữa trang: "KẾ HOẠCH", "BÁO CÁO"…
+   Trả {loai, conf, how} — loai là khóa trong LOAI.
+   ================================================================== */
+
+/* Mã trong số ký hiệu → khóa loại văn bản. Xếp mã DÀI trước để
+   "TTr" không bị "TB"/"TT" nuốt mất khi so khớp. */
+const SOKH_MAP = [
+  ["CTr", "chuongtrinh"], ["TTr", "totrinh"], ["QĐ", "quyetdinh"], ["QD", "quyetdinh"],
+  ["NQ", "nghiquyet"], ["KH", "kehoach"], ["BC", "baocao"], ["HD", "huongdan"],
+  ["GM", "giaymoi"], ["BB", "bienban"], ["TB", "thongbao"], ["CV", "congvan"]
+];
+
+/* Tiêu đề in hoa → khóa loại. Cụm DÀI đặt trước vì cùng lý do trên. */
+const TITLE_MAP = [
+  ["CHƯƠNG TRÌNH", "chuongtrinh"], ["NGHỊ QUYẾT", "nghiquyet"], ["QUYẾT ĐỊNH", "quyetdinh"],
+  ["TỜ TRÌNH", "totrinh"], ["HƯỚNG DẪN", "huongdan"], ["THÔNG BÁO", "thongbao"],
+  ["BIÊN BẢN", "bienban"], ["GIẤY MỜI", "giaymoi"], ["KẾ HOẠCH", "kehoach"],
+  ["BÁO CÁO", "baocao"], ["CÔNG VĂN", "congvan"]
+];
+
+function detectDocType(rawText) {
+  const text = fixOcr(rawText || "");
+  const head = text.split("\n").slice(0, 40);
+
+  /* ① Số ký hiệu: bắt "Số: 45-KH/TĐ", "Sô 12-TTr/HĐ", "45 - BC / TĐ"… */
+  for (const line of head) {
+    const m = line.match(/S[ốô o]{0,2}\s*:?\s*(\d+)\s*[-–—]\s*([A-Za-zĐđ]{1,4})\s*\//);
+    if (!m) continue;
+    const code = m[2].replace(/[^A-Za-zĐđ]/g, "");
+    for (const [c, k] of SOKH_MAP) {
+      if (code.toUpperCase() === c.toUpperCase().replace(/Đ/g, "Đ")) {
+        return { loai: k, conf: 92, how: "Đọc mã “" + c + "” trong số ký hiệu" };
+      }
+    }
+    /* Không khớp bảng: thử bỏ dấu để chịu lỗi OCR (QD ~ QĐ) */
+    const plain = code.toUpperCase().replace(/Đ/g, "D");
+    for (const [c, k] of SOKH_MAP) {
+      if (plain === c.toUpperCase().replace(/Đ/g, "D"))
+        return { loai: k, conf: 88, how: "Đọc mã “" + code + "” trong số ký hiệu" };
+    }
+  }
+
+  /* ② Tiêu đề in hoa đứng riêng một dòng */
+  for (const line of head) {
+    const l = line.trim().toUpperCase().replace(/\s+/g, " ");
+    if (l.length > 30) continue;                 /* dòng dài không phải tiêu đề */
+    for (const [t, k] of TITLE_MAP) {
+      if (l === t || l.startsWith(t + " ") || l === t + ":") 
+        return { loai: k, conf: 82, how: "Nhận ra tiêu đề “" + t + "”" };
+    }
+  }
+  /* ③ Tiêu đề nằm lẫn trong dòng (yếu hơn) */
+  const up = text.toUpperCase();
+  for (const [t, k] of TITLE_MAP) {
+    if (new RegExp("(^|\\n)\\s*" + t.replace(/ /g, "\\s+")).test(up))
+      return { loai: k, conf: 65, how: "Thấy cụm “" + t + "” ở đầu văn bản" };
+  }
+  return { loai: "", conf: 0, how: "Không xác định được loại văn bản" };
+}
+
 function findTrichYeu(rawText) {
   const text = fixOcr(rawText);
   const lines = text.split("\n").map(x => x.trim()).filter(Boolean);
@@ -1764,6 +1787,7 @@ async function extractTyFromFile(file, onStage) {
 
   say("Đang dò vùng trích yếu…", 90);
   let r = findTrichYeu(text);
+  const dt = detectDocType(text);
 
   /* Kết quả yếu + có khóa AI → nhờ AI vớt */
   if (r.conf < 78 && aiKey()) {
@@ -1774,7 +1798,7 @@ async function extractTyFromFile(file, onStage) {
     } catch (e) { /* AI lỗi/hết hạn mức: vẫn dùng kết quả dò được */ }
   }
   say("Xong", 100);
-  return { ...r, text, engine };
+  return { ...r, docType: dt, text, engine };
 }
 
 /* ---------- Chọn VĂN BẢN CHÍNH & tự điền trích yếu ---------- */
@@ -1822,6 +1846,19 @@ async function runExtract(i) {
       if (pb && pct) pb.style.width = Math.max(5, Math.min(100, pct)) + "%";
     });
     tyExtract = { ...r, fileName: f.name };
+    /* Tự chọn LOẠI VĂN BẢN khi nhận diện đủ chắc và người dùng chưa đổi tay */
+    let loaiMsg = "";
+    const dt = r.docType || { loai: "", conf: 0 };
+    if (dt.loai && dt.conf >= 80) {
+      const sel = document.getElementById("c-loai");
+      if (sel && !S._loaiTouched && sel.value !== dt.loai) {
+        sel.value = dt.loai;
+        sel.classList.add("ty-filled");
+        setTimeout(() => sel.classList.remove("ty-filled"), 1600);
+        loaiMsg = '<div class="ty-loai">📋 Đã đặt loại văn bản: <b>' + esc(LOAI[dt.loai][1]) + ' (' + esc(LOAI[dt.loai][0]) + ')</b> <span class="muted">· ' + esc(dt.how) + '</span></div>';
+      }
+    }
+    tyExtract.loaiMsg = loaiMsg;
     const ty = document.getElementById("c-ty");
     const cur = ty ? ty.value.trim() : "";
     /* Tin cậy cao + ô đang trống → điền thẳng. Ngược lại chỉ gợi ý để người dùng duyệt. */
@@ -1854,6 +1891,7 @@ function tyResultBox(r, applied) {
     + '<span class="ty-conf">' + lvTxt + ' · ' + r.conf + '%</span></div>'
     + '<div class="ty-val">' + esc(r.ty) + '</div>'
     + '<div class="small muted">' + esc(r.how) + ' · ' + esc(r.engine || "") + '</div>'
+    + (r.loaiMsg || "")
     + '<div class="ty-acts">'
     + (applied ? '' : '<button class="btn btn-primary btn-xs" onclick="applyTy()">↳ Dùng gợi ý này</button>')
     + '<button class="btn btn-ghost btn-xs" onclick="showExtractText()">👁 Xem chữ đọc được</button>'
@@ -2649,7 +2687,7 @@ function shell(content){
       <h6>Quản trị</h6>
       ${item("hethong",ICO.gear,"Dữ liệu & sao lưu")}
     </nav>
-    <div class="side-foot">${MODE==="cloud"?"● Đồng bộ Firestore · offline-first":"Dữ liệu lưu cục bộ trên máy này"}<br>DoanOffice 4.6 · mã nguồn mở</div>
+    <div class="side-foot">${MODE==="cloud"?"● Đồng bộ Firestore · offline-first":"Dữ liệu lưu cục bộ trên máy này"}<br>DoanOffice 4.6.1 · mã nguồn mở</div>
    </aside>
    <div class="sb-backdrop" id="sb-backdrop" onclick="toggleSidebar(false)"></div>
    <div class="main">
@@ -2849,7 +2887,7 @@ function viewCompose(){
       ${Object.entries(TEMPLATES).map(([k,t])=>`<option value="${k}">${t.ten}</option>`).join("")}</select>
       <div class="hint">Chọn mẫu để đổ khung thể thức (mục đích – yêu cầu, nội dung, tổ chức thực hiện…) rồi điền vào chỗ [ … ].</div></div>`}
     <div class="form-grid">
-      <div class="field"><label>Loại văn bản</label><select id="c-loai">${Object.entries(LOAI).map(([k,vv])=>`<option value="${k}" ${dr&&dr.loai===k?"selected":""}>${vv[1]} (${vv[0]})</option>`).join("")}</select></div>
+      <div class="field"><label>Loại văn bản</label><select id="c-loai" onchange="S._loaiTouched=true">${Object.entries(LOAI).map(([k,vv])=>`<option value="${k}" ${dr&&dr.loai===k?"selected":""}>${vv[1]} (${vv[0]})</option>`).join("")}</select></div>
       <div class="field"><label>Độ khẩn</label><select id="c-khan">${Object.entries(KHAN).map(([k,vv])=>`<option value="${k}" ${dr&&dr.doKhan===k?"selected":""}>${vv[0]}</option>`).join("")}</select></div>
     </div>
     <div class="field"><label>Trích yếu nội dung * <span class="ty-lbl">tự điền được từ tệp đính kèm</span></label><input id="c-ty" value="${v("trichYeu")}" placeholder="V/v …"></div>
@@ -4374,6 +4412,11 @@ function viewSystem(){
     <p style="margin-bottom:6px">③ <b>Google Drive API</b> — lưu tệp PDF/Word đính kèm (15GB miễn phí mỗi tài khoản đơn vị). <b style="color:var(--ok)">Đã tích hợp sẵn ở 4.3</b>: cấu hình ngay tại thẻ ☁️ Google Drive phía trên.</p>
     <p>④ Bộ nhớ cục bộ (IndexedDB) vẫn giữ vai trò cache để làm việc offline, tự đồng bộ khi có mạng.</p>
   </div></div>
+  <div class="card"><div class="card-h"><h3>Sửa lỗi ở 4.6.1 · Chọn văn bản chính &amp; nhận diện loại văn bản</h3></div><div class="card-b small">
+    <p style="margin-bottom:6px"><b style="color:var(--danger)">⚠ Lỗi đã sửa:</b> bản 4.5–4.6 tồn tại <b>ba bản sao</b> của hàm vẽ danh sách tệp; bản cũ nhất ghi đè bản mới nên nút <b>“★ Đặt làm văn bản chính”</b> không hiện ra, đặc biệt thấy rõ khi mọi tệp đều vượt 400KB. Đã gỡ bản thừa.</p>
+    <p style="margin-bottom:6px">⑳ <b>Tệp lớn vẫn trích yếu được</b> — tệp đã/đang đưa lên Drive vẫn giữ bản gốc trên máy nên vẫn đặt làm văn bản chính và trích xuất bình thường.</p>
+    <p style="margin-bottom:10px">㉑ <b>Tự nhận loại văn bản</b> — đọc mã trong số ký hiệu (<code>45-KH/TĐ</code> → Kế hoạch) hoặc tiêu đề in hoa, tự chọn đúng mục <b>Loại văn bản</b>. Nếu bạn đã tự chọn tay thì phần mềm không đổi.</p>
+  </div></div>
   <div class="card"><div class="card-h"><h3>Mới ở 4.6 · Đính kèm mọi định dạng tệp</h3></div><div class="card-b small">
     <p style="margin-bottom:6px">⑰ <b>Nhận mọi định dạng</b> — Word, Excel, PowerPoint, PDF, ảnh, video, âm thanh, tệp nén (zip/rar/7z), bản vẽ, dữ liệu… tổng cộng gần 100 phần mở rộng được phân nhóm tự động.</p>
     <p style="margin-bottom:6px">⑱ <b>Thư mục Drive hai tầng</b> — <code>&lt;loại văn bản&gt;/&lt;nhóm tệp&gt;</code>, ví dụ <code>Kế hoạch (KH)/Bảng tính/</code>. Thư mục nhóm tệp tự sinh khi cần, không tạo hàng loạt thư mục rỗng.</p>
@@ -5540,7 +5583,7 @@ function helpModalHtml(){
     <div class="hm">
       <div class="hm-top">
         <div class="stardot">★</div>
-        <div><h3>DoanOffice — Giới thiệu & Hướng dẫn sử dụng</h3><div class="sub">Hệ thống điều hành văn bản & báo cáo cho tổ chức Đoàn · phiên bản 4.6</div></div>
+        <div><h3>DoanOffice — Giới thiệu & Hướng dẫn sử dụng</h3><div class="sub">Hệ thống điều hành văn bản & báo cáo cho tổ chức Đoàn · phiên bản 4.6.1</div></div>
         <button class="hm-x" onclick="closeHelp()" title="Đóng">✕</button>
       </div>
       <div class="hm-tabs">
@@ -6097,7 +6140,7 @@ function helpFaq(){
    Các hệ thống khác / connector tương lai (iOffice tỉnh, Zalo bot…)
    truy cập qua window.DoanOffice — không đụng vào lõi. */
 window.DoanOffice={
-  version:"4.6",
+  version:"4.6.1",
   unit:()=>DB&&DB.session?{...me()}:null,
   docs:()=>DB?JSON.parse(JSON.stringify(searchCorpus())):[],
   targets:()=>DB?JSON.parse(JSON.stringify([...myTargets(),...myAssignedTargets()])):[],
