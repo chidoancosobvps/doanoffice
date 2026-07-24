@@ -110,6 +110,30 @@ input[type=file]::file-selector-button{border:none;background:var(--doan);color:
 .sw-row{display:flex;gap:9px;align-items:center;font-size:.85rem;padding:9px 0 3px;font-weight:500;color:var(--ink)}
 @media(max-width:760px){.drv-banner{flex-direction:column;gap:7px}.drv-right{font-size:.72rem}}
 
+
+/* ================= 4.4 — Quản trị dữ liệu toàn hệ thống ================= */
+.pill-root{background:linear-gradient(135deg,#F6C24A,var(--gold));color:var(--doan-ink)}
+.sys-card{border-top:3px solid var(--danger)}
+.sys-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin:12px 0}
+.sys-box{border:1.5px solid var(--line);border-radius:12px;padding:13px 15px;background:#FBFDFF;display:flex;flex-direction:column}
+.sys-h{font-weight:800;color:var(--doan-deep);font-size:.9rem;margin-bottom:7px}
+.sys-box p{font-size:.79rem;line-height:1.55}
+.sys-ok{background:var(--ok-bg);border:1px solid #C6E8D7;border-radius:8px;padding:7px 10px;font-size:.76rem;line-height:1.5}
+.sys-warn{background:var(--warn-bg);border:1px solid #F0D6A6;border-radius:8px;padding:7px 10px;font-size:.76rem;color:#7A4700}
+.sys-tb{width:100%;border-collapse:collapse;font-size:.78rem;margin-top:4px}
+.sys-tb td{padding:4px 2px;border-bottom:1px dashed var(--line-soft)}
+.sys-tb tr:last-child td{border-bottom:none}
+.sys-tot td{border-top:1.5px solid var(--line)!important;padding-top:6px!important;color:var(--doan-deep);font-weight:800}
+.sys-danger{border:1.5px solid #F1C9C9;background:linear-gradient(180deg,var(--danger-bg),#fff 70%);border-radius:12px;padding:14px 16px;margin-top:6px}
+.sys-danger .field label{color:var(--danger)}
+.sys-danger input#sys-phrase{border-color:#E9B6B6;font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.06em;text-transform:uppercase}
+.sys-lv{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-bottom:11px}
+.sys-lv>div{background:#fff;border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:.78rem;line-height:1.5}
+.sys-lv b{color:var(--doan-deep)}
+.sys-preview{border:1.5px solid #C7DDF3;background:var(--info-bg);border-radius:11px;padding:12px 14px}
+.sys-preview .sys-tb{background:#fff;border-radius:8px;padding:4px 8px;margin-top:8px}
+@media(max-width:700px){.sys-grid,.sys-lv{grid-template-columns:1fr}}
+
 /* ---------- Login ---------- */
 .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
   background:radial-gradient(1100px 620px at 82% -10%,rgba(27,117,196,.55),transparent 60%),
@@ -355,6 +379,7 @@ code{background:var(--line-soft);padding:1px 5px;border-radius:5px;font-family:u
 .hm-ul li{position:relative;padding:5px 0 5px 20px}
 .hm-ul li::before{content:"•";position:absolute;left:4px;color:var(--gold-2);font-weight:800}
 .hm-code{background:var(--doan-ink);color:#E6EDF5;padding:11px 14px;border-radius:9px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.76rem;line-height:1.55;white-space:pre-wrap;word-break:break-all;margin:8px 0;overflow-x:auto}
+.hm-warn{background:var(--warn-bg);border:1px solid #F0D6A6;border-radius:10px;padding:9px 13px;margin-top:12px;font-size:.85rem;color:#7A4700}
 .hm-ok{background:var(--ok-bg);border:1px solid #C6E8D7;border-radius:10px;padding:9px 13px;margin-top:12px;font-size:.85rem}
 .hm-body code{background:var(--line-soft);padding:1px 6px;border-radius:5px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88em}
 .hm-tip{background:var(--gold-soft);border-radius:10px;padding:10px 14px;margin:10px 0;font-size:.85rem}
@@ -424,9 +449,19 @@ service cloud.firestore {
     match /userIndex/{id}      { allow read, write: if signedIn(); }
     match /docs/{id}           { allow read, write: if signedIn(); }
     match /seq/{id}            { allow read, write: if signedIn(); }
+    // Nhật ký: bất biến với mọi người; CHỈ đơn vị gốc được xóa khi
+    // chuyển giao hệ thống (units/<uid> có parent == null).
+    function isRootAdmin() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/userIndex/$(request.auth.token.email.split('@')[0]))
+        && get(/databases/$(database)/documents/units/$(
+             get(/databases/$(database)/documents/userIndex/$(request.auth.token.email.split('@')[0])).data.unitId
+           )).data.parent == null;
+    }
     match /orgLog/{id} {
       allow read, create: if signedIn();
-      allow update, delete: if false;   // nhật ký bất biến
+      allow update: if false;             // không ai được sửa nhật ký
+      allow delete: if isRootAdmin();     // chỉ đơn vị gốc, dùng khi xóa sạch để bàn giao
     }
     match /targets/{id}        { allow read, write: if signedIn(); }
     match /events/{id}         { allow read, write: if signedIn(); }
@@ -1451,6 +1486,337 @@ function restoreJSON(inp){
   rd.readAsText(f);
 }
 function resetDemo(){if(confirm("Xóa toàn bộ dữ liệu hiện tại và nạp lại dữ liệu mẫu?")){localStorage.removeItem(LS_KEY);load();render()}}
+/* ==================================================================
+   MỚI Ở 4.4 — QUẢN TRỊ DỮ LIỆU TOÀN HỆ THỐNG (chỉ Tỉnh đoàn / gốc)
+   ------------------------------------------------------------------
+   Dành cho tình huống CHUYỂN GIAO: sau thời gian chạy thử, đơn vị gốc
+   cần (1) sao lưu TOÀN BỘ hệ thống ra một tệp, (2) xóa sạch dữ liệu
+   test để bàn giao bản mới tinh, (3) khôi phục lại từ bản sao lưu nếu
+   cần quay đầu.
+
+   Khác với "Tải bản sao lưu" cũ — chỉ lấy phần dữ liệu đơn vị mình
+   NHÌN THẤY — các hàm ở đây quét THẲNG toàn bộ collection trên
+   Firestore, nên bắt được cả văn bản của những đơn vị khác trong cây.
+
+   ⚠ AN TOÀN — bốn lớp khóa trước khi xóa:
+     ① chỉ đơn vị GỐC (không có cấp trên) mới thấy chức năng này;
+     ② chỉ vai Bí thư / Phó Bí thư được thao tác;
+     ③ bắt buộc tải bản sao lưu trước (hoặc tự tick xác nhận đã có);
+     ④ gõ đúng chuỗi xác nhận thì nút xóa mới mở khóa.
+   ================================================================== */
+
+/* Mọi collection nghiệp vụ của phần mềm. Thứ tự này cũng là thứ tự ghi
+   khi khôi phục (units trước để cây đơn vị có sẵn khi nạp phần còn lại). */
+const SYS_COLS = ["units", "userIndex", "docs", "seq", "targets", "events",
+  "library", "periodic", "reportTemplates", "reminders", "orgLog"];
+
+/* Nhãn tiếng Việt để hiện bảng thống kê cho dễ đọc */
+const SYS_COL_LABEL = {
+  units: "Đơn vị (cây tổ chức)", userIndex: "Bảng tra cứu tài khoản",
+  docs: "Văn bản đi/đến", seq: "Sổ cấp số văn bản", targets: "Chỉ tiêu · KPI",
+  events: "Lịch công tác", library: "Kho tài liệu", periodic: "Báo cáo định kỳ",
+  reportTemplates: "Mẫu báo cáo", reminders: "Lịch nhắc báo cáo",
+  orgLog: "Nhật ký quản trị"
+};
+
+/** Đơn vị gốc = không có cấp trên. Chỉ nơi này mới được quản trị toàn hệ thống. */
+function isRootUnit() {
+  const m = me();
+  return !!m && !m.parent;
+}
+/** Đủ quyền dùng nhóm chức năng nguy hiểm: gốc + vai Thường trực. */
+function canSysAdmin() {
+  return isRootUnit() && isApprover();
+}
+
+/* ---------- Đọc trọn một collection (phân trang an toàn) ---------- */
+async function sysReadAll(col, onProg) {
+  if (MODE === "local") {
+    if (col === "units") return (DB.units || []).map(x => ({ ...x }));
+    if (col === "docs") return (DB.docs || []).map(x => ({ ...x }));
+    if (col === "seq") return Object.entries(DB.seq || {}).map(([id, n]) => ({ id, n }));
+    if (col === "orgLog") return (DB.orgLog || []).map(x => ({ ...x }));
+    return (DB[col] || []).map(x => ({ ...x }));
+  }
+  const out = [];
+  const snap = await FB.fs.collection(col).get();
+  snap.forEach(d => out.push({ id: d.id, ...d.data() }));
+  if (onProg) onProg(col, out.length);
+  return out;
+}
+
+/** Đếm nhanh số bản ghi từng collection — để hiện bảng trước khi thao tác. */
+async function sysCount() {
+  const res = {};
+  for (const c of SYS_COLS) {
+    try { res[c] = (await sysReadAll(c)).length; }
+    catch (e) { res[c] = -1; }  /* -1 = không đọc được (thiếu quyền) */
+  }
+  return res;
+}
+
+/* ==================================================================
+   ① SAO LƯU TOÀN HỆ THỐNG
+   ================================================================== */
+async function sysBackup(silent) {
+  if (!canSysAdmin()) { toast("Chỉ đơn vị gốc (Bí thư/Phó Bí thư) được sao lưu toàn hệ thống."); return null; }
+  const out = document.getElementById("sys-out");
+  const say = h => { if (out) out.innerHTML = h; };
+  const pack = {
+    _format: "doanoffice-full-backup",
+    _version: "4.4",
+    _mode: MODE,
+    _createdAt: nowTS(),
+    _createdBy: { unit: DB.session, unitName: (me() || {}).name || "", member: memberLabel() || "" },
+    data: {}
+  };
+  try {
+    let total = 0;
+    for (const c of SYS_COLS) {
+      say('<span class="muted">Đang đọc <b>' + esc(SYS_COL_LABEL[c] || c) + '</b>…</span>');
+      try {
+        const rows = await sysReadAll(c);
+        pack.data[c] = rows; total += rows.length;
+      } catch (e) {
+        pack.data[c] = []; pack._partial = true;
+        say('<span style="color:var(--warn)">Bỏ qua ' + esc(c) + ': ' + esc(e.message) + '</span>');
+      }
+    }
+    pack._totalRecords = total;
+    pack._checksum = sysChecksum(pack.data);
+    const name = "doanoffice-TOANHETHONG-" + todayISO() + "-" + String(Date.now()).slice(-5) + ".json";
+    const blob = new Blob([JSON.stringify(pack, null, 1)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = name; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    try { localStorage.setItem("do_sys_lastbk", JSON.stringify({ at: nowTS(), n: total, file: name })); } catch (e) {}
+    orgLog("Sao lưu toàn hệ thống", "", total + " bản ghi → " + name);
+    say('<span style="color:var(--ok)">✅ Đã tải <b>' + esc(name) + '</b> · ' + total + ' bản ghi' +
+        (pack._partial ? ' <b style="color:var(--warn)">(thiếu một phần do quyền truy cập)</b>' : '') + '</span>');
+    if (!silent) toast("Đã sao lưu toàn hệ thống: " + total + " bản ghi.");
+    render();
+    return pack;
+  } catch (e) {
+    say('<span style="color:var(--danger)">⚠ Lỗi sao lưu: ' + esc(e.message) + '</span>');
+    return null;
+  }
+}
+
+/** Mã kiểm tra đơn giản để phát hiện tệp sao lưu bị sửa/hỏng. */
+function sysChecksum(data) {
+  let h = 5381;
+  const s = SYS_COLS.map(c => c + ":" + ((data[c] || []).length)).join("|");
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) >>> 0;
+  return h.toString(36).toUpperCase();
+}
+function lastBackupInfo() {
+  try { return JSON.parse(localStorage.getItem("do_sys_lastbk") || "null"); } catch (e) { return null; }
+}
+
+/* ==================================================================
+   ② XÓA SẠCH DỮ LIỆU HỆ THỐNG
+   ------------------------------------------------------------------
+   Hai mức:
+     - "test"  : xóa dữ liệu nghiệp vụ, GIỮ cây đơn vị + tài khoản.
+                 Dùng khi bàn giao mà vẫn muốn giữ nguyên tổ chức.
+     - "toanbo": xóa tất cả, chỉ chừa lại đúng đơn vị gốc và tài khoản
+                 của nó (nếu xóa cả gốc thì không ai đăng nhập được nữa).
+   ================================================================== */
+const SYS_WIPE_PHRASE = "XOA TOAN BO DU LIEU";
+
+function sysWipeScope(level) {
+  return level === "toanbo"
+    ? SYS_COLS.filter(c => c !== "seq").concat(["seq"])   /* tất cả */
+    : ["docs", "seq", "targets", "events", "library", "periodic", "reportTemplates", "reminders", "orgLog"];
+}
+
+async function sysWipe(level) {
+  if (!canSysAdmin()) { toast("Không đủ quyền."); return; }
+  const out = document.getElementById("sys-out");
+  const say = h => { if (out) out.innerHTML = h; };
+  const phrase = (document.getElementById("sys-phrase") || {}).value || "";
+  const ack = (document.getElementById("sys-ack") || {}).checked;
+  if (!ack) { say('<span style="color:var(--danger)">Bạn chưa xác nhận đã có bản sao lưu an toàn.</span>'); return; }
+  if (phrase.trim().toUpperCase() !== SYS_WIPE_PHRASE) {
+    say('<span style="color:var(--danger)">Chuỗi xác nhận chưa đúng. Gõ chính xác: <b>' + SYS_WIPE_PHRASE + '</b></span>'); return;
+  }
+  const isFull = level === "toanbo";
+  const warn = isFull
+    ? "XÓA TOÀN BỘ: mọi văn bản, chỉ tiêu, báo cáo, nhật ký VÀ toàn bộ cây đơn vị cấp dưới sẽ bị xóa vĩnh viễn. Chỉ còn lại đơn vị gốc của bạn.\n\nCác tài khoản đăng nhập trên Firebase Authentication KHÔNG tự mất — cần xóa thủ công trong Firebase Console nếu muốn.\n\nTiếp tục?"
+    : "XÓA DỮ LIỆU NGHIỆP VỤ: mọi văn bản, chỉ tiêu, lịch, báo cáo, mẫu, nhắc lịch và nhật ký sẽ bị xóa vĩnh viễn.\nCây đơn vị và tài khoản đăng nhập được GIỮ NGUYÊN.\n\nTiếp tục?";
+  if (!confirm(warn)) return;
+  if (!confirm("Xác nhận lần cuối — thao tác này KHÔNG THỂ hoàn tác.\nBạn đã tải bản sao lưu về máy chưa?")) return;
+
+  const rootId = DB.session;
+  /* Chốt sẵn tài khoản gốc TRƯỚC khi xóa: trong lúc xóa, listener của
+     Firestore sẽ làm rỗng DB.units, khi đó me() trả về undefined và
+     tài khoản gốc có thể bị xóa nhầm → mất đường đăng nhập. */
+  const rootUser = (me() || {}).user || "";
+  const rootSnapshot = JSON.parse(JSON.stringify((me() || null)));
+  try {
+    if (MODE === "local") {
+      DB.docs = []; DB.targets = []; DB.events = []; DB.library = [];
+      DB.periodic = []; DB.reports = []; DB.reminders = []; DB.orgLog = []; DB.seq = {};
+      if (isFull) DB.units = DB.units.filter(u => u.id === rootId);
+      save();
+      say('<span style="color:var(--ok)">✅ Đã xóa xong (chế độ cục bộ).</span>');
+      toast("Đã xóa dữ liệu hệ thống."); render(); return;
+    }
+    let done = 0;
+    for (const col of sysWipeScope(level)) {
+      say('<span class="muted">Đang xóa <b>' + esc(SYS_COL_LABEL[col] || col) + '</b>… (' + done + ' bản ghi đã xóa)</span>');
+      const rows = await sysReadAll(col);
+      const keep = id => {
+        if (!isFull) return false;
+        if (col === "units") return id === rootId;
+        if (col === "userIndex") return rootUser && id === rootUser;
+        return false;
+      };
+      const targets = rows.filter(r => !keep(r.id));
+      /* Firestore giới hạn 500 thao tác mỗi batch */
+      for (let i = 0; i < targets.length; i += 400) {
+        const batch = FB.fs.batch();
+        targets.slice(i, i + 400).forEach(r => batch.delete(FB.fs.collection(col).doc(r.id)));
+        await batch.commit();
+        done += Math.min(400, targets.length - i);
+        say('<span class="muted">Đang xóa <b>' + esc(SYS_COL_LABEL[col] || col) + '</b>… (' + done + ' bản ghi đã xóa)</span>');
+      }
+    }
+    /* Dọn bộ nhớ tại máy để giao diện không còn hiện dữ liệu cũ */
+    DB.docs = []; DB.targets = []; DB.events = []; DB.library = [];
+    DB.periodic = []; DB.reports = []; DB.reminders = [];
+    if (isFull) DB.units = rootSnapshot ? [rootSnapshot] : DB.units.filter(u => u.id === rootId);
+    say('<span style="color:var(--ok)">✅ Đã xóa <b>' + done + '</b> bản ghi. Hệ thống sẵn sàng bàn giao.</span>');
+    orgLog("XÓA DỮ LIỆU HỆ THỐNG", level, done + " bản ghi");
+    toast("Đã xóa " + done + " bản ghi.");
+    render();
+  } catch (e) {
+    say('<span style="color:var(--danger)">⚠ Dừng giữa chừng: ' + esc(e.message) +
+        '<br>Một phần dữ liệu có thể đã bị xóa. Chạy lại để xóa nốt, hoặc khôi phục từ bản sao lưu.</span>');
+  }
+}
+
+/* ==================================================================
+   ③ KHÔI PHỤC TỪ BẢN SAO LƯU TOÀN HỆ THỐNG
+   ================================================================== */
+let sysRestorePack = null;   /* tệp đã nạp, chờ xác nhận ghi */
+
+function sysPickRestore(inp) {
+  const f = inp.files[0]; if (!f) return;
+  inp.value = "";
+  const out = document.getElementById("sys-out");
+  const say = h => { if (out) out.innerHTML = h; };
+  const rd = new FileReader();
+  rd.onload = () => {
+    try {
+      const j = JSON.parse(rd.result);
+      if (j._format !== "doanoffice-full-backup" || !j.data)
+        throw new Error("Đây không phải tệp sao lưu TOÀN HỆ THỐNG. Tệp sao lưu cũ (một đơn vị) hãy dùng nút Khôi phục thường.");
+      sysRestorePack = j;
+      const rows = SYS_COLS.map(c => {
+        const n = (j.data[c] || []).length;
+        return n ? '<tr><td>' + esc(SYS_COL_LABEL[c] || c) + '</td><td style="text-align:right"><b>' + n + '</b></td></tr>' : "";
+      }).join("");
+      const ck = sysChecksum(j.data);
+      const okck = !j._checksum || j._checksum === ck;
+      say('<div class="sys-preview"><b>📦 Bản sao lưu hợp lệ</b>'
+        + '<div class="small muted">Tạo lúc ' + esc(j._createdAt || "?") + ' · bởi ' + esc((j._createdBy || {}).unitName || "?")
+        + ' · ' + (j._totalRecords || 0) + ' bản ghi · chế độ ' + esc(j._mode || "?") + '</div>'
+        + (okck ? '' : '<div class="small" style="color:var(--warn)">⚠ Mã kiểm tra không khớp — tệp có thể đã bị sửa.</div>')
+        + (j._partial ? '<div class="small" style="color:var(--warn)">⚠ Bản sao lưu này thiếu một phần dữ liệu.</div>' : '')
+        + '<table class="sys-tb">' + rows + '</table>'
+        + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">'
+        + '<button class="btn btn-danger btn-sm" onclick="sysRestore(\'ghide\')">⟳ Ghi đè toàn bộ hệ thống</button>'
+        + '<button class="btn btn-ghost btn-sm" onclick="sysRestore(\'bosung\')">＋ Chỉ bổ sung bản ghi còn thiếu</button>'
+        + '<button class="btn btn-ghost btn-sm" onclick="sysRestorePack=null;document.getElementById(\'sys-out\').innerHTML=\'\'">Hủy</button>'
+        + '</div></div>');
+    } catch (e) {
+      sysRestorePack = null;
+      say('<span style="color:var(--danger)">⚠ ' + esc(e.message) + '</span>');
+    }
+  };
+  rd.readAsText(f);
+}
+
+async function sysRestore(mode) {
+  if (!canSysAdmin()) { toast("Không đủ quyền."); return; }
+  const j = sysRestorePack;
+  if (!j) { toast("Chưa nạp tệp sao lưu."); return; }
+  const out = document.getElementById("sys-out");
+  const say = h => { if (out) out.innerHTML = h; };
+  const overwrite = mode === "ghide";
+  if (!confirm(overwrite
+    ? "GHI ĐÈ: dữ liệu hiện tại trùng ID sẽ bị thay bằng dữ liệu trong bản sao lưu.\nNên sao lưu tình trạng hiện tại trước khi làm việc này.\n\nTiếp tục?"
+    : "BỔ SUNG: chỉ ghi những bản ghi chưa có trên hệ thống, không đụng bản ghi hiện tại.\n\nTiếp tục?")) return;
+
+  try {
+    if (MODE === "local") {
+      const d = j.data;
+      const merge = (cur, add) => overwrite
+        ? add.slice()
+        : cur.concat(add.filter(a => !cur.some(c => c.id === a.id)));
+      DB.units = merge(DB.units || [], d.units || []);
+      DB.docs = merge(DB.docs || [], d.docs || []);
+      DB.targets = merge(DB.targets || [], d.targets || []);
+      DB.events = merge(DB.events || [], d.events || []);
+      DB.library = merge(DB.library || [], d.library || []);
+      DB.periodic = merge(DB.periodic || [], d.periodic || []);
+      DB.reports = merge(DB.reports || [], d.reportTemplates || []);
+      DB.reminders = merge(DB.reminders || [], d.reminders || []);
+      DB.orgLog = merge(DB.orgLog || [], d.orgLog || []);
+      (d.seq || []).forEach(s => { DB.seq = DB.seq || {}; if (overwrite || !(s.id in DB.seq)) DB.seq[s.id] = s.n; });
+      save();
+      say('<span style="color:var(--ok)">✅ Khôi phục xong (chế độ cục bộ).</span>');
+      toast("Đã khôi phục dữ liệu."); sysRestorePack = null; render(); return;
+    }
+    let written = 0, skipped = 0;
+    for (const col of SYS_COLS) {
+      const rows = j.data[col] || [];
+      if (!rows.length) continue;
+      say('<span class="muted">Đang ghi <b>' + esc(SYS_COL_LABEL[col] || col) + '</b>… (' + written + ' bản ghi)</span>');
+      let existing = new Set();
+      if (!overwrite) {
+        try { (await sysReadAll(col)).forEach(r => existing.add(r.id)); } catch (e) {}
+      }
+      const todo = rows.filter(r => overwrite || !existing.has(r.id));
+      skipped += rows.length - todo.length;
+      for (let i = 0; i < todo.length; i += 400) {
+        const batch = FB.fs.batch();
+        todo.slice(i, i + 400).forEach(r => {
+          const { id, ...body } = r;
+          batch.set(FB.fs.collection(col).doc(String(id)), JSON.parse(JSON.stringify(body)));
+        });
+        await batch.commit();
+        written += Math.min(400, todo.length - i);
+        say('<span class="muted">Đang ghi <b>' + esc(SYS_COL_LABEL[col] || col) + '</b>… (' + written + ' bản ghi)</span>');
+      }
+    }
+    say('<span style="color:var(--ok)">✅ Đã khôi phục <b>' + written + '</b> bản ghi' +
+        (skipped ? ' · bỏ qua ' + skipped + ' bản ghi đã có' : '') +
+        '.<br>Tải lại trang để giao diện nạp lại toàn bộ dữ liệu.</span>');
+    orgLog("Khôi phục toàn hệ thống", mode, written + " bản ghi");
+    toast("Đã khôi phục " + written + " bản ghi. Nên tải lại trang.");
+    sysRestorePack = null;
+  } catch (e) {
+    say('<span style="color:var(--danger)">⚠ Dừng giữa chừng: ' + esc(e.message) + '</span>');
+  }
+}
+
+/* ==================================================================
+   BẢNG THỐNG KÊ DỮ LIỆU HIỆN CÓ
+   ================================================================== */
+async function sysRefreshCount() {
+  const el = document.getElementById("sys-stat");
+  if (!el) return;
+  el.innerHTML = '<span class="muted">Đang đếm…</span>';
+  const c = await sysCount();
+  const total = Object.values(c).filter(n => n > 0).reduce((a, b) => a + b, 0);
+  el.innerHTML = '<table class="sys-tb">' + SYS_COLS.map(k =>
+    '<tr><td>' + esc(SYS_COL_LABEL[k] || k) + '</td><td style="text-align:right">' +
+    (c[k] < 0 ? '<span class="muted">—</span>' : '<b>' + c[k] + '</b>') + '</td></tr>').join("") +
+    '<tr class="sys-tot"><td>TỔNG CỘNG</td><td style="text-align:right"><b>' + total + '</b></td></tr></table>';
+}
+
 function exportCSV(rows,name){
   const csv="\ufeff"+rows.map(r=>r.map(c=>'"'+String(c??"").replace(/"/g,'""')+'"').join(",")).join("\n");
   const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
@@ -1556,7 +1922,7 @@ function shell(content){
       <h6>Quản trị</h6>
       ${item("hethong",ICO.gear,"Dữ liệu & sao lưu")}
     </nav>
-    <div class="side-foot">${MODE==="cloud"?"● Đồng bộ Firestore · offline-first":"Dữ liệu lưu cục bộ trên máy này"}<br>DoanOffice 4.3 · mã nguồn mở</div>
+    <div class="side-foot">${MODE==="cloud"?"● Đồng bộ Firestore · offline-first":"Dữ liệu lưu cục bộ trên máy này"}<br>DoanOffice 4.4 · mã nguồn mở</div>
    </aside>
    <div class="sb-backdrop" id="sb-backdrop" onclick="toggleSidebar(false)"></div>
    <div class="main">
@@ -3206,9 +3572,62 @@ function viewSystem(){
     <div class="small" id="drv-out" style="margin-top:9px"></div>
     <div class="hint" style="margin-top:10px">Phần mềm chỉ xin quyền <code>drive.file</code> — <b>chỉ đọc/ghi được đúng những tệp do phần mềm tạo ra</b>, không đụng tới tài liệu riêng khác trong Drive của bạn. Client ID và token lưu tại máy này, không đẩy lên Firestore.</div>
   </div></div>`;
+  const lbk=lastBackupInfo();
+  const sysCard=canSysAdmin()?`
+  <div class="card sys-card" style="grid-column:1/-1"><div class="card-h"><h3>🛡️ Quản trị dữ liệu toàn hệ thống</h3>
+    <div class="spacer"></div><span class="pill pill-root">CHỈ ĐƠN VỊ GỐC</span></div><div class="card-b small">
+    <p style="margin-bottom:10px">Dành cho <b>${esc(me().name)}</b> khi <b>chuyển giao hệ thống</b>: sao lưu trọn vẹn mọi đơn vị trong cây, xóa sạch dữ liệu chạy thử để bàn giao bản mới, hoặc khôi phục lại nếu cần quay đầu. Khác với nút sao lưu thường (chỉ lấy phần đơn vị mình nhìn thấy), các chức năng ở đây <b>quét thẳng toàn bộ máy chủ</b>.</p>
+
+    <div class="sys-grid">
+      <div class="sys-box">
+        <div class="sys-h">📊 Dữ liệu đang có trên hệ thống</div>
+        <div id="sys-stat"><span class="muted">Bấm để đếm toàn bộ bản ghi trên máy chủ.</span></div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="sysRefreshCount()">🔄 Đếm lại</button>
+      </div>
+
+      <div class="sys-box">
+        <div class="sys-h">① Sao lưu toàn hệ thống</div>
+        <p class="muted" style="margin-bottom:8px">Tải MỘT tệp JSON chứa toàn bộ ${SYS_COLS.length} nhóm dữ liệu của mọi đơn vị. Hãy làm bước này <b>trước khi xóa</b> và cất tệp nơi an toàn.</p>
+        ${lbk?`<div class="sys-ok">✅ Lần sao lưu gần nhất: <b>${esc(lbk.at)}</b> · ${lbk.n} bản ghi<div class="muted" style="word-break:break-all">${esc(lbk.file)}</div></div>`
+             :`<div class="sys-warn">⚠ Máy này <b>chưa từng</b> sao lưu toàn hệ thống.</div>`}
+        <button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="sysBackup()">⬇ Tải bản sao lưu TOÀN HỆ THỐNG</button>
+      </div>
+
+      <div class="sys-box">
+        <div class="sys-h">③ Khôi phục từ bản sao lưu</div>
+        <p class="muted" style="margin-bottom:8px">Nạp tệp sao lưu toàn hệ thống. Hệ thống sẽ đọc và <b>hiện bảng đối chiếu để bạn duyệt trước</b>, chưa ghi gì ngay.</p>
+        <label class="btn btn-ghost btn-sm">📂 Chọn tệp sao lưu…<input type="file" accept=".json" style="display:none" onchange="sysPickRestore(this)"></label>
+        <div class="hint" style="margin-top:6px">Hai kiểu ghi: <b>Ghi đè</b> (thay dữ liệu trùng ID) hoặc <b>Bổ sung</b> (chỉ thêm bản ghi còn thiếu, không đụng dữ liệu đang chạy).</div>
+      </div>
+    </div>
+
+    <div class="sys-danger">
+      <div class="sys-h" style="color:var(--danger)">② Xóa sạch dữ liệu — vùng nguy hiểm</div>
+      <p style="margin-bottom:9px">Dùng khi bàn giao hệ thống cho nhiệm kỳ/đơn vị mới và muốn bắt đầu hoàn toàn trắng. <b style="color:var(--danger)">Thao tác không thể hoàn tác.</b></p>
+      <div class="sys-lv">
+        <div><b>Mức 1 — Xóa dữ liệu nghiệp vụ</b><div class="muted">Xóa văn bản, chỉ tiêu, lịch, báo cáo định kỳ, mẫu, nhắc lịch, nhật ký. <b>Giữ nguyên</b> cây đơn vị và tài khoản đăng nhập — đơn vị mới dùng được ngay.</div></div>
+        <div><b>Mức 2 — Xóa toàn bộ</b><div class="muted">Xóa tất cả, kể cả cây đơn vị cấp dưới. Chỉ còn lại <b>${esc(me().short||me().name)}</b> và tài khoản của chính bạn để đăng nhập dựng lại từ đầu.</div></div>
+      </div>
+      <label class="sw-row"><input type="checkbox" id="sys-ack"> Tôi xác nhận <b>đã tải bản sao lưu</b> và cất giữ an toàn</label>
+      <div class="field" style="max-width:340px;margin:6px 0 10px">
+        <label>Gõ chính xác chuỗi xác nhận để mở khóa</label>
+        <input id="sys-phrase" placeholder="${SYS_WIPE_PHRASE}" autocomplete="off" spellcheck="false">
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-danger btn-sm" onclick="sysWipe('test')">🧹 Mức 1 — Xóa dữ liệu nghiệp vụ</button>
+        <button class="btn btn-danger btn-sm" onclick="sysWipe('toanbo')">🔥 Mức 2 — Xóa toàn bộ hệ thống</button>
+      </div>
+      <div class="hint" style="margin-top:8px">Sau khi xóa, <b>tài khoản đăng nhập trên Firebase Authentication vẫn còn</b> — phần mềm không có quyền xóa tài khoản. Muốn thu hồi hẳn, vào <b>Firebase Console → Authentication → Users</b> xóa thủ công.</div>
+    </div>
+
+    <div class="small" id="sys-out" style="margin-top:12px"></div>
+    <div class="hint" style="margin-top:10px">Quy trình chuyển giao khuyến nghị: <b>① Sao lưu → kiểm tra tệp mở được → ② Xóa mức 1 hoặc 2 → bàn giao tài khoản</b>. Nếu phát hiện sai, dùng ③ Khôi phục để đưa hệ thống về nguyên trạng.
+      <a href="javascript:void(0)" onclick="openHelp('chuyengiao')"><b>▶ Xem hướng dẫn chuyển giao đầy đủ</b></a></div>
+  </div></div>`:"";
   return `
   <div class="page-head"><div><div class="eyebrow">Quản trị</div><h2>Dữ liệu & sao lưu</h2></div></div>
   <div class="detail-grid">
+  ${sysCard}
   ${driveCard}
   ${storeCard}
   ${aiCard}
@@ -3218,6 +3637,11 @@ function viewSystem(){
     <p style="margin-bottom:6px">② <b>Firebase Auth + Firestore (gói Spark)</b> — tài khoản đăng nhập từng cơ sở Đoàn và cơ sở dữ liệu văn bản dùng chung, đồng bộ thời gian thực.</p>
     <p style="margin-bottom:6px">③ <b>Google Drive API</b> — lưu tệp PDF/Word đính kèm (15GB miễn phí mỗi tài khoản đơn vị). <b style="color:var(--ok)">Đã tích hợp sẵn ở 4.3</b>: cấu hình ngay tại thẻ ☁️ Google Drive phía trên.</p>
     <p>④ Bộ nhớ cục bộ (IndexedDB) vẫn giữ vai trò cache để làm việc offline, tự đồng bộ khi có mạng.</p>
+  </div></div>
+  <div class="card"><div class="card-h"><h3>Mới ở 4.4 · Quản trị dữ liệu toàn hệ thống</h3></div><div class="card-b small">
+    <p style="margin-bottom:6px">⑪ <b>Sao lưu toàn hệ thống</b> — đơn vị gốc tải một tệp JSON chứa đủ 11 nhóm dữ liệu của <b>mọi đơn vị</b> trong cây, không chỉ phần mình nhìn thấy.</p>
+    <p style="margin-bottom:6px">⑫ <b>Xóa sạch để chuyển giao</b> — hai mức: xóa dữ liệu nghiệp vụ (giữ cây đơn vị + tài khoản) hoặc xóa toàn bộ. Bốn lớp khóa an toàn: chỉ đơn vị gốc, chỉ vai Thường trực, bắt xác nhận đã sao lưu, và phải gõ đúng chuỗi xác nhận.</p>
+    <p style="margin-bottom:10px">⑬ <b>Khôi phục</b> — nạp tệp sao lưu, xem bảng đối chiếu trước khi ghi, chọn <b>Ghi đè</b> hoặc <b>Chỉ bổ sung bản ghi còn thiếu</b>. <a href="javascript:void(0)" onclick="openHelp('chuyengiao')"><b>▶ Hướng dẫn chuyển giao</b></a></p>
   </div></div>
   <div class="card"><div class="card-h"><h3>Mới ở 4.3 · Tự đưa tệp lớn lên Google Drive</h3></div><div class="card-b small">
     <p style="margin-bottom:6px">⑧ <b>Drive Bridge</b> — thay vì báo "chỉ lưu tên" rồi bắt cán bộ tự tải lên Drive, lấy liên kết chia sẻ và dán lại, phần mềm nay <b>tự tạo thư mục theo năm và loại văn bản, tự tải tệp lên, tự mở quyền xem và tự gắn liên kết</b> vào văn bản trước khi phát hành. Mỗi đơn vị chỉ cấu hình một lần tài khoản Drive của mình.</p>
@@ -4364,13 +4788,13 @@ function pushReminderDiscord(id){
 function openHelp(tab){S.help=tab||"intro";S.bell=false;render()}
 function closeHelp(){S.help=null;render()}
 function helpGo(v){S.help=null;nav(v)}
-const HELP_TABS={intro:"Giới thiệu",start:"Bắt đầu nhanh",taikhoan:"Tài khoản & mật khẩu",vanban:"Văn bản",baocao:"Báo cáo & tổng hợp",maunhac:"Mẫu & Nhắc lịch",nhactudong:"Cài nhắc tự động",drive:"Kết nối Google Drive",khac:"Tiện ích khác",faq:"Hỏi–đáp"};
+const HELP_TABS={intro:"Giới thiệu",start:"Bắt đầu nhanh",taikhoan:"Tài khoản & mật khẩu",vanban:"Văn bản",baocao:"Báo cáo & tổng hợp",maunhac:"Mẫu & Nhắc lịch",nhactudong:"Cài nhắc tự động",drive:"Kết nối Google Drive",chuyengiao:"Chuyển giao hệ thống",khac:"Tiện ích khác",faq:"Hỏi–đáp"};
 function helpModalHtml(){
   return `<div class="hm-back" onclick="if(event.target===this)closeHelp()">
     <div class="hm">
       <div class="hm-top">
         <div class="stardot">★</div>
-        <div><h3>DoanOffice — Giới thiệu & Hướng dẫn sử dụng</h3><div class="sub">Hệ thống điều hành văn bản & báo cáo cho tổ chức Đoàn · phiên bản 4.3</div></div>
+        <div><h3>DoanOffice — Giới thiệu & Hướng dẫn sử dụng</h3><div class="sub">Hệ thống điều hành văn bản & báo cáo cho tổ chức Đoàn · phiên bản 4.4</div></div>
         <button class="hm-x" onclick="closeHelp()" title="Đóng">✕</button>
       </div>
       <div class="hm-tabs">
@@ -4387,9 +4811,69 @@ function helpContent(tab){
   if(tab==="maunhac")return helpMaunhac();
   if(tab==="nhactudong")return helpNhacTuDong();
   if(tab==="drive")return helpDrive();
+  if(tab==="chuyengiao")return helpChuyenGiao();
   if(tab==="khac")return helpKhac();
   if(tab==="faq")return helpFaq();
   return helpIntro();
+}
+function helpChuyenGiao(){
+  const root=isRootUnit(),ok=canSysAdmin();
+  return `
+  <p class="lead">Sau thời gian chạy thử, hệ thống thường cần <b>bàn giao lại cho nhiệm kỳ mới hoặc đơn vị khác</b> với dữ liệu sạch hoàn toàn. Mục này hướng dẫn quy trình an toàn: sao lưu trọn vẹn → xóa sạch → bàn giao, và cách quay đầu nếu cần.</p>
+
+  <h4>Ai được làm?</h4>
+  <p>Chỉ <b>đơn vị gốc</b> của cây tổ chức (đơn vị không có cấp trên — thường là Tỉnh đoàn), và người đăng nhập phải giữ vai <b>Bí thư</b> hoặc <b>Phó Bí thư</b>. Các đơn vị cấp dưới không nhìn thấy nhóm chức năng này.</p>
+  ${ok?`<p class="hm-ok">✅ Tài khoản hiện tại <b>đủ quyền</b> quản trị dữ liệu toàn hệ thống.</p>`
+      :`<p class="hm-warn">⚠ Tài khoản hiện tại <b>chưa đủ quyền</b>${root?" — bạn ở đơn vị gốc nhưng cần đăng nhập với vai Bí thư/Phó Bí thư.":" — chức năng này chỉ dành cho đơn vị gốc (Tỉnh đoàn)."}</p>`}
+
+  <h4>Khác gì với nút "Tải bản sao lưu" thường?</h4>
+  <ul class="hm-ul">
+    <li><b>Sao lưu thường</b> chỉ lấy phần dữ liệu mà đơn vị bạn <b>nhìn thấy</b> — văn bản đến/đi của riêng mình.</li>
+    <li><b>Sao lưu toàn hệ thống</b> quét thẳng máy chủ, lấy <b>đủ 11 nhóm dữ liệu của mọi đơn vị</b> trong cây: cây tổ chức, tài khoản, văn bản, sổ cấp số, chỉ tiêu, lịch, kho tài liệu, báo cáo định kỳ, mẫu báo cáo, lịch nhắc và nhật ký quản trị.</li>
+  </ul>
+
+  <h4>Quy trình chuyển giao — làm đúng thứ tự</h4>
+  <ol class="hm-steps">
+    <li><b>Sao lưu toàn hệ thống.</b> Vào <b>Dữ liệu &amp; sao lưu → 🛡️ Quản trị dữ liệu toàn hệ thống → ⬇ Tải bản sao lưu TOÀN HỆ THỐNG</b>. Tệp có tên dạng <code>doanoffice-TOANHETHONG-2026-07-24-xxxxx.json</code>.</li>
+    <li><b>Kiểm tra tệp mở được.</b> Đừng bỏ qua bước này. Dùng chính nút <b>📂 Chọn tệp sao lưu…</b> để nạp lại tệp vừa tải — phần mềm sẽ hiện bảng đối chiếu số bản ghi mà <b>chưa ghi gì cả</b>. Thấy bảng hiện đúng là tệp lành lặn. Bấm <b>Hủy</b> để thoát.</li>
+    <li><b>Cất tệp nơi an toàn.</b> Ít nhất hai nơi: máy tính đơn vị và Google Drive. Tệp này là đường lui duy nhất.</li>
+    <li><b>Đếm dữ liệu hiện có</b> (nút 🔄 Đếm lại) và chụp màn hình làm biên bản bàn giao.</li>
+    <li><b>Chọn mức xóa</b> (xem bảng dưới), tick xác nhận đã có bản sao lưu, gõ chuỗi <code>${SYS_WIPE_PHRASE}</code> rồi bấm nút xóa. Phần mềm còn hỏi lại hai lần nữa.</li>
+    <li><b>Bàn giao tài khoản</b> cho người tiếp nhận và đổi mật khẩu.</li>
+  </ol>
+
+  <h4>Chọn mức xóa nào?</h4>
+  <div class="hm-role"><b>Mức 1 — Xóa dữ liệu nghiệp vụ</b><br>
+    Xóa: văn bản, sổ cấp số, chỉ tiêu, lịch công tác, kho tài liệu, báo cáo định kỳ, mẫu báo cáo, lịch nhắc, nhật ký.<br>
+    Giữ: <b>cây đơn vị và toàn bộ tài khoản đăng nhập</b>.<br>
+    <i>Chọn khi cơ cấu tổ chức không đổi, chỉ muốn xóa dữ liệu chạy thử — đơn vị mới đăng nhập là dùng được ngay. Đây là lựa chọn phù hợp cho hầu hết trường hợp bàn giao.</i></div>
+  <div class="hm-role"><b>Mức 2 — Xóa toàn bộ</b><br>
+    Xóa mọi thứ, kể cả cây đơn vị cấp dưới. Chỉ chừa lại đơn vị gốc và tài khoản của chính bạn để còn đăng nhập dựng lại.<br>
+    <i>Chọn khi muốn dựng lại cây tổ chức từ đầu, hoặc bàn giao cho một đơn vị hoàn toàn khác.</i></div>
+
+  <h4>Bốn lớp khóa an toàn trước khi xóa</h4>
+  <ul class="hm-ul">
+    <li>Chức năng chỉ hiện với đơn vị gốc;</li>
+    <li>Người dùng phải giữ vai Bí thư / Phó Bí thư;</li>
+    <li>Phải tick xác nhận <b>đã có bản sao lưu</b>;</li>
+    <li>Phải gõ đúng chuỗi <code>${SYS_WIPE_PHRASE}</code> — nút mới ăn. Sau đó còn hai hộp thoại hỏi lại.</li>
+  </ul>
+
+  <h4>Khôi phục khi cần quay đầu</h4>
+  <p>Nạp tệp sao lưu qua <b>📂 Chọn tệp sao lưu…</b>, xem bảng đối chiếu rồi chọn một trong hai kiểu ghi:</p>
+  <ul class="hm-ul">
+    <li><b>Ghi đè toàn bộ</b> — bản ghi trùng ID bị thay bằng dữ liệu trong tệp. Dùng khi muốn đưa hệ thống về đúng nguyên trạng lúc sao lưu.</li>
+    <li><b>Chỉ bổ sung bản ghi còn thiếu</b> — không đụng dữ liệu đang chạy, chỉ thêm phần đã mất. Dùng khi lỡ xóa nhầm một phần mà hệ thống vẫn đang hoạt động.</li>
+  </ul>
+  <p>Khôi phục xong nên <b>tải lại trang</b> để giao diện nạp lại dữ liệu từ máy chủ.</p>
+
+  <h4>Ba điều cần biết trước</h4>
+  <ul class="hm-ul">
+    <li><b>Tài khoản đăng nhập không tự mất.</b> Phần mềm xóa dữ liệu trong Firestore, nhưng tài khoản nằm ở <b>Firebase Authentication</b> — phần mềm không có quyền đụng tới. Muốn thu hồi hẳn, vào <b>Firebase Console → Authentication → Users</b> xóa thủ công.</li>
+    <li><b>Tệp trên Google Drive không bị xóa.</b> Xóa dữ liệu chỉ gỡ liên kết trong văn bản; tệp gốc vẫn nằm trong Drive của đơn vị. Muốn dọn, vào thư mục <code>${esc(driveRootName())}</code> trên Drive xóa tay.</li>
+    <li><b>Nhật ký quản trị chỉ đơn vị gốc mới xóa được.</b> Nếu gặp lỗi "Missing or insufficient permissions" khi xóa, nghĩa là bộ luật Firestore trên máy chủ còn là bản cũ — vào mục <b>Dữ liệu &amp; sao lưu</b>, sao chép lại toàn bộ bộ luật và Publish trong Firebase Console.</li>
+  </ul>
+  ${ok?`<p style="margin-top:12px"><button class="btn btn-primary btn-sm" onclick="closeHelp();nav('hethong')">⚙ Mở màn hình quản trị dữ liệu</button></p>`:""}`;
 }
 function helpDrive(){
   const c=driveCfg();
@@ -4772,7 +5256,7 @@ function helpFaq(){
    Các hệ thống khác / connector tương lai (iOffice tỉnh, Zalo bot…)
    truy cập qua window.DoanOffice — không đụng vào lõi. */
 window.DoanOffice={
-  version:"4.3",
+  version:"4.4",
   unit:()=>DB&&DB.session?{...me()}:null,
   docs:()=>DB?JSON.parse(JSON.stringify(searchCorpus())):[],
   targets:()=>DB?JSON.parse(JSON.stringify([...myTargets(),...myAssignedTargets()])):[],
