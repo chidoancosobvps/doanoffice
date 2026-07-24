@@ -134,6 +134,48 @@ input[type=file]::file-selector-button{border:none;background:var(--doan);color:
 .sys-preview .sys-tb{background:#fff;border-radius:8px;padding:4px 8px;margin-top:8px}
 @media(max-width:700px){.sys-grid,.sys-lv{grid-template-columns:1fr}}
 
+
+/* ================= 4.5 — Trích xuất trích yếu từ tệp ================= */
+.ty-lbl{font-weight:600;color:var(--doan-2);text-transform:none;letter-spacing:0;font-size:.68rem;background:var(--info-bg);padding:1px 7px;border-radius:99px;margin-left:6px}
+.ty-status{margin-top:9px}
+.ty-hint{font-size:.76rem;color:var(--doan-deep);background:var(--info-bg);border:1px solid #C7DDF3;border-radius:9px;padding:7px 11px;margin-bottom:7px}
+.ty-run{display:flex;gap:11px;align-items:center;background:#FBFDFF;border:1px solid var(--line);border-radius:11px;padding:10px 13px}
+.ty-run>div{flex:1;min-width:0}
+.ty-spin{width:17px;height:17px;flex:none;border:2.5px solid var(--line);border-top-color:var(--doan);border-radius:50%;animation:tyspin .7s linear infinite}
+@keyframes tyspin{to{transform:rotate(360deg)}}
+.ty-bar{height:5px;margin:6px 0 4px;border-radius:99px;overflow:hidden;background:#DCE7F3}
+.ty-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--doan-2),var(--doan));transition:width .3s var(--ease)}
+.ty-res{border-radius:11px;padding:11px 13px;border:1.5px solid;animation:pop .18s var(--ease)}
+.ty-res.hi{background:var(--ok-bg);border-color:#BCE6CE}
+.ty-res.mid{background:var(--info-bg);border-color:#C7DDF3}
+.ty-res.lo{background:var(--warn-bg);border-color:#F0D6A6}
+.ty-res-h{display:flex;align-items:center;gap:8px;font-size:.83rem;margin-bottom:5px;flex-wrap:wrap}
+.ty-conf{margin-left:auto;font-size:.7rem;font-weight:700;background:rgba(255,255,255,.75);padding:2px 9px;border-radius:99px}
+.ty-val{font-size:.88rem;font-weight:600;color:var(--doan-ink);background:#fff;border-radius:8px;padding:7px 11px;margin-bottom:5px;line-height:1.5}
+.ty-acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+.ty-warn{background:var(--warn-bg);border:1px solid #F0D6A6;border-radius:11px;padding:10px 13px;font-size:.8rem;color:#7A4700;line-height:1.55}
+.att-item.is-main{border-color:var(--gold-2);background:linear-gradient(90deg,var(--gold-soft),#fff 65%);box-shadow:0 0 0 1px var(--gold-2) inset}
+.att-main{margin-top:5px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.ty-main-tag{font-size:.7rem;font-weight:800;color:#7A4700;background:var(--gold-soft);border:1px solid var(--gold);padding:2px 9px;border-radius:99px}
+input.ty-filled{animation:tyflash 1.5s var(--ease)}
+@keyframes tyflash{0%,100%{background:#FBFDFF}25%{background:var(--ok-bg);border-color:var(--ok)!important}}
+.ty-pre{background:var(--doan-ink);color:#E6EDF5;padding:13px 15px;border-radius:10px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.74rem;line-height:1.6;white-space:pre-wrap;word-break:break-word;max-height:60vh;overflow:auto;margin:0}
+
+
+/* ================= 4.6 — Đa định dạng tệp đính kèm ================= */
+.fx-types{font-size:.73rem;color:var(--muted);margin:-2px 0 7px;line-height:1.5}
+.fx-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;flex:none}
+.fx-grp{font-weight:700;font-size:.73rem}
+.fx-badge{display:inline-block;font-size:.68rem;font-weight:700;background:var(--line-soft);color:var(--muted);padding:1px 8px;border-radius:99px;margin-left:4px}
+.fx-badge.ok{background:var(--ok-bg);color:var(--ok)}
+.fx-badge.warn{background:var(--warn-bg);color:var(--warn)}
+.fx-badge.risk{background:var(--danger-bg);color:var(--danger)}
+.fx-sum{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:.78rem;color:var(--doan-ink);background:#FBFDFF;border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-top:9px}
+.fx-chip{border:1.5px solid;border-radius:99px;padding:1px 9px;font-size:.71rem;font-weight:700;background:#fff}
+.dv-file{display:flex;gap:7px;align-items:center;margin-bottom:4px;flex-wrap:wrap}
+.pv-media{max-width:100%;max-height:62vh;border-radius:10px;box-shadow:var(--shadow)}
+.att-item .att-meta{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+
 /* ---------- Login ---------- */
 .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
   background:radial-gradient(1100px 620px at 82% -10%,rgba(27,117,196,.55),transparent 60%),
@@ -782,30 +824,176 @@ function markDone(id){
 }
 let composeFiles=[];        /* v3.6: nhiều tệp đính kèm */
 let composeFile=null;       /* giữ tương thích mã cũ */
-function resetCompose(){composeFiles=[];composeFile=null;S.composeAtt=[]}
+function resetCompose(){composeFiles=[];composeFile=null;S.composeAtt=[];mainFileIdx=-1;tyExtract=null;driveQueue=[]}
 /* Gộp tệp mới (files[]) + tệp kiểu cũ (file) của văn bản */
 function docFiles(d){const a=[...(d.files||[])];if(d.file)a.push(d.file);return a}
 const FILE_LIMIT_KB = MODE==="cloud"?400:800; /* cloud: chừa chỗ vì Firestore giới hạn ~1MB/document, base64 phình ~37% */
 function onPickFile(inp){
   const list=[...(inp.files||[])];inp.value="";
   if(!list.length)return;
-  quickAutofillTy(list[0].name);
-  /* Ngưỡng đưa lên Drive do đơn vị đặt; ngưỡng nhúng vào văn bản là cứng theo giới hạn Firestore */
+  /* Chỉ lấy tên tệp làm trích yếu tạm khi đó là tệp VĂN BẢN — tên
+     video/ảnh/tệp nén không phải trích yếu, đặt vào chỉ gây rối. */
+  const firstDoc=list.find(f=>fileGroup(f.name)==="doc");
+  if(firstDoc)quickAutofillTy(firstDoc.name);
+
   const thr=driveThresholdKB();
+  const embedCap=Math.min(thr,FILE_LIMIT_KB);
+  let risky=[],huge=[];
+
   list.forEach(f=>{
-    const big=f.size>Math.min(thr,FILE_LIMIT_KB)*1024;
-    /* Tệp lớn + đã bật Drive → tự tải lên, không bắt cán bộ làm thủ công nữa */
+    if(isRisky(f.name))risky.push(f.name);
+    if(f.size>BIG_FILE_MB*1048576)huge.push(f.name);
+    const big=f.size>embedCap*1024;
+    /* Tệp lớn + đã bật Drive → tự tải lên, không bắt cán bộ làm thủ công */
     if(big&&driveAuto()){driveEnqueue(f,currentLoai());return}
     if(big){
       composeFiles.push({name:f.name,size:f.size,dataUrl:null,oversize:true,_file:f});
-      toast(f.name+" vượt "+Math.min(thr,FILE_LIMIT_KB)+"KB — bấm “☁ Đưa lên Drive” để hệ thống tự tải lên và gắn liên kết.");
       updateFileListUI();return;}
     const rd=new FileReader();
-    rd.onload=()=>{composeFiles.push({name:f.name,size:f.size,dataUrl:rd.result});updateFileListUI()};
+    rd.onload=()=>{composeFiles.push({name:f.name,size:f.size,dataUrl:rd.result,_file:f});updateFileListUI();autoPickMain()};
+    rd.onerror=()=>{toast("Không đọc được tệp "+f.name);};
     rd.readAsDataURL(f);});
-  updateFileListUI();
+
+  updateFileListUI();setTimeout(autoPickMain,60);
+
+  /* Nhắc sau cùng, gộp một lần cho đỡ dồn dập toast */
+  if(risky.length)
+    toast("⚠ "+risky.length+" tệp có thể chứa mã thực thi ("+risky[0].split(".").pop().toUpperCase()+"…) — chỉ gửi khi bạn chắc chắn về nguồn gốc.");
+  else if(huge.length&&driveAuto())
+    toast("Tệp lớn ("+fmtSize(list.find(x=>x.name===huge[0]).size)+") đang được đưa lên Drive — có thể mất vài phút, đừng đóng trang.");
+  else if(!driveOn()&&list.some(f=>f.size>embedCap*1024))
+    toast("Có tệp vượt "+embedCap+"KB — bật Google Drive để hệ thống tự tải lên và gắn liên kết.");
+}
+/* Chỉ có một tệp đọc được → mặc định coi đó là văn bản chính và trích luôn,
+   khỏi bắt người dùng bấm thêm. Nhiều tệp thì để họ tự chọn. */
+function autoPickMain(){
+  if(mainFileIdx>=0||tyBusy)return;
+  const ty=document.getElementById("c-ty");
+  if(ty&&ty.value.trim())return;               /* đã có trích yếu, không đụng */
+  const cands=composeFiles.map((f,i)=>({f,i})).filter(x=>canExtract(x.f));
+  if(cands.length===1)setMainFile(cands[0].i);
 }
 /* Đưa một tệp quá khổ đang chờ trong danh sách lên Drive */
+function driveUploadPending(i){
+  const f=composeFiles[i];if(!f||!f._file)return;
+  if(!driveOn()){toast("Chưa cấu hình Google Drive — vào Dữ liệu & sao lưu → Google Drive để kết nối một lần.");nav("hethong");return}
+  const file=f._file;composeFiles.splice(i,1);updateFileListUI();
+  driveEnqueue(file,currentLoai());
+}
+function updateFileListUI(){
+  const el=document.getElementById("file-list");if(!el)return;
+  if(!composeFiles.length){el.innerHTML='<span class="muted">Chưa chọn tệp — chọn được nhiều tệp cùng lúc, mọi định dạng.</span>';mainFileIdx=-1;updateFileSummary();return}
+  const multi=composeFiles.filter(canExtract).length>1;
+  el.innerHTML=(multi?'<div class="ty-hint">📌 Có nhiều tệp đọc được — bấm <b>“Đặt làm văn bản chính”</b> ở tệp cần lấy trích yếu.</div>':"")
+   +composeFiles.map((f,i)=>{
+    const kind=f.link?"link":(f.oversize?"over":"emb");
+    const g=groupInfo(f.name);
+    const isMain=i===mainFileIdx;
+    const risky=isRisky(f.name);
+    const state=kind==="link"
+      ?`<span class="fx-badge ok">☁️ Trên Drive</span>`
+      :kind==="over"
+        ?`<span class="fx-badge warn">⚠️ Chưa xử lý</span>`
+        :`<span class="fx-badge">Lưu kèm văn bản</span>`;
+    const meta=kind==="link"
+      ?`<a href="${esc(f.link)}" target="_blank" rel="noopener">Mở trên Drive ↗</a>${f.drivePath?`<span class="muted"> · ${esc(f.drivePath)}</span>`:""}`
+      :kind==="over"
+        ?`<button class="btn btn-gold btn-xs" onclick="driveUploadPending(${i})">☁ Đưa lên Drive</button>`
+        :``;
+    const mainBtn=canExtract(f)
+      ?(isMain?`<span class="ty-main-tag">★ Văn bản chính</span>
+                <button class="btn btn-ghost btn-xs" onclick="runExtract(${i})" ${tyBusy?"disabled":""}>⟳ Trích lại</button>`
+              :`<button class="btn btn-ghost btn-xs" onclick="setMainFile(${i})" ${tyBusy?"disabled":""}>★ Đặt làm văn bản chính</button>`)
+      :"";
+    const prev=canPreviewInline(f.name)&&f._file
+      ?`<button class="btn btn-ghost btn-xs" onclick="previewFile(${i})">👁 Xem trước</button>`:"";
+    return `<div class="att-item ${kind}${isMain?" is-main":""}">
+      <span class="fx-ic" style="background:${g.color}18;color:${g.color}">${g.ic}</span>
+      <div class="att-body">
+        <div class="att-name">${esc(f.name)}</div>
+        <div class="att-meta small">
+          <span class="fx-grp" style="color:${g.color}">${esc(g.label)}</span>
+          <span class="muted">· ${fmtSize(f.size)}</span> ${state}
+          ${risky?'<span class="fx-badge risk" title="Tệp có thể chứa mã thực thi">⚠ Cần thận trọng</span>':""}
+        </div>
+        ${meta?`<div class="att-meta small">${meta}</div>`:""}
+        ${(mainBtn||prev)?`<div class="att-main">${mainBtn}${prev}</div>`:""}
+      </div>
+      <button class="att-x" title="Bỏ tệp này" onclick="removeComposeFile(${i})">✕</button></div>`}).join("");
+  updateFileSummary();
+}
+/* Dòng tổng kết: bao nhiêu tệp, tổng dung lượng, gồm những nhóm nào */
+function updateFileSummary(){
+  const el=document.getElementById("file-sum");if(!el)return;
+  if(!composeFiles.length){el.innerHTML="";el.style.display="none";return}
+  el.style.display="";
+  const tot=composeFiles.reduce((a,f)=>a+(f.size||0),0);
+  const byG={};composeFiles.forEach(f=>{const k=fileGroup(f.name);byG[k]=(byG[k]||0)+1});
+  const chips=Object.entries(byG).map(([k,n])=>{const g=FILE_GROUPS[k];
+    return `<span class="fx-chip" style="border-color:${g.color}44;color:${g.color}">${g.ic} ${esc(g.label)} ×${n}</span>`}).join("");
+  const onDrive=composeFiles.filter(f=>f.link).length;
+  const pending=composeFiles.filter(f=>f.oversize).length;
+  el.innerHTML=`<b>${composeFiles.length} tệp</b> · ${fmtSize(tot)} ${chips}
+    ${onDrive?`<span class="muted">· ${onDrive} tệp trên Drive</span>`:""}
+    ${pending?`<span style="color:var(--warn)">· ${pending} tệp chờ đưa lên Drive</span>`:""}`;
+}
+/* Xem trước ảnh / âm thanh / video ngay trong trình duyệt */
+function previewFile(i){
+  const f=composeFiles[i];if(!f||!f._file)return;
+  try{if(S.pvUrl)URL.revokeObjectURL(S.pvUrl)}catch(e){}
+  S.pvUrl=URL.createObjectURL(f._file);
+  S.pvName=f.name;S.pvGroup=fileGroup(f.name);
+  render();
+}
+function closePreview(){
+  try{if(S.pvUrl)URL.revokeObjectURL(S.pvUrl)}catch(e){}
+  S.pvUrl=null;S.pvName=null;S.pvGroup=null;render();
+}
+function previewHtml(){
+  const g=S.pvGroup,u=S.pvUrl;
+  const body=g==="image"?`<img src="${u}" class="pv-media" alt="">`
+    :g==="video"?`<video src="${u}" class="pv-media" controls autoplay></video>`
+    :g==="audio"?`<audio src="${u}" style="width:100%" controls autoplay></audio>`
+    :`<div class="muted">Không xem trước được định dạng này.</div>`;
+  return `<div class="hm-back" onclick="if(event.target===this)closePreview()"><div class="hm" style="width:min(760px,96vw)">
+    <div class="hm-top"><div class="stardot">👁</div><div><h3>Xem trước tệp</h3>
+      <div class="sub">${esc(S.pvName||"")}</div></div>
+      <button class="hm-x" onclick="closePreview()">✕</button></div>
+    <div class="hm-body" style="text-align:center">${body}</div></div></div>`;
+}
+function driveUploadPending(i){
+  const f=composeFiles[i];if(!f||!f._file)return;
+  if(!driveOn()){toast("Chưa cấu hình Google Drive — vào Dữ liệu & sao lưu → Google Drive để kết nối một lần.");nav("hethong");return}
+  const file=f._file;composeFiles.splice(i,1);updateFileListUI();
+  driveEnqueue(file,currentLoai());
+}
+function updateFileListUI(){
+  const el=document.getElementById("file-list");if(!el)return;
+  if(!composeFiles.length){el.innerHTML='<span class="muted">Chưa chọn tệp — chọn được nhiều tệp cùng lúc.</span>';mainFileIdx=-1;return}
+  const multi=composeFiles.filter(canExtract).length>1;
+  el.innerHTML=(multi?'<div class="ty-hint">📌 Có nhiều tệp — bấm <b>“Đặt làm văn bản chính”</b> ở tệp cần lấy trích yếu.</div>':"")
+   +composeFiles.map((f,i)=>{
+    const kind=f.link?"link":(f.oversize?"over":"emb");
+    const ic=kind==="link"?"☁️":(kind==="over"?"⚠️":"📎");
+    const isMain=i===mainFileIdx;
+    const meta=kind==="link"
+      ?`<a href="${esc(f.link)}" target="_blank" rel="noopener">Xem trên Drive ↗</a>${f.drivePath?` <span class="muted">· ${esc(f.drivePath)}</span>`:""}`
+      :kind==="over"
+        ?`<span style="color:var(--warn)">vượt ${FILE_LIMIT_KB}KB — mới chỉ lưu tên</span>
+          <button class="btn btn-gold btn-xs" style="margin-left:6px" onclick="driveUploadPending(${i})">☁ Đưa lên Drive</button>`
+        :`<span class="muted">${Math.round(f.size/1024)} KB · lưu kèm văn bản</span>`;
+    const mainBtn=canExtract(f)
+      ?(isMain?`<span class="ty-main-tag">★ Văn bản chính</span>
+                <button class="btn btn-ghost btn-xs" onclick="runExtract(${i})" ${tyBusy?"disabled":""}>⟳ Trích lại</button>`
+              :`<button class="btn btn-ghost btn-xs" onclick="setMainFile(${i})" ${tyBusy?"disabled":""}>★ Đặt làm văn bản chính</button>`)
+      :`<span class="muted small">không đọc được để trích yếu</span>`;
+    return `<div class="att-item ${kind}${isMain?" is-main":""}">
+      <span class="att-ic">${ic}</span>
+      <div class="att-body"><div class="att-name">${esc(f.name)}</div>
+        <div class="att-meta small">${meta}</div>
+        <div class="att-main">${mainBtn}</div></div>
+      <button class="att-x" title="Bỏ tệp này" onclick="removeComposeFile(${i})">✕</button></div>`}).join("");
+}
 function driveUploadPending(i){
   const f=composeFiles[i];if(!f||!f._file)return;
   if(!driveOn()){toast("Chưa cấu hình Google Drive — vào Dữ liệu & sao lưu → Google Drive để kết nối một lần.");nav("hethong");return}
@@ -829,7 +1017,12 @@ function updateFileListUI(){
       <div class="att-body"><div class="att-name">${esc(f.name)}</div><div class="att-meta small">${meta}</div></div>
       <button class="att-x" title="Bỏ tệp này" onclick="removeComposeFile(${i})">✕</button></div>`}).join("");
 }
-function removeComposeFile(i){composeFiles.splice(i,1);updateFileListUI()}
+function removeComposeFile(i){
+  composeFiles.splice(i,1);
+  if(mainFileIdx===i){mainFileIdx=-1;tyExtract=null;tyStatus("")}
+  else if(mainFileIdx>i)mainFileIdx--;   /* chỉ số dịch trái sau khi xóa */
+  updateFileListUI();
+}
 /* ==================================================================
    MỚI Ở 4.3 — TỰ ĐỘNG ĐƯA TỆP LỚN LÊN GOOGLE DRIVE (Drive Bridge)
    ------------------------------------------------------------------
@@ -852,6 +1045,82 @@ function removeComposeFile(i){composeFiles.splice(i,1);updateFileListUI()}
    Toàn bộ token chỉ nằm trong bộ nhớ trình duyệt của máy đang dùng
    (sessionStorage), không đẩy lên Firestore, không qua máy chủ trung gian.
    ================================================================== */
+
+/* ==================================================================
+   MỚI Ở 4.6 — NHẬN DIỆN & PHÂN LOẠI MỌI ĐỊNH DẠNG TỆP ĐÍNH KÈM
+   ------------------------------------------------------------------
+   Trước 4.6, tệp lên Drive chỉ xếp theo LOẠI VĂN BẢN. Nay xếp theo
+   HAI TẦNG:  <gốc>/<năm>/<Loại văn bản>/<Nhóm tệp>/
+   ví dụ:     DoanOffice - Văn bản đi/2026/Kế hoạch (KH)/Bảng tính/
+
+   Nhờ vậy mở Drive ra là thấy ngay tài liệu, bảng tính, ảnh, video…
+   của từng loại văn bản nằm riêng từng ngăn, không lẫn lộn.
+   ================================================================== */
+
+/* Mỗi nhóm: nhãn hiển thị, tên thư mục trên Drive, biểu tượng, màu,
+   và danh sách phần mở rộng thuộc nhóm đó. */
+const FILE_GROUPS = {
+  doc:    { label: "Văn bản",     folder: "Tài liệu",    ic: "📄", color: "#2B6CB0",
+            ext: ["doc", "docx", "docm", "dot", "dotx", "odt", "rtf", "txt", "md", "pdf", "tex", "wps"] },
+  sheet:  { label: "Bảng tính",   folder: "Bảng tính",   ic: "📊", color: "#1B7F4D",
+            ext: ["xls", "xlsx", "xlsm", "xlsb", "xlt", "xltx", "ods", "csv", "tsv"] },
+  slide:  { label: "Trình chiếu", folder: "Trình chiếu", ic: "📽️", color: "#C05621",
+            ext: ["ppt", "pptx", "pptm", "pps", "ppsx", "pot", "potx", "odp"] },
+  image:  { label: "Hình ảnh",    folder: "Hình ảnh",    ic: "🖼️", color: "#6B46C1",
+            ext: ["jpg", "jpeg", "png", "gif", "bmp", "webp", "tif", "tiff", "svg", "heic", "heif", "ico", "psd", "ai"] },
+  video:  { label: "Video",       folder: "Video",       ic: "🎬", color: "#B83280",
+            ext: ["mp4", "avi", "mkv", "mov", "wmv", "flv", "webm", "mpg", "mpeg", "m4v", "3gp", "ts"] },
+  audio:  { label: "Âm thanh",    folder: "Âm thanh",    ic: "🎵", color: "#0987A0",
+            ext: ["mp3", "wav", "flac", "aac", "ogg", "wma", "m4a", "opus", "amr", "aiff"] },
+  archive:{ label: "Tệp nén",     folder: "Tệp nén",     ic: "🗜️", color: "#975A16",
+            ext: ["zip", "rar", "7z", "tar", "gz", "bz2", "xz", "tgz", "iso", "cab", "arj"] },
+  data:   { label: "Dữ liệu",     folder: "Dữ liệu",     ic: "🗂️", color: "#4A5568",
+            ext: ["json", "xml", "sql", "db", "sqlite", "mdb", "accdb", "dbf", "yml", "yaml"] },
+  design: { label: "Bản vẽ",      folder: "Bản vẽ",      ic: "📐", color: "#805AD5",
+            ext: ["dwg", "dxf", "cdr", "indd", "sketch", "fig", "vsd", "vsdx"] },
+  other:  { label: "Tệp khác",    folder: "Tệp khác",    ic: "📎", color: "#5F7488", ext: [] }
+};
+
+/* Bảng tra ngược: phần mở rộng → nhóm (dựng một lần cho nhanh) */
+const EXT2GROUP = (() => {
+  const m = {};
+  Object.entries(FILE_GROUPS).forEach(([k, g]) => g.ext.forEach(e => { m[e] = k; }));
+  return m;
+})();
+
+function fileExt(name) {
+  const m = String(name || "").toLowerCase().match(/\.([a-z0-9]+)$/);
+  return m ? m[1] : "";
+}
+/** Nhóm của một tệp — dùng cho biểu tượng, màu và thư mục Drive. */
+function fileGroup(nameOrFile) {
+  const n = typeof nameOrFile === "string" ? nameOrFile : (nameOrFile && nameOrFile.name) || "";
+  return EXT2GROUP[fileExt(n)] || "other";
+}
+function groupInfo(nameOrFile) {
+  return FILE_GROUPS[fileGroup(nameOrFile)] || FILE_GROUPS.other;
+}
+/** Dung lượng đọc được cho người dùng */
+function fmtSize(b) {
+  b = Number(b) || 0;
+  if (b < 1024) return b + " B";
+  if (b < 1048576) return (b / 1024).toFixed(b < 10240 ? 1 : 0) + " KB";
+  if (b < 1073741824) return (b / 1048576).toFixed(b < 10485760 ? 1 : 0) + " MB";
+  return (b / 1073741824).toFixed(2) + " GB";
+}
+
+/* Cảnh báo tệp có nguy cơ (không chặn, chỉ nhắc — cán bộ vẫn tự quyết) */
+const RISKY_EXT = ["exe", "msi", "bat", "cmd", "com", "scr", "vbs", "js", "jar", "ps1", "apk", "dll", "reg"];
+function isRisky(name) { return RISKY_EXT.includes(fileExt(name)); }
+
+/* Ngưỡng nhắc dung lượng lớn (Drive vẫn nhận, chỉ là tải lâu) */
+const BIG_FILE_MB = 100;
+
+/* ---------- Xem trước nhanh cho ảnh / âm thanh / video ---------- */
+function canPreviewInline(name) {
+  const g = fileGroup(name);
+  return g === "image" || g === "audio" || g === "video";
+}
 
 const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
 const DRV_LS = "do_drive_cfg_";      /* + unitId → cấu hình của đơn vị */
@@ -983,12 +1252,18 @@ async function drvFolder(name, parentId, tok) {
 }
 
 /** Cây thư mục đích: <gốc>/<năm>/<Loại văn bản (MÃ)>/ — đúng theo loại văn bản đang soạn. */
-async function drvTargetFolder(loaiKey, tok) {
+async function drvTargetFolder(loaiKey, tok, fileName) {
   const root = await drvFolder(driveRootName(), null, tok);
   const year = await drvFolder(String(new Date().getFullYear()), root, tok);
   const L = LOAI[loaiKey] || LOAI.congvan;
-  const leaf = await drvFolder(L[1] + " (" + L[0] + ")", year, tok);
-  return { id: leaf, path: driveRootName() + "/" + new Date().getFullYear() + "/" + L[1] + " (" + L[0] + ")" };
+  const docFolder = L[1] + " (" + L[0] + ")";
+  const lv2 = await drvFolder(docFolder, year, tok);
+  /* Tầng 3 theo NHÓM TỆP — chỉ tạo khi biết tên tệp; nhờ vậy tài liệu,
+     bảng tính, ảnh, video… của cùng một loại văn bản nằm riêng từng ngăn. */
+  if (!fileName) return { id: lv2, path: driveRootName() + "/" + new Date().getFullYear() + "/" + docFolder };
+  const g = groupInfo(fileName);
+  const leaf = await drvFolder(g.folder, lv2, tok);
+  return { id: leaf, path: driveRootName() + "/" + new Date().getFullYear() + "/" + docFolder + "/" + g.folder };
 }
 
 /** Tải tệp lên (resumable, có tiến độ %). */
@@ -1029,7 +1304,7 @@ async function drvShare(fileId, tok) {
 /* ---------- Quy trình đầy đủ: 1 tệp → liên kết ---------- */
 async function driveUploadOne(file, loaiKey, onProg) {
   const tok = await driveAuth(true);
-  const folder = await drvTargetFolder(loaiKey, tok);
+  const folder = await drvTargetFolder(loaiKey, tok, file.name);
   const up = await drvUpload(file, folder.id, tok, onProg);
   await drvShare(up.id, tok);
   return {
@@ -1075,7 +1350,7 @@ async function driveRunOne(idx, file, loaiKey) {
   try {
     const res = await driveUploadOne(file, loaiKey, p => { q.pct = p; driveQueueUI(); });
     q.state = "done"; q.pct = 100; q.link = res.link; q.folder = res.drivePath;
-    composeFiles.push({ name: res.name, size: res.size, link: res.link, driveId: res.driveId, drivePath: res.drivePath });
+    composeFiles.push({ name: res.name, size: res.size, link: res.link, driveId: res.driveId, drivePath: res.drivePath, _file: file });
     updateFileListUI(); driveQueueUI();
     toast("Đã đưa “" + res.name + "” lên Drive và gắn liên kết vào văn bản.");
   } catch (e) {
@@ -1151,10 +1426,462 @@ async function driveMakeTree() {
   try {
     const tok = await driveAuth(true);
     if (out) out.innerHTML = '<span class="muted">Đang tạo cây thư mục…</span>';
+    /* Chỉ dựng sẵn tầng LOẠI VĂN BẢN. Thư mục nhóm tệp (Tài liệu, Bảng tính,
+       Hình ảnh…) sẽ tự sinh khi lần đầu có tệp thuộc nhóm đó — tránh tạo
+       cả trăm thư mục rỗng làm rối Drive. */
     const names = [];
     for (const k of Object.keys(LOAI)) { const f = await drvTargetFolder(k, tok); names.push(f.path); }
     if (out) out.innerHTML = '<span style="color:var(--ok)">✅ Đã tạo/kiểm tra ' + names.length + ' thư mục:</span><div class="hint" style="margin-top:4px">' + names.map(esc).join("<br>") + '</div>';
   } catch (e) { if (out) out.innerHTML = '<span style="color:var(--danger)">⚠ ' + esc(e.message) + '</span>'; }
+}
+
+/* ==================================================================
+   MỚI Ở 4.5 — TỰ ĐỘNG TRÍCH XUẤT TRÍCH YẾU TỪ TỆP ĐÍNH KÈM
+   ------------------------------------------------------------------
+   Người dùng đính kèm nhiều tệp, chọn một tệp làm VĂN BẢN CHÍNH,
+   phần mềm đọc tệp đó và tự điền ô "Trích yếu nội dung".
+
+   Bốn tầng xử lý, dừng ngay khi có kết quả đủ tin cậy:
+     T1. DOCX / văn bản thuần  → đọc thẳng XML, không cần thư viện ngoài.
+     T2. PDF có lớp chữ        → pdf.js lấy text (đa số văn bản hành chính
+                                 đều là PDF xuất từ Word nên có sẵn lớp chữ).
+     T3. PDF scan / ảnh        → OCR bằng Tesseract (vie), chỉ nạp khi cần
+                                 vì thư viện nặng (~2MB + dữ liệu ngôn ngữ).
+     T4. AI dọn lại            → nếu đã có khóa Gemini, đưa phần đầu văn bản
+                                 cho AI chuẩn hóa; đây là tầng vớt cuối.
+
+   Sau khi có text, hàm findTrichYeu() dò theo THỂ THỨC VĂN BẢN của Đoàn
+   (mẫu quen thuộc: số ký hiệu → "V/v …" nằm ngay dưới số, hoặc tiêu đề
+   loại văn bản rồi tới dòng "Về việc …"), chấm điểm tin cậy 0–100.
+   ================================================================== */
+
+/* Thư viện nạp động — chỉ tải khi thực sự dùng tới */
+const CDN_PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+const CDN_PDFJS_WORKER = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+const CDN_TESS = "https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.0/tesseract.min.js";
+const CDN_JSZIP = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
+
+function loadScriptOnce(url, globalName) {
+  if (globalName && window[globalName]) return Promise.resolve();
+  window._loadedScripts = window._loadedScripts || {};
+  if (window._loadedScripts[url]) return window._loadedScripts[url];
+  window._loadedScripts[url] = new Promise((res, rej) => {
+    const s = document.createElement("script");
+    s.src = url; s.async = true;
+    s.onload = () => res();
+    s.onerror = () => { delete window._loadedScripts[url]; rej(new Error("Không tải được thư viện xử lý tệp. Kiểm tra kết nối mạng.")); };
+    document.head.appendChild(s);
+  });
+  return window._loadedScripts[url];
+}
+
+/* ---------- T1: DOCX ---------- */
+async function extractDocx(file) {
+  await loadScriptOnce(CDN_JSZIP, "JSZip");
+  const zip = await JSZip.loadAsync(file);
+  const f = zip.file("word/document.xml");
+  if (!f) throw new Error("Tệp .docx không đọc được phần nội dung.");
+  const xml = await f.async("string");
+  /* Giữ ranh giới đoạn: </w:p> → xuống dòng, rồi bóc hết thẻ */
+  const txt = xml
+    .replace(/<w:p[ >]/g, "\n<w:p ")
+    .replace(/<\/w:p>/g, "\n")
+    .replace(/<w:tab\/?>/g, " ")
+    .replace(/<w:br\/?>/g, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&#(\d+);/g, (m, d) => String.fromCharCode(+d));
+  return cleanText(txt);
+}
+
+/* ---------- T2: PDF có lớp chữ ---------- */
+async function extractPdfText(file, maxPages) {
+  await loadScriptOnce(CDN_PDFJS, "pdfjsLib");
+  if (window.pdfjsLib && pdfjsLib.GlobalWorkerOptions)
+    pdfjsLib.GlobalWorkerOptions.workerSrc = CDN_PDFJS_WORKER;
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  const n = Math.min(pdf.numPages, maxPages || 2);
+  let out = "";
+  for (let i = 1; i <= n; i++) {
+    const page = await pdf.getPage(i);
+    const tc = await page.getTextContent();
+    /* Gom theo toạ độ Y để giữ dòng — quan trọng vì "V/v" và nội dung
+       trích yếu thường nằm trên các dòng liên tiếp trong cùng một khối. */
+    const lines = {};
+    tc.items.forEach(it => {
+      const y = Math.round(it.transform[5]);
+      (lines[y] = lines[y] || []).push({ x: it.transform[4], s: it.str });
+    });
+    out += Object.keys(lines).map(Number).sort((a, b) => b - a)
+      .map(y => lines[y].sort((a, b) => a.x - b.x).map(o => o.s).join(" "))
+      .join("\n") + "\n";
+  }
+  return { text: cleanText(out), pdf, pages: pdf.numPages };
+}
+
+/* ---------- T3: OCR ---------- */
+async function ocrPdfFirstPages(pdf, maxPages, onProg) {
+  await loadScriptOnce(CDN_TESS, "Tesseract");
+  const n = Math.min(pdf.numPages, maxPages || 1);
+  let out = "";
+  for (let i = 1; i <= n; i++) {
+    const page = await pdf.getPage(i);
+    /* Phóng to 2x giúp Tesseract nhận dấu tiếng Việt tốt hơn rõ rệt */
+    const vp = page.getViewport({ scale: 2 });
+    const cv = document.createElement("canvas");
+    cv.width = vp.width; cv.height = vp.height;
+    await page.render({ canvasContext: cv.getContext("2d"), viewport: vp }).promise;
+    const r = await Tesseract.recognize(cv, "vie", {
+      logger: m => { if (m.status === "recognizing text" && onProg) onProg(Math.round(m.progress * 100), i, n); }
+    });
+    out += (r.data.text || "") + "\n";
+  }
+  return cleanText(out);
+}
+async function ocrImage(file, onProg) {
+  await loadScriptOnce(CDN_TESS, "Tesseract");
+  const r = await Tesseract.recognize(file, "vie", {
+    logger: m => { if (m.status === "recognizing text" && onProg) onProg(Math.round(m.progress * 100), 1, 1); }
+  });
+  return cleanText(r.data.text || "");
+}
+
+/* ---------- Chuẩn hóa text ---------- */
+function cleanText(t) {
+  return String(t || "")
+    .replace(/\r/g, "")
+    .replace(/[ \t\u00A0]+/g, " ")
+    .split("\n").map(x => x.trim()).filter((x, i, a) => x || (a[i - 1] || "").trim())
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+/* ==================================================================
+   DÒ TRÍCH YẾU THEO THỂ THỨC VĂN BẢN
+   ------------------------------------------------------------------
+   Trả về {ty, conf, how} — conf 0–100 để giao diện biết có nên tự điền
+   hay chỉ gợi ý cho người dùng duyệt.
+   ================================================================== */
+
+/* Lỗi OCR rất hay gặp với chữ Việt in hành chính */
+function fixOcr(s) {
+  return String(s || "")
+    .replace(/\bVN\/v\b/gi, "V/v")
+    .replace(/\bV\s*\/\s*v\b/gi, "V/v")
+    .replace(/\bV[,.]v\b/gi, "V/v")
+    .replace(/\bVlv\b/gi, "V/v")
+    .replace(/\bV1v\b/gi, "V/v")
+    .replace(/\bVễ việc\b/gi, "Về việc")
+    .replace(/\bVê việc\b/gi, "Về việc")
+    .replace(/\bVồ việc\b/gi, "Về việc")
+    /* CHỈ gộp khoảng trắng NGANG — tuyệt đối không đụng xuống dòng,
+       vì ranh giới dòng chính là căn cứ để biết trích yếu kết thúc ở đâu. */
+    .replace(/[ \t\u00A0]{2,}/g, " ")
+    .replace(/[ \t]+\n/g, "\n")
+    .trim();
+}
+
+/* Bỏ các dòng "rác" của phần đầu văn bản: quốc hiệu, tiêu ngữ, cơ quan… */
+const NOISE_RE = /^(CỘNG\s*HÒA|CỘNG\s*HOÀ|ĐỘC\s*LẬP|ĐOÀN\s*TNCS|ĐOÀN\s*THANH\s*NIÊN|BAN\s*CHẤP\s*HÀNH|BCH|ỦY\s*BAN|UBND|TỈNH\s*ĐOÀN|HUYỆN\s*ĐOÀN|THÀNH\s*ĐOÀN|ĐẢNG\s*BỘ|Số\s*:|\*+$|-{3,}|_{3,}|Hà\s*Nội|TP\.|ngày\s+\d)/i;
+
+/* Dòng báo hiệu ĐÃ HẾT vùng trích yếu — gặp là dừng gom ngay.
+   Đây là chỗ dễ sai nhất: nếu không chặn, trích yếu sẽ nuốt luôn
+   "Kính gửi:", dòng địa danh/ngày tháng, hay tiêu đề mục "I. ..." */
+const STOP_RE = new RegExp(
+  "^(" +
+  "Kính\\s*gửi|Căn\\s*cứ|Thực\\s*hiện|Số\\s*:|Nơi\\s*nhận|Trân\\s*trọng|" +
+  "QUYẾT\\s*ĐỊNH|NGHỊ\\s*QUYẾT|" +
+  "[IVX]+\\s*[.)]|" +                       /* I. II. III. mục lớn */
+  "\\d+\\s*[.)]\\s|" +                     /* 1. 2) đầu mục */
+  ".*,\\s*ngày\\s+\\d{1,2}\\s+tháng|" +      /* Đồng Tháp, ngày 15 tháng 02... */
+  ".*ngày\\s+\\d{1,2}\\s+tháng\\s+\\d{1,2}\\s+năm" +
+  ")", "i");
+
+function isStop(line) {
+  const l = String(line || "").trim();
+  if (!l) return true;
+  if (STOP_RE.test(l)) return true;
+  /* Dòng toàn CHỮ HOA dài thường là tiêu đề mục mới, không phải phần tiếp */
+  const letters = l.replace(/[^A-Za-zÀ-ỹĐđ]/g, "");
+  const upper = l.replace(/[^A-ZÀ-ỸĐ]/g, "");
+  if (letters.length > 8 && upper.length / letters.length > 0.9) return true;
+  return false;
+}
+
+function isNoise(line) {
+  const l = line.trim();
+  if (!l || l.length < 3) return true;
+  if (NOISE_RE.test(l)) return true;
+  if (/^[\d\W]+$/.test(l)) return true;              /* toàn số/ký hiệu */
+  if (/^[A-ZĐÀ-Ỹ\s]{2,}$/.test(l) && l.length < 12) return true; /* viết tắt ngắn */
+  return false;
+}
+
+/* Loại văn bản hay đứng làm tiêu đề */
+const DOCTYPE_RE = /^(CÔNG\s*VĂN|KẾ\s*HOẠCH|THÔNG\s*BÁO|QUYẾT\s*ĐỊNH|BÁO\s*CÁO|HƯỚNG\s*DẪN|TỜ\s*TRÌNH|CHƯƠNG\s*TRÌNH|NGHỊ\s*QUYẾT|GIẤY\s*MỜI|BIÊN\s*BẢN)\b/i;
+
+function findTrichYeu(rawText) {
+  const text = fixOcr(rawText);
+  const lines = text.split("\n").map(x => x.trim()).filter(Boolean);
+  const head = lines.slice(0, 60);   /* trích yếu luôn nằm ở phần đầu */
+
+  const norm = s => fixOcr(s)
+    .replace(/^[-–—•*\s]+/, "")
+    .replace(/\s*[.;]+\s*$/, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+
+  const plausible = s => {
+    if (!s) return false;
+    const w = s.split(/\s+/).length;
+    return w >= 3 && w <= 60 && s.length >= 12 && s.length <= 400;
+  };
+
+  /* --- Cách 1: bắt trực tiếp "V/v …" hoặc "Về việc …" (mạnh nhất) --- */
+  for (let i = 0; i < head.length; i++) {
+    const m = head[i].match(/(?:V\/v|Về\s+việc)\s*[:.]?\s*(.*)$/i);
+    if (!m) continue;
+    let body = m[1] || "";
+    /* Trích yếu thường tràn 2–3 dòng, gom tiếp khi dòng sau còn là phần tiếp */
+    for (let j = i + 1; j < Math.min(i + 4, head.length); j++) {
+      const nx = head[j];
+      if (isStop(nx) || isNoise(nx) || DOCTYPE_RE.test(nx)) break;
+      /* Câu đã trọn ý và đủ dài → không gom thêm */
+      if (/[.;]$/.test(body.trim()) && body.trim().length > 20) break;
+      /* Chỉ nối khi dòng sau rõ ràng là phần TIẾP của câu:
+         bắt đầu bằng chữ thường, hoặc câu hiện tại còn quá ngắn/cụt */
+      const looksContinuation = /^[a-zà-ỹ(]/.test(nx);
+      const bodyTooShort = body.trim().split(/\s+/).length < 5;
+      if (looksContinuation || bodyTooShort) body += " " + nx; else break;
+    }
+    const ty = norm(body);
+    if (plausible(ty)) return { ty: capFirst(ty), conf: 95, how: "Bắt được nhãn “V/v / Về việc”" };
+  }
+
+  /* --- Cách 2: tiêu đề loại văn bản, lấy khối chữ ngay bên dưới --- */
+  for (let i = 0; i < head.length; i++) {
+    if (!DOCTYPE_RE.test(head[i])) continue;
+    /* Có khi cùng dòng: "KẾ HOẠCH Tổ chức ..." */
+    const same = head[i].replace(DOCTYPE_RE, "").trim();
+    if (plausible(norm(same))) return { ty: capFirst(norm(same)), conf: 80, how: "Lấy từ tiêu đề loại văn bản" };
+    let buf = [];
+    for (let j = i + 1; j < Math.min(i + 6, head.length); j++) {
+      const nx = head[j];
+      if (isStop(nx)) break;
+      if (isNoise(nx)) { if (buf.length) break; else continue; }
+      /* Đã có nội dung mà dòng tiếp bắt đầu bằng chữ HOA và câu trước
+         đã trọn ý → coi như sang phần khác, dừng lại */
+      if (buf.length && /^[A-ZĐÀ-Ỹ]/.test(nx) && norm(buf.join(" ")).split(/\s+/).length >= 5) break;
+      buf.push(nx);
+      if (/[.;]$/.test(nx) && plausible(norm(buf.join(" ")))) break;
+    }
+    const ty = norm(buf.join(" "));
+    if (plausible(ty)) return { ty: capFirst(ty), conf: 78, how: "Lấy khối chữ dưới tiêu đề văn bản" };
+  }
+
+  /* --- Cách 3: dòng đầu tiên "có nghĩa" (yếu, chỉ để gợi ý) --- */
+  for (const l of head) {
+    if (isNoise(l) || DOCTYPE_RE.test(l) || isStop(l)) continue;
+    const ty = norm(l);
+    if (plausible(ty)) return { ty: capFirst(ty), conf: 45, how: "Đoán từ dòng đầu có nội dung" };
+  }
+  return { ty: "", conf: 0, how: "Không tìm thấy vùng trích yếu" };
+}
+
+function capFirst(s) {
+  s = String(s || "").trim();
+  if (!s) return s;
+  /* Nếu đang VIẾT HOA TOÀN BỘ thì chuyển về chữ thường rồi hoa chữ đầu */
+  const letters = s.replace(/[^A-Za-zÀ-ỹĐđ]/g, "");
+  const upper = letters.replace(/[^A-ZÀ-ỸĐ]/g, "");
+  if (letters.length > 6 && upper.length / letters.length > 0.85) s = s.toLowerCase();
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/* --- Tầng 4: nhờ AI chuẩn hóa khi các cách trên yếu --- */
+async function aiTrichYeu(text) {
+  const head = text.split("\n").slice(0, 45).join("\n").slice(0, 2500);
+  const out = await aiCall(
+`Dưới đây là phần đầu một văn bản hành chính của tổ chức Đoàn TNCS Hồ Chí Minh (có thể lẫn lỗi OCR).
+Hãy tìm TRÍCH YẾU NỘI DUNG của văn bản — thường nằm sau nhãn "V/v" hoặc "Về việc", hoặc là dòng tiêu đề ngay dưới tên loại văn bản.
+Chỉ trả về đúng một dòng trích yếu tiếng Việt đã sửa lỗi chính tả, KHÔNG thêm giải thích, KHÔNG thêm nhãn "V/v".
+Nếu không xác định được, trả về đúng chữ: KHONG
+--- VĂN BẢN ---
+${head}`);
+  const t = fixOcr(String(out || "").split("\n")[0] || "").replace(/^["'\s]+|["'\s]+$/g, "");
+  if (!t || /^KHONG$/i.test(t) || t.length < 10) return null;
+  return capFirst(t.replace(/^(V\/v|Về\s*việc)\s*[:.]?\s*/i, ""));
+}
+
+/* ==================================================================
+   ĐIỀU PHỐI: đọc một tệp → text → trích yếu
+   ================================================================== */
+function fileKind(f) {
+  const n = (f.name || "").toLowerCase();
+  if (n.endsWith(".docx")) return "docx";
+  if (n.endsWith(".pdf")) return "pdf";
+  if (/\.(png|jpe?g|webp|bmp|tiff?)$/.test(n)) return "img";
+  if (/\.(txt|md|csv)$/.test(n)) return "txt";
+  if (n.endsWith(".doc")) return "doc";
+  return "other";
+}
+
+/**
+ * Trích trích yếu từ một tệp.
+ * onStage(msg, pct) để báo tiến trình ra giao diện.
+ * Trả {ty, conf, how, text, engine} hoặc ném lỗi có thông điệp tiếng Việt.
+ */
+async function extractTyFromFile(file, onStage) {
+  const kind = fileKind(file);
+  const say = (m, p) => { if (onStage) onStage(m, p); };
+  let text = "", engine = "", pdfObj = null;
+
+  if (kind === "doc") throw new Error("Định dạng .doc (Word 97-2003) không đọc được trực tiếp — hãy lưu lại thành .docx hoặc PDF.");
+  if (kind === "other") throw new Error("Chỉ đọc được PDF, DOCX, ảnh hoặc tệp văn bản thuần.");
+
+  if (kind === "txt") { say("Đang đọc tệp…", 20); text = cleanText(await file.text()); engine = "Văn bản thuần"; }
+  else if (kind === "docx") { say("Đang đọc tệp Word…", 25); text = await extractDocx(file); engine = "Đọc trực tiếp DOCX"; }
+  else if (kind === "pdf") {
+    say("Đang đọc lớp chữ trong PDF…", 20);
+    const r = await extractPdfText(file, 2);
+    text = r.text; pdfObj = r.pdf; engine = "Lớp chữ PDF";
+    /* PDF scan: lớp chữ rỗng hoặc quá ít → chuyển sang OCR */
+    if (text.replace(/\s/g, "").length < 60) {
+      say("PDF dạng ảnh scan — đang nhận dạng chữ (OCR)…", 35);
+      text = await ocrPdfFirstPages(pdfObj, 1, (p) => say("Đang OCR trang 1… " + p + "%", 35 + p * 0.5));
+      engine = "OCR (Tesseract vie)";
+    }
+  } else if (kind === "img") {
+    say("Đang nhận dạng chữ trong ảnh (OCR)…", 30);
+    text = await ocrImage(file, (p) => say("Đang OCR… " + p + "%", 30 + p * 0.55));
+    engine = "OCR (Tesseract vie)";
+  }
+
+  if (!text || text.replace(/\s/g, "").length < 20)
+    throw new Error("Không đọc được chữ trong tệp này. Nếu là bản scan mờ, hãy nhập trích yếu thủ công.");
+
+  say("Đang dò vùng trích yếu…", 90);
+  let r = findTrichYeu(text);
+
+  /* Kết quả yếu + có khóa AI → nhờ AI vớt */
+  if (r.conf < 78 && aiKey()) {
+    say("Đang nhờ AI chuẩn hóa trích yếu…", 94);
+    try {
+      const t = await aiTrichYeu(text);
+      if (t) r = { ty: t, conf: Math.max(r.conf, 85), how: "AI đọc và chuẩn hóa" };
+    } catch (e) { /* AI lỗi/hết hạn mức: vẫn dùng kết quả dò được */ }
+  }
+  say("Xong", 100);
+  return { ...r, text, engine };
+}
+
+/* ---------- Chọn VĂN BẢN CHÍNH & tự điền trích yếu ---------- */
+let mainFileIdx = -1;          /* vị trí tệp được chọn làm văn bản chính */
+let tyExtract = null;          /* {ty,conf,how,engine,fileName} kết quả gần nhất */
+let tyBusy = false;
+
+/* Tệp nào có thể đọc để trích trích yếu */
+function canExtract(f) {
+  if (!f || !f._file) return false;
+  const k = fileKind(f._file);
+  return ["pdf", "docx", "img", "txt"].includes(k);
+}
+
+/** Đặt một tệp làm văn bản chính rồi trích xuất ngay. */
+async function setMainFile(i) {
+  const f = composeFiles[i];
+  if (!f) return;
+  mainFileIdx = i;
+  updateFileListUI();
+  if (!f._file) {
+    tyStatus('<span class="muted">Tệp này đã tải lên Drive nên không còn bản gốc trên máy để đọc. Chọn lại tệp nếu muốn trích xuất.</span>');
+    return;
+  }
+  await runExtract(i);
+}
+
+function tyStatus(html) {
+  const el = document.getElementById("ty-status");
+  if (el) { el.innerHTML = html; el.style.display = html ? "" : "none"; }
+}
+
+async function runExtract(i) {
+  const f = composeFiles[i];
+  if (!f || !f._file || tyBusy) return;
+  tyBusy = true;
+  const nameEsc = esc(f.name);
+  try {
+    tyStatus('<div class="ty-run"><span class="ty-spin"></span><div><b>Đang đọc “' + nameEsc + '”…</b>'
+      + '<div class="prog ty-bar"><i id="ty-prog" style="width:5%"></i></div>'
+      + '<div class="small muted" id="ty-stage">Chuẩn bị…</div></div></div>');
+    const r = await extractTyFromFile(f._file, (msg, pct) => {
+      const st = document.getElementById("ty-stage"), pb = document.getElementById("ty-prog");
+      if (st) st.textContent = msg;
+      if (pb && pct) pb.style.width = Math.max(5, Math.min(100, pct)) + "%";
+    });
+    tyExtract = { ...r, fileName: f.name };
+    const ty = document.getElementById("c-ty");
+    const cur = ty ? ty.value.trim() : "";
+    /* Tin cậy cao + ô đang trống → điền thẳng. Ngược lại chỉ gợi ý để người dùng duyệt. */
+    if (r.ty && r.conf >= 78 && !cur) {
+      ty.value = r.ty;
+      ty.classList.add("ty-filled");
+      setTimeout(() => ty.classList.remove("ty-filled"), 1600);
+      tyStatus(tyResultBox(r, true));
+      toast("Đã tự điền trích yếu từ “" + f.name + "”.");
+    } else if (r.ty) {
+      tyStatus(tyResultBox(r, false));
+    } else {
+      tyStatus('<div class="ty-warn">Không tìm thấy vùng trích yếu trong “' + nameEsc + '”'
+        + ' <span class="muted">(' + esc(r.engine || "") + ')</span>. Vui lòng nhập thủ công.'
+        + (aiKey() ? '' : '<br>Mẹo: cấu hình khóa AI Gemini miễn phí để tăng khả năng nhận dạng với bản scan khó.') + '</div>');
+    }
+  } catch (e) {
+    tyStatus('<div class="ty-warn">Không đọc được “' + nameEsc + '”: ' + esc(e.message) + '<br>Vui lòng nhập trích yếu thủ công.</div>');
+  } finally {
+    tyBusy = false;
+    updateFileListUI();
+  }
+}
+
+function tyResultBox(r, applied) {
+  const lv = r.conf >= 90 ? "hi" : r.conf >= 78 ? "mid" : "lo";
+  const lvTxt = r.conf >= 90 ? "Rất tin cậy" : r.conf >= 78 ? "Khá tin cậy" : "Độ tin cậy thấp — cần kiểm tra";
+  return '<div class="ty-res ' + lv + '">'
+    + '<div class="ty-res-h"><b>' + (applied ? "✅ Đã điền trích yếu" : "💡 Gợi ý trích yếu") + '</b>'
+    + '<span class="ty-conf">' + lvTxt + ' · ' + r.conf + '%</span></div>'
+    + '<div class="ty-val">' + esc(r.ty) + '</div>'
+    + '<div class="small muted">' + esc(r.how) + ' · ' + esc(r.engine || "") + '</div>'
+    + '<div class="ty-acts">'
+    + (applied ? '' : '<button class="btn btn-primary btn-xs" onclick="applyTy()">↳ Dùng gợi ý này</button>')
+    + '<button class="btn btn-ghost btn-xs" onclick="showExtractText()">👁 Xem chữ đọc được</button>'
+    + '<button class="btn btn-ghost btn-xs" onclick="tyStatus(\'\')">Đóng</button>'
+    + '</div></div>';
+}
+function applyTy() {
+  if (!tyExtract || !tyExtract.ty) return;
+  const ty = document.getElementById("c-ty");
+  if (!ty) return;
+  ty.value = tyExtract.ty;
+  ty.classList.add("ty-filled");
+  setTimeout(() => ty.classList.remove("ty-filled"), 1600);
+  tyStatus(tyResultBox(tyExtract, true));
+  toast("Đã điền trích yếu.");
+}
+function showExtractText() {
+  if (!tyExtract || !tyExtract.text) { toast("Chưa có nội dung đọc được."); return; }
+  S.tyPreview = tyExtract.text.slice(0, 6000);
+  render();
+}
+function closeTyPreview() { S.tyPreview = null; render(); }
+function tyPreviewHtml() {
+  return '<div class="hm-back" onclick="if(event.target===this)closeTyPreview()"><div class="hm" style="width:min(720px,96vw)">'
+    + '<div class="hm-top"><div class="stardot">👁</div><div><h3>Chữ đọc được từ tệp</h3>'
+    + '<div class="sub">Dùng để kiểm tra vì sao trích yếu đúng/sai · ' + esc((tyExtract || {}).engine || "") + '</div></div>'
+    + '<button class="hm-x" onclick="closeTyPreview()">✕</button></div>'
+    + '<div class="hm-body"><pre class="ty-pre">' + esc(S.tyPreview || "") + '</pre></div></div></div>';
 }
 
 /* --- Văn bản kèm theo (bản chụp thông tin, không phá quyền đọc) --- */
@@ -1831,7 +2558,7 @@ function render(){
   if(members(me()).length&&!curMember()){app.innerHTML=viewPickMember();return}
   S._stale=false;
   const views={dashboard:viewDashboard,vbden:viewInbox,vbdi:viewOutbox,soan:viewCompose,detail:viewDetail,thongke:viewStats,danhba:viewOrg,hethong:viewSystem,chitieu:viewTargets,lich:viewCalendar,timkiem:viewSearch,kho:viewLibrary,dinhky:viewPeriodic,maubc:viewReports,nhaclich:viewReminders};
-  app.innerHTML=shell((views[S.view]||viewDashboard)());
+  app.innerHTML=shell((views[S.view]||viewDashboard)())+(S.tyPreview?tyPreviewHtml():"")+(S.pvUrl?previewHtml():"");
   if(S.pendingDoc){const pid=S.pendingDoc;
     if(DB.docs.some(x=>x.id===pid)){S.pendingDoc=null;setTimeout(()=>openDoc(pid),0)}}
   if(S.qr&&S.view==="detail")renderQR();
@@ -1922,7 +2649,7 @@ function shell(content){
       <h6>Quản trị</h6>
       ${item("hethong",ICO.gear,"Dữ liệu & sao lưu")}
     </nav>
-    <div class="side-foot">${MODE==="cloud"?"● Đồng bộ Firestore · offline-first":"Dữ liệu lưu cục bộ trên máy này"}<br>DoanOffice 4.4 · mã nguồn mở</div>
+    <div class="side-foot">${MODE==="cloud"?"● Đồng bộ Firestore · offline-first":"Dữ liệu lưu cục bộ trên máy này"}<br>DoanOffice 4.6 · mã nguồn mở</div>
    </aside>
    <div class="sb-backdrop" id="sb-backdrop" onclick="toggleSidebar(false)"></div>
    <div class="main">
@@ -2125,7 +2852,7 @@ function viewCompose(){
       <div class="field"><label>Loại văn bản</label><select id="c-loai">${Object.entries(LOAI).map(([k,vv])=>`<option value="${k}" ${dr&&dr.loai===k?"selected":""}>${vv[1]} (${vv[0]})</option>`).join("")}</select></div>
       <div class="field"><label>Độ khẩn</label><select id="c-khan">${Object.entries(KHAN).map(([k,vv])=>`<option value="${k}" ${dr&&dr.doKhan===k?"selected":""}>${vv[0]}</option>`).join("")}</select></div>
     </div>
-    <div class="field"><label>Trích yếu nội dung *</label><input id="c-ty" value="${v("trichYeu")}" placeholder="V/v …"></div>
+    <div class="field"><label>Trích yếu nội dung * <span class="ty-lbl">tự điền được từ tệp đính kèm</span></label><input id="c-ty" value="${v("trichYeu")}" placeholder="V/v …"></div>
     <div class="field"><label>Nội dung / ý kiến chỉ đạo${quick?" (không bắt buộc)":""}</label><textarea id="c-nd" rows="${quick?2:5}" placeholder="${quick?"Bỏ trống nếu toàn bộ nội dung nằm trong tệp — hệ thống tự ghi chú.":"Nội dung chính, yêu cầu thực hiện, phân công…"}">${v("noiDung")}</textarea></div>
     <div class="form-grid">
       <div class="field"><label>Hạn xử lý</label><input id="c-han" type="date" value="${dr&&dr.hanXuLy?dr.hanXuLy:""}"></div>
@@ -2133,11 +2860,12 @@ function viewCompose(){
         <select id="c-reply"><option value="">— Không —</option>
         ${inboxDocs.map(d=>`<option value="${d.id}" ${dr&&dr.replyTo===d.id?"selected":""}>${esc(d.so)} · ${esc(d.trichYeu.slice(0,50))}</option>`).join("")}</select></div>
     </div>
-    <div class="field"><label>Tệp đính kèm — chọn nhiều tệp cùng lúc (PDF/Word/Excel/PPT/ảnh…)</label>
+    <div class="field"><label>Tệp đính kèm — chọn nhiều tệp cùng lúc, mọi định dạng</label>
+      <div class="fx-types">Word · Excel · PowerPoint · PDF · Ảnh · Video · Âm thanh · Tệp nén (zip, rar, 7z) · Bản vẽ · Dữ liệu…</div>
       ${driveOn()
         ?`<div class="drv-banner on"><span class="drv-dot"></span><div>
             <b>Google Drive đang bật</b> — tệp lớn hơn ${FILE_LIMIT_KB}KB sẽ <b>tự động tải lên</b> thư mục
-            <code>${esc(driveRootName())}/${new Date().getFullYear()}/&lt;loại văn bản&gt;</code> và tự gắn liên kết. Bạn không phải làm gì thêm.
+            <code>${esc(driveRootName())}/${new Date().getFullYear()}/&lt;loại văn bản&gt;/&lt;nhóm tệp&gt;</code> và tự gắn liên kết. Mọi định dạng đều nhận.
             ${driveCfg().account?`<div class="small muted" style="margin-top:2px">Tài khoản: ${esc(driveCfg().account)}</div>`:""}
           </div><a href="javascript:void(0)" onclick="nav('hethong')" class="small">Cấu hình</a></div>`
         :`<div class="drv-banner off"><span class="drv-dot"></span><div>
@@ -2146,6 +2874,8 @@ function viewCompose(){
           </div><button class="btn btn-gold btn-sm" onclick="nav('hethong')">Kết nối ngay</button></div>`}
       <input type="file" multiple onchange="onPickFile(this)">
       <div id="drive-queue" class="drv-queue" style="display:none"></div>
+      <div id="ty-status" class="ty-status" style="display:none"></div>
+      <div id="file-sum" class="fx-sum" style="display:none"></div>
       <div class="att-list" id="file-list"><span class="muted">Chưa chọn tệp — chọn được nhiều tệp cùng lúc.</span></div></div>
     <details class="field adv-box" ${dr&&docFiles(dr).some(f=>f.link)?"open":""}>
       <summary>Dán liên kết Google Drive thủ công <span class="muted small">(khi tệp đã có sẵn trên Drive)</span></summary>
@@ -2332,7 +3062,13 @@ function viewDetail(){
       <tr><td>Giao việc / báo cáo</td><td>${d.yeuCauBaoCao?"Có — nơi nhận phải báo cáo tiến độ, kết quả":"Không yêu cầu"}</td></tr>
       ${reply?`<tr><td>Triển khai từ VB</td><td><a href="javascript:void(0)" onclick="openDoc('${reply.id}')">${esc(reply.so)} — ${esc(reply.trichYeu)}</a></td></tr>`:""}
       ${d.parentDocId?`<tr><td>Chuyển tiếp từ VB</td><td>${DB.docs.some(x=>x.id===d.parentDocId)?`<a href="javascript:void(0)" onclick="openDoc('${d.parentDocId}')">${esc(d.parentSo||"văn bản gốc")}</a>`:esc(d.parentSo||"văn bản gốc")} <span class="muted small">(${esc((unit(d.parentFrom)||{}).short||"?")})</span></td></tr>`:""}
-      <tr><td>Tệp đính kèm (${docFiles(d).length})</td><td>${docFiles(d).length?docFiles(d).map((f,i)=>`<div style="margin-bottom:2px"><a href="javascript:void(0)" onclick="downloadFileIdx('${d.id}',${i})">${f.link?"🔗":"📎"} ${esc(f.name)}</a> <span class="muted small">(${f.link?"Google Drive":Math.round((f.size||0)/1024)+" KB"+(f.dataUrl?", lưu kèm":", chỉ lưu tên")})</span></div>`).join(""):"Không có"}</td></tr>
+      <tr><td>Tệp đính kèm (${docFiles(d).length})</td><td>${docFiles(d).length?docFiles(d).map((f,i)=>{
+        const g=groupInfo(f.name);
+        return `<div class="dv-file">
+          <span class="fx-ic" style="width:26px;height:26px;font-size:.9rem;background:${g.color}18;color:${g.color}">${g.ic}</span>
+          <a href="javascript:void(0)" onclick="downloadFileIdx('${d.id}',${i})">${esc(f.name)}</a>
+          <span class="muted small">· ${esc(g.label)}${f.size?" · "+fmtSize(f.size):""} · ${f.link?"Google Drive":(f.dataUrl?"lưu kèm văn bản":"chỉ lưu tên")}</span>
+        </div>`}).join(""):"Không có"}</td></tr>
       ${(d.attachedDocs||[]).length?`<tr><td>Văn bản kèm theo</td><td>${d.attachedDocs.map((a,i)=>`<div style="margin-bottom:2px"><a href="javascript:void(0)" onclick="openAttached('${d.id}',${i})">🧷 ${esc(a.so)} — ${esc(a.trichYeu)}</a> <span class="muted small">(${esc((unit(a.from)||{}).short||"?")} · ${LOAI[a.loai]?LOAI[a.loai][1]:""} · ${fmtD(a.ngayBH)})</span></div>`).join("")}</td></tr>`:""}
      </table>
      ${d.noiDung?`<div style="border-top:1px dashed var(--line);margin-top:10px;padding-top:10px;white-space:pre-wrap">${esc(d.noiDung)}</div>`:""}
@@ -3638,6 +4374,16 @@ function viewSystem(){
     <p style="margin-bottom:6px">③ <b>Google Drive API</b> — lưu tệp PDF/Word đính kèm (15GB miễn phí mỗi tài khoản đơn vị). <b style="color:var(--ok)">Đã tích hợp sẵn ở 4.3</b>: cấu hình ngay tại thẻ ☁️ Google Drive phía trên.</p>
     <p>④ Bộ nhớ cục bộ (IndexedDB) vẫn giữ vai trò cache để làm việc offline, tự đồng bộ khi có mạng.</p>
   </div></div>
+  <div class="card"><div class="card-h"><h3>Mới ở 4.6 · Đính kèm mọi định dạng tệp</h3></div><div class="card-b small">
+    <p style="margin-bottom:6px">⑰ <b>Nhận mọi định dạng</b> — Word, Excel, PowerPoint, PDF, ảnh, video, âm thanh, tệp nén (zip/rar/7z), bản vẽ, dữ liệu… tổng cộng gần 100 phần mở rộng được phân nhóm tự động.</p>
+    <p style="margin-bottom:6px">⑱ <b>Thư mục Drive hai tầng</b> — <code>&lt;loại văn bản&gt;/&lt;nhóm tệp&gt;</code>, ví dụ <code>Kế hoạch (KH)/Bảng tính/</code>. Thư mục nhóm tệp tự sinh khi cần, không tạo hàng loạt thư mục rỗng.</p>
+    <p style="margin-bottom:10px">⑲ <b>Giao diện tệp mới</b> — biểu tượng và màu theo nhóm, dung lượng, dòng tổng kết, xem trước ảnh/video/âm thanh, cảnh báo tệp thực thi. <a href="javascript:void(0)" onclick="openHelp('tepdinhkem')"><b>▶ Chi tiết</b></a></p>
+  </div></div>
+  <div class="card"><div class="card-h"><h3>Mới ở 4.5 · Tự điền trích yếu từ tệp đính kèm</h3></div><div class="card-b small">
+    <p style="margin-bottom:6px">⑭ <b>Đọc tệp đính kèm</b> — DOCX đọc trực tiếp, PDF lấy lớp chữ, PDF scan/ảnh chuyển sang OCR tiếng Việt (Tesseract), có khóa AI thì thêm tầng chuẩn hóa.</p>
+    <p style="margin-bottom:6px">⑮ <b>Chọn văn bản chính</b> — đính nhiều tệp, bấm ★ ở tệp cần lấy trích yếu; một tệp thì tự nhận.</p>
+    <p style="margin-bottom:10px">⑯ <b>Chấm điểm tin cậy</b> — đủ tin cậy mới tự điền, còn lại chỉ gợi ý kèm %; không bao giờ ghi đè nội dung đã nhập tay. <a href="javascript:void(0)" onclick="openHelp('trichyeu')"><b>▶ Hướng dẫn &amp; giới hạn</b></a></p>
+  </div></div>
   <div class="card"><div class="card-h"><h3>Mới ở 4.4 · Quản trị dữ liệu toàn hệ thống</h3></div><div class="card-b small">
     <p style="margin-bottom:6px">⑪ <b>Sao lưu toàn hệ thống</b> — đơn vị gốc tải một tệp JSON chứa đủ 11 nhóm dữ liệu của <b>mọi đơn vị</b> trong cây, không chỉ phần mình nhìn thấy.</p>
     <p style="margin-bottom:6px">⑫ <b>Xóa sạch để chuyển giao</b> — hai mức: xóa dữ liệu nghiệp vụ (giữ cây đơn vị + tài khoản) hoặc xóa toàn bộ. Bốn lớp khóa an toàn: chỉ đơn vị gốc, chỉ vai Thường trực, bắt xác nhận đã sao lưu, và phải gõ đúng chuỗi xác nhận.</p>
@@ -4788,13 +5534,13 @@ function pushReminderDiscord(id){
 function openHelp(tab){S.help=tab||"intro";S.bell=false;render()}
 function closeHelp(){S.help=null;render()}
 function helpGo(v){S.help=null;nav(v)}
-const HELP_TABS={intro:"Giới thiệu",start:"Bắt đầu nhanh",taikhoan:"Tài khoản & mật khẩu",vanban:"Văn bản",baocao:"Báo cáo & tổng hợp",maunhac:"Mẫu & Nhắc lịch",nhactudong:"Cài nhắc tự động",drive:"Kết nối Google Drive",chuyengiao:"Chuyển giao hệ thống",khac:"Tiện ích khác",faq:"Hỏi–đáp"};
+const HELP_TABS={intro:"Giới thiệu",start:"Bắt đầu nhanh",taikhoan:"Tài khoản & mật khẩu",vanban:"Văn bản",baocao:"Báo cáo & tổng hợp",maunhac:"Mẫu & Nhắc lịch",nhactudong:"Cài nhắc tự động",drive:"Kết nối Google Drive",chuyengiao:"Chuyển giao hệ thống",trichyeu:"Tự điền trích yếu",tepdinhkem:"Tệp đính kèm",khac:"Tiện ích khác",faq:"Hỏi–đáp"};
 function helpModalHtml(){
   return `<div class="hm-back" onclick="if(event.target===this)closeHelp()">
     <div class="hm">
       <div class="hm-top">
         <div class="stardot">★</div>
-        <div><h3>DoanOffice — Giới thiệu & Hướng dẫn sử dụng</h3><div class="sub">Hệ thống điều hành văn bản & báo cáo cho tổ chức Đoàn · phiên bản 4.4</div></div>
+        <div><h3>DoanOffice — Giới thiệu & Hướng dẫn sử dụng</h3><div class="sub">Hệ thống điều hành văn bản & báo cáo cho tổ chức Đoàn · phiên bản 4.6</div></div>
         <button class="hm-x" onclick="closeHelp()" title="Đóng">✕</button>
       </div>
       <div class="hm-tabs">
@@ -4812,9 +5558,99 @@ function helpContent(tab){
   if(tab==="nhactudong")return helpNhacTuDong();
   if(tab==="drive")return helpDrive();
   if(tab==="chuyengiao")return helpChuyenGiao();
+  if(tab==="trichyeu")return helpTrichYeu();
+  if(tab==="tepdinhkem")return helpTepDinhKem();
   if(tab==="khac")return helpKhac();
   if(tab==="faq")return helpFaq();
   return helpIntro();
+}
+function helpTepDinhKem(){
+  const rows=Object.entries(FILE_GROUPS).map(([k,g])=>
+    `<tr><td style="white-space:nowrap"><span style="color:${g.color}">${g.ic} <b>${esc(g.label)}</b></span></td>
+     <td class="muted small">${esc(g.ext.length?g.ext.slice(0,12).join(", "):"mọi định dạng chưa xếp nhóm")}</td>
+     <td class="small"><code>${esc(g.folder)}</code></td></tr>`).join("");
+  return `
+  <p class="lead">Phần mềm nhận <b>mọi định dạng tệp</b>: Word, Excel, PowerPoint, PDF, ảnh, video, âm thanh, tệp nén (zip/rar/7z), bản vẽ, dữ liệu… Tệp lớn tự lên Google Drive, tự xếp thư mục theo <b>loại văn bản</b> và <b>nhóm tệp</b>, tự gắn liên kết chia sẻ.</p>
+
+  <h4>Các nhóm tệp và thư mục tương ứng trên Drive</h4>
+  <table class="sys-tb"><tr><th style="text-align:left">Nhóm</th><th style="text-align:left">Định dạng</th><th style="text-align:left">Thư mục Drive</th></tr>${rows}</table>
+  <p class="muted small">Tổng cộng ${Object.keys(EXT2GROUP).length} phần mở rộng được nhận diện. Định dạng lạ vẫn gửi được bình thường, xếp vào <b>Tệp khác</b>.</p>
+
+  <h4>Tệp nhỏ và tệp lớn xử lý khác nhau thế nào</h4>
+  <ul class="hm-ul">
+    <li><b>Tệp ≤ ${FILE_LIMIT_KB}KB</b> — lưu kèm ngay trong văn bản, nơi nhận mở được cả khi không có mạng.</li>
+    <li><b>Tệp lớn hơn</b> — tự đưa lên Drive của đơn vị, đặt quyền “Bất kỳ ai có liên kết — Xem”, rồi gắn liên kết vào văn bản. Video, tệp nén, bộ ảnh hàng trăm MB đều đi đường này.</li>
+    <li>Chưa bật Drive thì tệp lớn chỉ được lưu tên, có nút <b>☁ Đưa lên Drive</b> để xử lý từng tệp sau khi kết nối.</li>
+  </ul>
+
+  <h4>Những tiện ích khi đính kèm</h4>
+  <ul class="hm-ul">
+    <li>Mỗi tệp hiện <b>biểu tượng và màu theo nhóm</b>, kèm dung lượng và trạng thái (lưu kèm / trên Drive / chờ xử lý).</li>
+    <li>Dòng <b>tổng kết</b> cho biết tổng số tệp, tổng dung lượng và gồm những nhóm nào.</li>
+    <li><b>👁 Xem trước</b> ngay trong phần mềm với ảnh, video và âm thanh — khỏi phải tải về kiểm tra.</li>
+    <li>Tệp có đuôi thực thi (<code>.exe, .bat, .msi, .apk</code>…) sẽ bị <b>gắn cảnh báo</b>. Phần mềm không chặn, nhưng nhắc để bạn cân nhắc nguồn gốc trước khi phát hành.</li>
+    <li>Tên tệp chỉ được dùng để gợi ý trích yếu khi đó là <b>tệp văn bản</b> — tên video hay tệp nén không bị lấy làm trích yếu.</li>
+  </ul>
+
+  <h4>Lưu ý khi gửi tệp rất lớn</h4>
+  <ul class="hm-ul">
+    <li>Tệp trên ${BIG_FILE_MB}MB có thể mất vài phút để tải lên — <b>đừng đóng trang</b> khi thanh tiến độ đang chạy. Mạng rớt giữa chừng thì bấm <b>Thử lại</b>.</li>
+    <li>Drive miễn phí mỗi tài khoản 15GB, dùng chung với Gmail và Google Photos. Video nhiều sẽ nhanh đầy — nên dọn định kỳ hoặc dùng tài khoản riêng cho văn thư.</li>
+    <li>Với video dài, cân nhắc tải lên YouTube ở chế độ “Không công khai” rồi dán liên kết vào ô liên kết thủ công — nhẹ hơn cho Drive của đơn vị.</li>
+  </ul>`;
+}
+function helpTrichYeu(){
+  return `
+  <p class="lead">Đính kèm tệp văn bản, phần mềm tự đọc và điền ô <b>Trích yếu nội dung</b>. Nếu đính nhiều tệp, bạn chọn tệp nào là <b>văn bản chính</b> thì phần mềm lấy trích yếu của tệp đó.</p>
+
+  <h4>Dùng thế nào</h4>
+  <ol class="hm-steps">
+    <li>Chọn tệp đính kèm như bình thường (chọn được nhiều tệp cùng lúc).</li>
+    <li>Nếu chỉ có <b>một</b> tệp đọc được, phần mềm tự coi đó là văn bản chính và trích luôn.</li>
+    <li>Nếu có <b>nhiều</b> tệp, bấm <b>★ Đặt làm văn bản chính</b> ở tệp cần lấy trích yếu.</li>
+    <li>Trích yếu đủ tin cậy sẽ được <b>điền thẳng</b> vào ô; nếu độ tin cậy thấp, phần mềm chỉ <b>gợi ý</b> để bạn bấm duyệt.</li>
+    <li>Muốn đổi tệp khác: bấm ★ ở tệp đó. Muốn đọc lại: bấm <b>⟳ Trích lại</b>.</li>
+  </ol>
+  <p>Nút <b>👁 Xem chữ đọc được</b> cho biết phần mềm đã đọc ra gì — rất hữu ích khi kết quả sai và bạn muốn biết vì sao.</p>
+
+  <h4>Phần mềm đọc được những gì</h4>
+  <ul class="hm-ul">
+    <li><b>Word (.docx)</b> — đọc trực tiếp, nhanh và chính xác nhất.</li>
+    <li><b>PDF có lớp chữ</b> (xuất từ Word) — đọc thẳng lớp chữ, rất chính xác. Đa số văn bản hành chính thuộc loại này.</li>
+    <li><b>PDF scan và ảnh chụp</b> — nhận dạng chữ (OCR) tiếng Việt. Lần đầu chạy sẽ tải bộ nhận dạng khoảng vài MB nên hơi lâu, các lần sau nhanh hơn.</li>
+    <li><b>Tệp .txt</b> — đọc trực tiếp.</li>
+    <li><b>Không đọc được:</b> tệp <code>.doc</code> đời cũ (Word 97-2003) — hãy lưu lại thành <code>.docx</code> hoặc PDF; tệp nén, tệp mã hóa.</li>
+  </ul>
+
+  <h4>Cách phần mềm tìm vùng trích yếu</h4>
+  <p>Dò theo đúng thể thức văn bản hành chính, ưu tiên từ chắc chắn nhất xuống:</p>
+  <ul class="hm-ul">
+    <li><b>Nhãn “V/v …” hoặc “Về việc …”</b> — dấu hiệu chắc chắn nhất, độ tin cậy 95%.</li>
+    <li><b>Dòng dưới tên loại văn bản</b> (KẾ HOẠCH, BÁO CÁO, QUYẾT ĐỊNH…) — độ tin cậy khoảng 78–80%.</li>
+    <li><b>Dòng đầu có nội dung</b> — chỉ là phỏng đoán, độ tin cậy thấp, phần mềm sẽ hỏi bạn trước khi dùng.</li>
+    <li>Có khóa AI Gemini thì khi ba cách trên cho kết quả yếu, phần mềm nhờ AI đọc lại và sửa lỗi chính tả OCR.</li>
+  </ul>
+  <p>Phần mềm tự bỏ qua quốc hiệu, tiêu ngữ, tên cơ quan, số ký hiệu, địa danh–ngày tháng, và tự dừng khi gặp “Kính gửi:”, “Căn cứ…”, mục “I.”, “1.” — nên trích yếu không bị dính thêm phần thừa.</p>
+
+  <h4 style="color:var(--warn)">Về tỷ lệ chính xác — cần nói rõ</h4>
+  <div class="hm-tip">
+    <p style="margin-bottom:6px">Trên bộ mẫu thử nội bộ mô phỏng thể thức văn bản Đoàn (23 mẫu, gồm cả bản có lỗi OCR), phần dò trích yếu đạt <b>khoảng 90–100%</b> khi văn bản <b>đúng thể thức</b> và <b>đọc được chữ</b>.</p>
+    <p style="margin-bottom:6px">Nhưng <b>không thể cam kết mức 99% cho mọi tệp thực tế</b>, vì kết quả phụ thuộc phần lớn vào chất lượng tệp đầu vào chứ không phải thuật toán:</p>
+    <ul class="hm-ul" style="margin-top:4px">
+      <li>PDF có lớp chữ, đúng thể thức: gần như luôn đúng.</li>
+      <li>Bản scan rõ nét, thẳng trang: thường đúng, đôi khi sai dấu.</li>
+      <li>Bản scan mờ, nghiêng, photo nhiều lần, đóng dấu đè lên chữ, viết tay: tỷ lệ giảm rõ rệt — đây là giới hạn của OCR nói chung, không riêng phần mềm này.</li>
+      <li>Văn bản không theo thể thức (không có “V/v”, không có tiêu đề loại): phần mềm chỉ đoán được.</li>
+    </ul>
+    <p style="margin-top:6px">Vì vậy phần mềm thiết kế theo hướng <b>an toàn</b>: chỉ tự điền khi đủ tin cậy, còn lại đưa gợi ý kèm <b>% độ tin cậy</b> để cán bộ quyết định. <b>Ô trích yếu luôn sửa tay được</b>, và phần mềm <b>không bao giờ ghi đè</b> nội dung bạn đã nhập.</p>
+  </div>
+
+  <h4>Muốn tăng tỷ lệ nhận dạng</h4>
+  <ul class="hm-ul">
+    <li><b>Ưu tiên đính kèm bản PDF xuất thẳng từ Word</b> thay vì bản scan — đây là cách hiệu quả nhất, đưa tỷ lệ lên gần như tuyệt đối.</li>
+    <li>Nếu buộc phải scan: để 300 DPI, đặt thẳng trang, tránh bóng và nếp gấp.</li>
+    <li>Cấu hình <b>khóa AI Gemini miễn phí</b> (Dữ liệu &amp; sao lưu → Trợ lý AI) để có thêm tầng vớt cho bản scan khó.</li>
+  </ul>`;
 }
 function helpChuyenGiao(){
   const root=isRootUnit(),ok=canSysAdmin();
@@ -4900,12 +5736,17 @@ function helpDrive(){
   <h4>Cấu trúc thư mục phần mềm tự tạo</h4>
   <div class="hm-code">${esc(driveRootName())}/
    └── ${new Date().getFullYear()}/
-        ├── Công văn (CV)/
         ├── Kế hoạch (KH)/
-        ├── Báo cáo (BC)/
-        ├── Thông báo (TB)/
+        │     ├── Tài liệu/      (Word, PDF, txt…)
+        │     ├── Bảng tính/     (Excel, CSV…)
+        │     ├── Trình chiếu/   (PowerPoint…)
+        │     ├── Hình ảnh/      ├── Video/    ├── Âm thanh/
+        │     ├── Tệp nén/       (zip, rar, 7z…)
+        │     └── Bản vẽ/ · Dữ liệu/ · Tệp khác/
+        ├── Công văn (CV)/  ├── Báo cáo (BC)/
         └── … (đủ 11 loại văn bản)</div>
-  <p>Thư mục được tạo <b>đúng theo loại văn bản đang soạn</b>, tự động, không cần đặt tay. Muốn nhìn thấy đủ cây thư mục ngay từ đầu, bấm <b>📁 Tạo sẵn cây thư mục</b>.</p>
+  <p>Hai tầng: <b>loại văn bản</b> rồi tới <b>nhóm tệp</b>. Mở Drive ra là thấy ngay tài liệu, bảng tính, ảnh, video… của từng loại văn bản nằm riêng từng ngăn.</p>
+  <p>Nút <b>📁 Tạo sẵn cây thư mục</b> chỉ dựng tầng loại văn bản; thư mục nhóm tệp <b>tự sinh khi lần đầu có tệp thuộc nhóm đó</b> — tránh tạo cả trăm thư mục rỗng làm rối Drive.</p>
 
   <h4>Quyền riêng tư &amp; an toàn</h4>
   <ul class="hm-ul">
@@ -5256,7 +6097,7 @@ function helpFaq(){
    Các hệ thống khác / connector tương lai (iOffice tỉnh, Zalo bot…)
    truy cập qua window.DoanOffice — không đụng vào lõi. */
 window.DoanOffice={
-  version:"4.4",
+  version:"4.6",
   unit:()=>DB&&DB.session?{...me()}:null,
   docs:()=>DB?JSON.parse(JSON.stringify(searchCorpus())):[],
   targets:()=>DB?JSON.parse(JSON.stringify([...myTargets(),...myAssignedTargets()])):[],
