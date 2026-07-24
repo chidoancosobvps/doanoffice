@@ -46,6 +46,70 @@ input[type=file]{padding:8px;border:1.5px dashed var(--line);border-radius:10px;
 input[type=file]:hover{border-color:var(--doan-2);background:var(--info-bg)}
 input[type=file]::file-selector-button{border:none;background:var(--doan);color:#fff;font-weight:600;font-size:.8rem;padding:6px 13px;border-radius:8px;margin-right:10px;cursor:pointer;font-family:inherit}
 
+
+/* ================= 4.3 — Tệp đính kèm & Google Drive ================= */
+.btn-xs{padding:3px 9px;font-size:.73rem;border-radius:7px;font-weight:600}
+.pill{border-radius:99px;padding:3px 11px;font-size:.7rem;font-weight:800;letter-spacing:.05em}
+.pill-ok{background:var(--ok-bg);color:var(--ok)}
+.pill-off{background:var(--warn-bg);color:var(--warn)}
+
+/* Băng trạng thái Drive trong màn hình soạn */
+.drv-banner{display:flex;gap:11px;align-items:flex-start;padding:10px 13px;border-radius:11px;font-size:.81rem;line-height:1.55;margin-bottom:10px;border:1px solid}
+.drv-banner code{background:rgba(255,255,255,.7);padding:1px 5px;border-radius:5px;font-size:.94em}
+.drv-banner.on{background:var(--ok-bg);border-color:#BCE6CE;color:#0B5F38}
+.drv-banner.off{background:var(--warn-bg);border-color:#F0D6A6;color:#7A4700}
+.drv-banner>div{flex:1;min-width:0}
+.drv-banner>a,.drv-banner>button{flex:none;align-self:center}
+.drv-dot{width:9px;height:9px;border-radius:50%;flex:none;margin-top:6px}
+.drv-banner.on .drv-dot{background:var(--ok);box-shadow:0 0 0 4px rgba(18,138,80,.16);animation:pulseDot 2.2s infinite}
+.drv-banner.off .drv-dot{background:var(--warn);box-shadow:0 0 0 4px rgba(185,106,0,.14)}
+@keyframes pulseDot{0%,100%{box-shadow:0 0 0 4px rgba(18,138,80,.16)}50%{box-shadow:0 0 0 7px rgba(18,138,80,.05)}}
+
+/* Hàng đợi tải lên Drive */
+.drv-queue{margin-top:9px;display:flex;flex-direction:column;gap:6px}
+.drv-item{display:flex;gap:10px;align-items:center;background:#FBFDFF;border:1px solid var(--line);border-radius:10px;padding:8px 11px;animation:pop .18s var(--ease)}
+.drv-item.done{background:var(--ok-bg);border-color:#C6E8D7}
+.drv-item.err{background:var(--danger-bg);border-color:#F1C9C9}
+.drv-ic{flex:none;font-size:1rem}
+.drv-body{flex:1;min-width:0}
+.drv-name{font-size:.82rem;font-weight:600;color:var(--doan-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drv-sub{font-size:.73rem}
+.drv-bar{height:5px;margin-top:5px;border-radius:99px;overflow:hidden;background:#DCE7F3}
+.drv-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--doan-2),var(--doan));transition:width .25s var(--ease)}
+.drv-right{flex:none;white-space:nowrap;font-size:.76rem}
+
+/* Danh sách tệp đính kèm — thẻ thay cho dòng chữ trơn */
+.att-list{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.att-item{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 11px;background:#fff;transition:border-color .15s,box-shadow .15s}
+.att-item:hover{border-color:#BFD4E8;box-shadow:0 2px 8px -4px rgba(10,58,105,.25)}
+.att-item.link{background:linear-gradient(90deg,var(--info-bg),#fff 60%);border-color:#C7DDF3}
+.att-item.over{background:var(--warn-bg);border-color:#F0D6A6}
+.att-ic{flex:none}
+.att-body{flex:1;min-width:0}
+.att-name{font-size:.83rem;font-weight:600;color:var(--doan-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.att-meta{font-size:.74rem;margin-top:1px}
+.att-x{border:none;background:transparent;color:var(--muted);font-size:.9rem;padding:3px 6px;border-radius:7px;flex:none;transition:all .14s}
+.att-x:hover{background:var(--danger-bg);color:var(--danger)}
+
+/* Khối "nâng cao" thu gọn — giảm rối cho biểu mẫu */
+.adv-box{border:1px dashed var(--line);border-radius:11px;padding:0;background:#FBFDFF}
+.adv-box>summary{cursor:pointer;padding:9px 13px;font-size:.79rem;font-weight:700;color:var(--doan-deep);list-style:none;user-select:none;display:flex;align-items:center;gap:7px}
+.adv-box>summary::-webkit-details-marker{display:none}
+.adv-box>summary::before{content:"▸";transition:transform .18s var(--ease);display:inline-block;color:var(--muted)}
+.adv-box[open]>summary::before{transform:rotate(90deg)}
+.adv-box>summary:hover{color:var(--doan)}
+.adv-box>textarea{width:calc(100% - 26px);margin:0 13px;padding:9px 12px;border:1.5px solid var(--line);border-radius:9px;background:#fff;resize:vertical;min-height:44px}
+.adv-box>.hint{padding:6px 13px 11px}
+
+/* Thẻ cấu hình Drive ở mục Quản trị */
+.drv-card{border-top:3px solid var(--gold)}
+.drv-steps{margin:0 0 4px 18px;padding:0;line-height:1.7}
+.drv-steps li{margin-bottom:2px}
+.drv-steps code{background:var(--line-soft);padding:1px 6px;border-radius:5px;font-size:.9em}
+.drv-acc{background:var(--ok-bg);border:1px solid #C6E8D7;border-radius:9px;padding:8px 12px;margin-top:10px;font-size:.82rem}
+.sw-row{display:flex;gap:9px;align-items:center;font-size:.85rem;padding:9px 0 3px;font-weight:500;color:var(--ink)}
+@media(max-width:760px){.drv-banner{flex-direction:column;gap:7px}.drv-right{font-size:.72rem}}
+
 /* ---------- Login ---------- */
 .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
   background:radial-gradient(1100px 620px at 82% -10%,rgba(27,117,196,.55),transparent 60%),
@@ -272,7 +336,7 @@ code{background:var(--line-soft);padding:1px 5px;border-radius:5px;font-family:u
 .hm-body p{margin:7px 0}
 .hm-body ul,.hm-body ol{margin:7px 0;padding-left:22px}
 .hm-body li{margin:5px 0}
-.hm-body .lead{font-size:.96rem;color:var(--doan-ink);background:var(--info-bg);padding:12px 15px;border-radius:11px;border-left:3px solid var(--doan-blue)}
+.hm-body .lead{font-size:.96rem;color:var(--doan-ink);background:var(--info-bg);padding:12px 15px;border-radius:11px;border-left:3px solid var(--doan-2)}
 .hm-feat{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin:12px 0}
 .hm-card{border:1.5px solid var(--line);border-radius:12px;padding:13px 15px;background:#FBFDFF}
 .hm-card .ic{width:30px;height:30px;border-radius:8px;background:var(--gold-soft);display:flex;align-items:center;justify-content:center;color:var(--gold-2);margin-bottom:7px}
@@ -283,6 +347,16 @@ code{background:var(--line-soft);padding:1px 5px;border-radius:5px;font-family:u
 .hm-step .tx{flex:1}.hm-step .tx b{color:var(--doan-deep)}
 .hm-role{border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:8px 0;background:#fff}
 .hm-role b{color:var(--doan-deep)}
+.hm-steps{counter-reset:hs;list-style:none;padding-left:0;margin:10px 0}
+.hm-steps li{counter-increment:hs;position:relative;padding:7px 0 7px 36px;border-bottom:1px dashed var(--line-soft)}
+.hm-steps li:last-child{border-bottom:none}
+.hm-steps li::before{content:counter(hs);position:absolute;left:0;top:6px;width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#F6C24A,var(--gold));color:var(--doan-ink);font-weight:800;font-size:.76rem;display:flex;align-items:center;justify-content:center}
+.hm-ul{list-style:none;padding-left:0;margin:8px 0}
+.hm-ul li{position:relative;padding:5px 0 5px 20px}
+.hm-ul li::before{content:"•";position:absolute;left:4px;color:var(--gold-2);font-weight:800}
+.hm-code{background:var(--doan-ink);color:#E6EDF5;padding:11px 14px;border-radius:9px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.76rem;line-height:1.55;white-space:pre-wrap;word-break:break-all;margin:8px 0;overflow-x:auto}
+.hm-ok{background:var(--ok-bg);border:1px solid #C6E8D7;border-radius:10px;padding:9px 13px;margin-top:12px;font-size:.85rem}
+.hm-body code{background:var(--line-soft);padding:1px 6px;border-radius:5px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88em}
 .hm-tip{background:var(--gold-soft);border-radius:10px;padding:10px 14px;margin:10px 0;font-size:.85rem}
 .hm-kbd{background:var(--doan-deep);color:#fff;padding:1px 7px;border-radius:5px;font-size:.8rem;font-weight:600}
 .hm-faq{border-bottom:1px solid var(--line-soft);padding:10px 0}
@@ -681,25 +755,373 @@ function onPickFile(inp){
   const list=[...(inp.files||[])];inp.value="";
   if(!list.length)return;
   quickAutofillTy(list[0].name);
+  /* Ngưỡng đưa lên Drive do đơn vị đặt; ngưỡng nhúng vào văn bản là cứng theo giới hạn Firestore */
+  const thr=driveThresholdKB();
   list.forEach(f=>{
-    if(f.size>FILE_LIMIT_KB*1024){
-      composeFiles.push({name:f.name,size:f.size,dataUrl:null});
-      toast(f.name+" vượt "+FILE_LIMIT_KB+"KB — chỉ lưu tên; hãy đưa tệp này lên Drive rồi dán liên kết.");
+    const big=f.size>Math.min(thr,FILE_LIMIT_KB)*1024;
+    /* Tệp lớn + đã bật Drive → tự tải lên, không bắt cán bộ làm thủ công nữa */
+    if(big&&driveAuto()){driveEnqueue(f,currentLoai());return}
+    if(big){
+      composeFiles.push({name:f.name,size:f.size,dataUrl:null,oversize:true,_file:f});
+      toast(f.name+" vượt "+Math.min(thr,FILE_LIMIT_KB)+"KB — bấm “☁ Đưa lên Drive” để hệ thống tự tải lên và gắn liên kết.");
       updateFileListUI();return;}
     const rd=new FileReader();
     rd.onload=()=>{composeFiles.push({name:f.name,size:f.size,dataUrl:rd.result});updateFileListUI()};
     rd.readAsDataURL(f);});
   updateFileListUI();
 }
+/* Đưa một tệp quá khổ đang chờ trong danh sách lên Drive */
+function driveUploadPending(i){
+  const f=composeFiles[i];if(!f||!f._file)return;
+  if(!driveOn()){toast("Chưa cấu hình Google Drive — vào Dữ liệu & sao lưu → Google Drive để kết nối một lần.");nav("hethong");return}
+  const file=f._file;composeFiles.splice(i,1);updateFileListUI();
+  driveEnqueue(file,currentLoai());
+}
 function updateFileListUI(){
   const el=document.getElementById("file-list");if(!el)return;
-  el.innerHTML=composeFiles.length?composeFiles.map((f,i)=>
-    `<div style="display:flex;gap:7px;align-items:center;margin-top:4px">📎 ${esc(f.name)}
-     <span class="muted">(${f.dataUrl?Math.round(f.size/1024)+" KB":"chỉ lưu tên"})</span>
-     <a href="javascript:void(0)" onclick="removeComposeFile(${i})" style="color:var(--danger)">✕</a></div>`).join("")
-   :"Chưa chọn tệp — chọn được nhiều tệp cùng lúc.";
+  if(!composeFiles.length){el.innerHTML='<span class="muted">Chưa chọn tệp — chọn được nhiều tệp cùng lúc.</span>';return}
+  el.innerHTML=composeFiles.map((f,i)=>{
+    const kind=f.link?"link":(f.oversize?"over":"emb");
+    const ic=kind==="link"?"☁️":(kind==="over"?"⚠️":"📎");
+    const meta=kind==="link"
+      ?`<a href="${esc(f.link)}" target="_blank" rel="noopener">Xem trên Drive ↗</a>${f.drivePath?` <span class="muted">· ${esc(f.drivePath)}</span>`:""}`
+      :kind==="over"
+        ?`<span style="color:var(--warn)">vượt ${FILE_LIMIT_KB}KB — mới chỉ lưu tên</span>
+          <button class="btn btn-gold btn-xs" style="margin-left:6px" onclick="driveUploadPending(${i})">☁ Đưa lên Drive</button>`
+        :`<span class="muted">${Math.round(f.size/1024)} KB · lưu kèm văn bản</span>`;
+    return `<div class="att-item ${kind}">
+      <span class="att-ic">${ic}</span>
+      <div class="att-body"><div class="att-name">${esc(f.name)}</div><div class="att-meta small">${meta}</div></div>
+      <button class="att-x" title="Bỏ tệp này" onclick="removeComposeFile(${i})">✕</button></div>`}).join("");
 }
 function removeComposeFile(i){composeFiles.splice(i,1);updateFileListUI()}
+/* ==================================================================
+   MỚI Ở 4.3 — TỰ ĐỘNG ĐƯA TỆP LỚN LÊN GOOGLE DRIVE (Drive Bridge)
+   ------------------------------------------------------------------
+   Vấn đề của 4.2: tệp > FILE_LIMIT_KB chỉ được LƯU TÊN, cán bộ phải tự
+   mở Drive → tải lên → lấy liên kết chia sẻ → dán lại vào ô liên kết →
+   mới gửi được. Bốn thao tác thủ công, dễ sai định dạng, dễ quên bật
+   quyền xem cho người nhận.
+
+   Cách làm mới: mỗi đơn vị cấu hình MỘT LẦN tài khoản Google Drive của
+   mình (OAuth 2.0 — Google Identity Services, không cần máy chủ, không
+   tốn phí). Từ đó, khi đính kèm tệp vượt hạn mức, phần mềm sẽ:
+     ① tự tạo (hoặc tìm lại) cây thư mục trên Drive của đơn vị:
+          <Thư mục gốc>/<Năm>/<Loại văn bản>/
+        ví dụ: DoanOffice - Văn bản đi/2026/Kế hoạch (KH)/
+     ② tải tệp lên đúng thư mục đó (có thanh tiến độ),
+     ③ đặt quyền chia sẻ "Bất kỳ ai có liên kết — Xem",
+     ④ trả liên kết về, tự gắn vào văn bản như một tệp đính kèm dạng
+        liên kết. Cán bộ KHÔNG phải thao tác gì thêm.
+
+   Toàn bộ token chỉ nằm trong bộ nhớ trình duyệt của máy đang dùng
+   (sessionStorage), không đẩy lên Firestore, không qua máy chủ trung gian.
+   ================================================================== */
+
+const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
+const DRV_LS = "do_drive_cfg_";      /* + unitId → cấu hình của đơn vị */
+const DRV_TOK = "do_drive_tok_";     /* + unitId → access token phiên này */
+
+/* ---------- Cấu hình lưu tại máy ---------- */
+function driveCfg(uid) {
+  uid = uid || (DB && DB.session) || "_";
+  try {
+    return JSON.parse(localStorage.getItem(DRV_LS + uid) || "{}");
+  } catch (e) { return {}; }
+}
+function saveDriveCfg(cfg, uid) {
+  uid = uid || (DB && DB.session) || "_";
+  try { localStorage.setItem(DRV_LS + uid, JSON.stringify(cfg || {})); } catch (e) {}
+}
+function driveOn() { const c = driveCfg(); return !!(c.clientId && c.enabled !== false); }
+function driveAuto() { const c = driveCfg(); return driveOn() && c.auto !== false; }
+function driveRootName() { return (driveCfg().rootName || "DoanOffice - Văn bản đi").trim(); }
+
+/* Ngưỡng tự đưa lên Drive (KB). Mặc định = ngưỡng nhúng của hệ thống. */
+function driveThresholdKB() {
+  const c = driveCfg();
+  const n = parseInt(c.thresholdKB, 10);
+  return (n && n > 0) ? n : FILE_LIMIT_KB;
+}
+
+/* ---------- Nạp Google Identity Services (chỉ 1 lần) ---------- */
+let _gisReady = null;
+function loadGIS() {
+  if (_gisReady) return _gisReady;
+  _gisReady = new Promise((res, rej) => {
+    if (window.google && google.accounts && google.accounts.oauth2) return res();
+    const s = document.createElement("script");
+    s.src = "https://accounts.google.com/gsi/client";
+    s.async = true; s.defer = true;
+    s.onload = () => res();
+    s.onerror = () => rej(new Error("Không tải được thư viện Google. Kiểm tra kết nối mạng."));
+    document.head.appendChild(s);
+  });
+  return _gisReady;
+}
+
+/* ---------- Lấy access token (im lặng nếu còn hạn) ---------- */
+function driveToken(uid) {
+  uid = uid || DB.session;
+  try {
+    const raw = sessionStorage.getItem(DRV_TOK + uid);
+    if (!raw) return null;
+    const t = JSON.parse(raw);
+    return (t.exp > Date.now() + 60000) ? t.token : null;
+  } catch (e) { return null; }
+}
+function setDriveToken(token, expiresIn, uid) {
+  uid = uid || DB.session;
+  try {
+    sessionStorage.setItem(DRV_TOK + uid, JSON.stringify({
+      token, exp: Date.now() + (expiresIn || 3500) * 1000
+    }));
+  } catch (e) {}
+}
+
+/**
+ * Xin quyền truy cập Drive. interactive=false → chỉ dùng token còn hạn.
+ * Trả về access token, hoặc ném lỗi có thông điệp tiếng Việt dễ hiểu.
+ */
+async function driveAuth(interactive) {
+  const cfg = driveCfg();
+  if (!cfg.clientId) throw new Error("Chưa cấu hình Client ID Google Drive (vào Dữ liệu & sao lưu → Google Drive).");
+  const cached = driveToken();
+  if (cached) return cached;
+  if (!interactive) throw new Error("Phiên Drive đã hết hạn — cần cấp quyền lại.");
+  await loadGIS();
+  return new Promise((res, rej) => {
+    let done = false;
+    const client = google.accounts.oauth2.initTokenClient({
+      client_id: cfg.clientId,
+      scope: DRIVE_SCOPE,
+      prompt: "",
+      callback: (r) => {
+        done = true;
+        if (r.error) return rej(new Error("Google từ chối cấp quyền: " + r.error));
+        setDriveToken(r.access_token, r.expires_in);
+        res(r.access_token);
+      },
+      error_callback: (e) => {
+        done = true;
+        rej(new Error(e && e.type === "popup_closed"
+          ? "Bạn đã đóng cửa sổ cấp quyền Google."
+          : "Không cấp quyền được Google Drive."));
+      }
+    });
+    client.requestAccessToken();
+    setTimeout(() => { if (!done) rej(new Error("Hết thời gian chờ cấp quyền Google Drive.")); }, 120000);
+  });
+}
+
+/* ---------- Gọi Drive REST ---------- */
+async function drvFetch(url, opt, tok) {
+  opt = opt || {};
+  opt.headers = Object.assign({ Authorization: "Bearer " + tok }, opt.headers || {});
+  const r = await fetch(url, opt);
+  if (r.status === 401) { try { sessionStorage.removeItem(DRV_TOK + DB.session); } catch (e) {} throw new Error("Phiên Google Drive hết hạn — hãy kết nối lại."); }
+  if (!r.ok) {
+    let msg = r.status + "";
+    try { const j = await r.json(); msg = (j.error && j.error.message) || msg; } catch (e) {}
+    throw new Error("Google Drive báo lỗi: " + msg);
+  }
+  return r.json();
+}
+
+/** Tìm thư mục con theo tên trong parent; nếu chưa có thì tạo. Có nhớ tạm để đỡ gọi lại. */
+const _drvFolderCache = {};
+async function drvFolder(name, parentId, tok) {
+  const key = (parentId || "root") + "/" + name;
+  if (_drvFolderCache[key]) return _drvFolderCache[key];
+  const q = encodeURIComponent(
+    "mimeType='application/vnd.google-apps.folder' and trashed=false and name='" +
+    String(name).replace(/'/g, "\\'") + "'" + (parentId ? " and '" + parentId + "' in parents" : " and 'root' in parents"));
+  const found = await drvFetch(
+    "https://www.googleapis.com/drive/v3/files?q=" + q + "&fields=files(id,name)&pageSize=1", {}, tok);
+  if (found.files && found.files.length) { _drvFolderCache[key] = found.files[0].id; return found.files[0].id; }
+  const made = await drvFetch("https://www.googleapis.com/drive/v3/files?fields=id", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, mimeType: "application/vnd.google-apps.folder", parents: [parentId || "root"] })
+  }, tok);
+  _drvFolderCache[key] = made.id;
+  return made.id;
+}
+
+/** Cây thư mục đích: <gốc>/<năm>/<Loại văn bản (MÃ)>/ — đúng theo loại văn bản đang soạn. */
+async function drvTargetFolder(loaiKey, tok) {
+  const root = await drvFolder(driveRootName(), null, tok);
+  const year = await drvFolder(String(new Date().getFullYear()), root, tok);
+  const L = LOAI[loaiKey] || LOAI.congvan;
+  const leaf = await drvFolder(L[1] + " (" + L[0] + ")", year, tok);
+  return { id: leaf, path: driveRootName() + "/" + new Date().getFullYear() + "/" + L[1] + " (" + L[0] + ")" };
+}
+
+/** Tải tệp lên (resumable, có tiến độ %). */
+function drvUpload(file, folderId, tok, onProg) {
+  return new Promise((res, rej) => {
+    fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id,name,webViewLink", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + tok, "Content-Type": "application/json" },
+      body: JSON.stringify({ name: file.name, parents: [folderId] })
+    }).then(r => {
+      if (!r.ok) return rej(new Error("Không khởi tạo được phiên tải lên (" + r.status + ")."));
+      const loc = r.headers.get("Location");
+      if (!loc) return rej(new Error("Google không trả về địa chỉ tải lên."));
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", loc, true);
+      xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
+      xhr.upload.onprogress = e => { if (e.lengthComputable && onProg) onProg(Math.round(e.loaded / e.total * 100)); };
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) { try { res(JSON.parse(xhr.responseText)); } catch (e) { rej(new Error("Phản hồi tải lên không hợp lệ.")); } }
+        else rej(new Error("Tải lên thất bại (" + xhr.status + ")."));
+      };
+      xhr.onerror = () => rej(new Error("Mất kết nối khi đang tải tệp lên Drive."));
+      xhr.send(file);
+    }).catch(rej);
+  });
+}
+
+/** Mở quyền "bất kỳ ai có liên kết — xem" để nơi nhận mở được ngay. */
+async function drvShare(fileId, tok) {
+  try {
+    await drvFetch("https://www.googleapis.com/drive/v3/files/" + fileId + "/permissions", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role: "reader", type: "anyone" })
+    }, tok);
+  } catch (e) { /* tổ chức chặn chia sẻ công khai: vẫn giữ liên kết nội bộ */ }
+}
+
+/* ---------- Quy trình đầy đủ: 1 tệp → liên kết ---------- */
+async function driveUploadOne(file, loaiKey, onProg) {
+  const tok = await driveAuth(true);
+  const folder = await drvTargetFolder(loaiKey, tok);
+  const up = await drvUpload(file, folder.id, tok, onProg);
+  await drvShare(up.id, tok);
+  return {
+    name: file.name, size: file.size,
+    link: up.webViewLink || ("https://drive.google.com/file/d/" + up.id + "/view"),
+    driveId: up.id, drivePath: folder.path
+  };
+}
+
+/* ==================================================================
+   HÀNG ĐỢI TẢI LÊN — hiển thị tiến độ trong màn hình soạn văn bản
+   ================================================================== */
+let driveQueue = [];   /* [{name,size,pct,state:'wait|up|done|err',msg,link}] */
+
+function driveQueueUI() {
+  const el = document.getElementById("drive-queue");
+  if (!el) return;
+  if (!driveQueue.length) { el.innerHTML = ""; el.style.display = "none"; return; }
+  el.style.display = "";
+  el.innerHTML = driveQueue.map((q, i) => {
+    const ic = q.state === "done" ? "✅" : q.state === "err" ? "⚠️" : "☁️";
+    const right = q.state === "done"
+      ? `<a href="${esc(q.link)}" target="_blank" rel="noopener">Mở trên Drive ↗</a>`
+      : q.state === "err"
+        ? `<span style="color:var(--danger)">${esc(q.msg || "lỗi")}</span>
+           <a href="javascript:void(0)" onclick="driveRetry(${i})" style="margin-left:6px">Thử lại</a>`
+        : `<span class="muted">${q.pct}%</span>`;
+    return `<div class="drv-item ${q.state}">
+      <span class="drv-ic">${ic}</span>
+      <div class="drv-body">
+        <div class="drv-name">${esc(q.name)} <span class="muted">· ${Math.round(q.size / 1024)} KB</span></div>
+        ${q.state === "up" || q.state === "wait"
+          ? `<div class="prog drv-bar"><i style="width:${q.pct}%"></i></div>`
+          : `<div class="drv-sub muted">${q.state === "done" ? "Đã lên Drive · " + esc(q.folder || "") : ""}</div>`}
+      </div>
+      <div class="drv-right small">${right}</div></div>`;
+  }).join("");
+}
+
+async function driveRunOne(idx, file, loaiKey) {
+  const q = driveQueue[idx];
+  q.state = "up"; q.pct = 0; driveQueueUI();
+  try {
+    const res = await driveUploadOne(file, loaiKey, p => { q.pct = p; driveQueueUI(); });
+    q.state = "done"; q.pct = 100; q.link = res.link; q.folder = res.drivePath;
+    composeFiles.push({ name: res.name, size: res.size, link: res.link, driveId: res.driveId, drivePath: res.drivePath });
+    updateFileListUI(); driveQueueUI();
+    toast("Đã đưa “" + res.name + "” lên Drive và gắn liên kết vào văn bản.");
+  } catch (e) {
+    q.state = "err"; q.msg = e.message; q._file = file; q._loai = loaiKey;
+    driveQueueUI();
+    toast("Không đưa được lên Drive: " + e.message);
+  }
+}
+function driveRetry(i) {
+  const q = driveQueue[i];
+  if (q && q._file) driveRunOne(i, q._file, q._loai);
+}
+function driveClearQueue() { driveQueue = driveQueue.filter(q => q.state !== "done"); driveQueueUI(); }
+
+/** Đưa một tệp lớn vào hàng đợi tải lên Drive (gọi từ onPickFile). */
+function driveEnqueue(file, loaiKey) {
+  const idx = driveQueue.push({ name: file.name, size: file.size, pct: 0, state: "wait" }) - 1;
+  driveQueueUI();
+  driveRunOne(idx, file, loaiKey);
+}
+
+/* Loại văn bản đang chọn trên biểu mẫu (để chọn đúng thư mục đích) */
+function currentLoai() {
+  const el = document.getElementById("c-loai");
+  return (el && el.value) || "congvan";
+}
+
+/* ==================================================================
+   KIỂM TRA & QUẢN LÝ KẾT NỐI (dùng ở màn hình cấu hình)
+   ================================================================== */
+async function driveConnect() {
+  const ci = document.getElementById("drv-client");
+  const rn = document.getElementById("drv-root");
+  const th = document.getElementById("drv-thr");
+  const au = document.getElementById("drv-auto");
+  const cfg = driveCfg();
+  if (ci) cfg.clientId = ci.value.trim();
+  if (rn) cfg.rootName = rn.value.trim() || "DoanOffice - Văn bản đi";
+  if (th) cfg.thresholdKB = parseInt(th.value, 10) || FILE_LIMIT_KB;
+  if (au) cfg.auto = au.checked;
+  cfg.enabled = true;
+  saveDriveCfg(cfg);
+  const out = document.getElementById("drv-out");
+  if (!cfg.clientId) { if (out) out.innerHTML = '<span style="color:var(--danger)">Chưa nhập Client ID.</span>'; return; }
+  if (out) out.innerHTML = '<span class="muted">Đang mở cửa sổ cấp quyền Google…</span>';
+  try {
+    const tok = await driveAuth(true);
+    const me2 = await drvFetch("https://www.googleapis.com/drive/v3/about?fields=user,storageQuota", {}, tok);
+    const u = me2.user || {};
+    const sq = me2.storageQuota || {};
+    const freeGB = sq.limit ? ((sq.limit - sq.usage) / 1073741824).toFixed(1) + " GB trống / " + (sq.limit / 1073741824).toFixed(0) + " GB" : "không giới hạn";
+    cfg.account = u.emailAddress || ""; saveDriveCfg(cfg);
+    if (out) out.innerHTML = '<span style="color:var(--ok)">✅ Đã kết nối Drive của <b>' + esc(cfg.account) + '</b> · ' + esc(freeGB) + '</span>';
+    toast("Kết nối Google Drive thành công.");
+    render();
+  } catch (e) {
+    if (out) out.innerHTML = '<span style="color:var(--danger)">⚠ ' + esc(e.message) + '</span>';
+  }
+}
+function driveDisconnect() {
+  const cfg = driveCfg(); const acc = cfg.account;
+  saveDriveCfg({ clientId: cfg.clientId, rootName: cfg.rootName, thresholdKB: cfg.thresholdKB, auto: cfg.auto, enabled: false });
+  try { sessionStorage.removeItem(DRV_TOK + DB.session); } catch (e) {}
+  if (acc && window.google && google.accounts && google.accounts.oauth2) {
+    try { google.accounts.oauth2.revoke(driveToken() || "", () => {}); } catch (e) {}
+  }
+  toast("Đã ngắt kết nối Google Drive trên máy này.");
+  render();
+}
+/** Tạo sẵn toàn bộ cây thư mục cho 11 loại văn bản — để đơn vị nhìn thấy cấu trúc ngay. */
+async function driveMakeTree() {
+  const out = document.getElementById("drv-out");
+  try {
+    const tok = await driveAuth(true);
+    if (out) out.innerHTML = '<span class="muted">Đang tạo cây thư mục…</span>';
+    const names = [];
+    for (const k of Object.keys(LOAI)) { const f = await drvTargetFolder(k, tok); names.push(f.path); }
+    if (out) out.innerHTML = '<span style="color:var(--ok)">✅ Đã tạo/kiểm tra ' + names.length + ' thư mục:</span><div class="hint" style="margin-top:4px">' + names.map(esc).join("<br>") + '</div>';
+  } catch (e) { if (out) out.innerHTML = '<span style="color:var(--danger)">⚠ ' + esc(e.message) + '</span>'; }
+}
+
 /* --- Văn bản kèm theo (bản chụp thông tin, không phá quyền đọc) --- */
 function attSnapshot(d){
   const lk=docFiles(d).find(f=>f.link);
@@ -1134,7 +1556,7 @@ function shell(content){
       <h6>Quản trị</h6>
       ${item("hethong",ICO.gear,"Dữ liệu & sao lưu")}
     </nav>
-    <div class="side-foot">${MODE==="cloud"?"● Đồng bộ Firestore · offline-first":"Dữ liệu lưu cục bộ trên máy này"}<br>DoanOffice 4.2 · mã nguồn mở</div>
+    <div class="side-foot">${MODE==="cloud"?"● Đồng bộ Firestore · offline-first":"Dữ liệu lưu cục bộ trên máy này"}<br>DoanOffice 4.3 · mã nguồn mở</div>
    </aside>
    <div class="sb-backdrop" id="sb-backdrop" onclick="toggleSidebar(false)"></div>
    <div class="main">
@@ -1345,11 +1767,25 @@ function viewCompose(){
         <select id="c-reply"><option value="">— Không —</option>
         ${inboxDocs.map(d=>`<option value="${d.id}" ${dr&&dr.replyTo===d.id?"selected":""}>${esc(d.so)} · ${esc(d.trichYeu.slice(0,50))}</option>`).join("")}</select></div>
     </div>
-    <div class="field"><label>Tệp đính kèm — chọn được NHIỀU tệp (PDF/Word/Excel/PPT/ảnh…), mỗi tệp ≤ ${FILE_LIMIT_KB}KB lưu kèm văn bản</label>
+    <div class="field"><label>Tệp đính kèm — chọn nhiều tệp cùng lúc (PDF/Word/Excel/PPT/ảnh…)</label>
+      ${driveOn()
+        ?`<div class="drv-banner on"><span class="drv-dot"></span><div>
+            <b>Google Drive đang bật</b> — tệp lớn hơn ${FILE_LIMIT_KB}KB sẽ <b>tự động tải lên</b> thư mục
+            <code>${esc(driveRootName())}/${new Date().getFullYear()}/&lt;loại văn bản&gt;</code> và tự gắn liên kết. Bạn không phải làm gì thêm.
+            ${driveCfg().account?`<div class="small muted" style="margin-top:2px">Tài khoản: ${esc(driveCfg().account)}</div>`:""}
+          </div><a href="javascript:void(0)" onclick="nav('hethong')" class="small">Cấu hình</a></div>`
+        :`<div class="drv-banner off"><span class="drv-dot"></span><div>
+            <b>Chưa bật Google Drive.</b> Tệp lớn hơn ${FILE_LIMIT_KB}KB sẽ chỉ được lưu tên, bạn phải tự tải lên Drive rồi dán liên kết.
+            Kết nối một lần để hệ thống <b>tự tạo thư mục theo loại văn bản, tự tải lên và tự gắn liên kết</b>.
+          </div><button class="btn btn-gold btn-sm" onclick="nav('hethong')">Kết nối ngay</button></div>`}
       <input type="file" multiple onchange="onPickFile(this)">
-      <div class="hint" id="file-list">Chưa chọn tệp — chọn được nhiều tệp cùng lúc.</div></div>
-    <div class="field"><label>Liên kết Google Drive cho tệp lớn — mỗi dòng một liên kết, có thể ghi “Tên tệp | https://…”</label>
-      <textarea id="c-links" rows="2" placeholder="Phụ lục 1 - Phân bổ chỉ tiêu | https://drive.google.com/…">${dr?esc(docFiles(dr).filter(f=>f.link).map(f=>((f.name&&f.name!=="Tệp trên Google Drive")?f.name+" | ":"")+f.link).join("\n")):""}</textarea></div>
+      <div id="drive-queue" class="drv-queue" style="display:none"></div>
+      <div class="att-list" id="file-list"><span class="muted">Chưa chọn tệp — chọn được nhiều tệp cùng lúc.</span></div></div>
+    <details class="field adv-box" ${dr&&docFiles(dr).some(f=>f.link)?"open":""}>
+      <summary>Dán liên kết Google Drive thủ công <span class="muted small">(khi tệp đã có sẵn trên Drive)</span></summary>
+      <textarea id="c-links" rows="2" placeholder="Phụ lục 1 - Phân bổ chỉ tiêu | https://drive.google.com/…">${dr?esc(docFiles(dr).filter(f=>f.link).map(f=>((f.name&&f.name!=="Tệp trên Google Drive")?f.name+" | ":"")+f.link).join("\n")):""}</textarea>
+      <div class="hint">Mỗi dòng một liên kết, có thể ghi “Tên tệp | https://…”. Với Drive đã bật, bạn thường không cần dùng ô này.</div>
+    </details>
     <div class="field"><label>🧷 Văn bản kèm theo / liên quan (đã có trên hệ thống)</label>
       <div style="display:flex;gap:8px">
         <select id="c-att" style="flex:1;padding:9px 12px;border:1px solid var(--line);border-radius:8px">
@@ -1794,10 +2230,12 @@ function notifyAuditCard(){
   const canEdit=u=>u.id===m.id||managedBy(u,m.id);
   const okE=list.filter(u=>isValidEmail(u.email)).length;
   const okW=list.filter(u=>isValidWebhook(u.webhook)).length;
+  const badU=list.filter(u=>!isValidUser(u.user));
   const rows=list.map(u=>{
-    const e=isValidEmail(u.email),w=isValidWebhook(u.webhook);
+    const e=isValidEmail(u.email),w=isValidWebhook(u.webhook),okU=isValidUser(u.user);
     return `<tr>
-      <td>${esc(u.short||u.name)}${u.id===m.id?' <span class="pill role" style="font-size:.62rem">Đơn vị bạn</span>':""}</td>
+      <td>${esc(u.short||u.name)}${u.id===m.id?' <span class="pill role" style="font-size:.62rem">Đơn vị bạn</span>':""}
+        <div class="small muted" style="margin-top:2px">${okU?`<code>${esc(u.user)}@${esc(LOGIN_DOMAIN)}</code>`:`<span style="color:var(--danger)">⚠ tài khoản sai chuẩn: <code>${esc(u.user||"(trống)")}</code></span>`}</div></td>
       <td class="c">${e?`<span class="pill xong" title="${esc(u.email)}">✓ Có</span>`:'<span class="pill cho">✗ Thiếu</span>'}</td>
       <td class="c">${w?'<span class="pill xong">✓ Có</span>':'<span class="pill cho">✗ Thiếu</span>'}</td>
       <td class="c">${canEdit(u)?`<button class="btn btn-ghost btn-sm" onclick="orgEdit('${u.id}')">✎ Khai</button>`:'<span class="muted small">—</span>'}</td>
@@ -1808,10 +2246,16 @@ function notifyAuditCard(){
     <span class="pill ${okW===list.length?'xong':'cho'}" style="margin-left:4px">Webhook ${okW}/${list.length}</span></div>
    <div class="card-b">
     <div class="hint" style="margin-bottom:8px">Đơn vị cần có <b>Email</b> để nhận nhắc việc/nhắc lịch tự động, và <b>Webhook Discord</b> để nhận thông báo tức thời. Bấm <b>✎ Khai</b> để nhập ngay (app tự lưu vào hệ thống — không phải sửa tay trên Firestore).</div>
-    <div class="tbl-wrap"><table><thead><tr><th>Đơn vị</th><th class="c">Email</th><th class="c">Webhook Discord</th><th class="c">Thao tác</th></tr></thead><tbody>${rows}</tbody></table></div>
+    ${badU.length?`<div class="hint" style="margin-bottom:8px;border-left:3px solid var(--danger);background:var(--danger-bg)">
+      <b style="color:var(--danger)">⚠ ${badU.length} đơn vị có tài khoản đăng nhập sai chuẩn</b> — các đơn vị này <b>sẽ không đăng nhập được</b>.
+      Tài khoản phải là tên ngắn không dấu (vd <code>cd.bvphusan</code>), <b>không phải email</b>. Định danh trên Firebase phải đúng dạng <code>tên@${esc(LOGIN_DOMAIN)}</code>.
+      <a href="javascript:void(0)" onclick="openHelp('taikhoan')"><b>▶ Xem hướng dẫn khắc phục</b></a></div>`:""}
+    <div class="tbl-wrap"><table><thead><tr><th>Đơn vị · tài khoản đăng nhập</th><th class="c">Email</th><th class="c">Webhook Discord</th><th class="c">Thao tác</th></tr></thead><tbody>${rows}</tbody></table></div>
     ${(okE<list.length||okW<list.length)?`<div class="hint" style="margin-top:8px;border-left:3px solid var(--warn)">Còn ${Math.max(list.length-okE,list.length-okW)} đơn vị chưa khai đủ. Hoàn tất để thông báo tự động hoạt động cho toàn nhánh.</div>`:`<div class="hint" style="margin-top:8px;border-left:3px solid var(--ok)">✓ Tất cả đơn vị trong nhánh đã khai đủ email và webhook.</div>`}
    </div></div>`;
 }
+/* Tài khoản đăng nhập hợp lệ: chữ thường không dấu, số, chấm/gạch — KHÔNG phải email */
+function isValidUser(u){return !!u&&/^[a-z0-9._-]+$/.test(u)&&!u.includes("@")}
 function logsVisible(){
   if(!Array.isArray(S.logs))return [];
   const m=me(),ids=new Set([m.id,...DB.units.filter(x=>managedBy(x,m.id)).map(x=>x.id)]);
@@ -1851,15 +2295,15 @@ function orgEditor(){
       <div class="field"><label>Mã ký hiệu (trên số VB) *</label><input id="o-code" value="${esc(u.code||"")}" placeholder="vd: CĐBVPS" style="text-transform:uppercase"></div>
     </div>
     ${isAdd?`<div class="form-grid">
-      <div class="field"><label>Tài khoản đăng nhập *</label><input id="o-user" placeholder="vd: cd.bvphusan (không dấu)"></div>
+      <div class="field"><label>Tài khoản đăng nhập *</label><input id="o-user" placeholder="vd: cd.bvphusan (không dấu)"><div class="hint" style="margin-top:4px"><b>Không phải email.</b> Chỉ tên ngắn không dấu (chữ thường, số, dấu chấm/gạch). Hệ thống tự tạo định danh <code>tên@${esc(LOGIN_DOMAIN)}</code> trên Firebase.</div></div>
       <div class="field"><label>Mật khẩu ban đầu * (≥6 ký tự)</label><input id="o-pass" placeholder="Đơn vị nên đổi sau khi nhận"></div>
     </div>`
-    :`<div class="field"><label>Tài khoản đăng nhập hiện tại</label><input value="${esc(u.user)}" disabled style="background:var(--line-soft)"></div>`}
+    :`<div class="field"><label>Tài khoản đăng nhập hiện tại</label><input value="${esc(u.user)}" disabled style="background:var(--line-soft)"><div class="hint" style="margin-top:4px">Định danh trên Firebase: <code>${esc(u.user)}@${esc(LOGIN_DOMAIN)}</code> — không sửa trực tiếp được.</div></div>`}
     <div class="form-grid">
       <div class="field"><label>Địa chỉ</label><input id="o-diachi" value="${esc(u.diachi||"")}"></div>
       <div class="field"><label>Điện thoại</label><input id="o-sdt" value="${esc(u.dienthoai||"")}"></div>
     </div>
-    <div class="field"><label>Email liên hệ</label><input id="o-email" value="${esc(u.email||"")}"></div>
+    <div class="field"><label>Email liên hệ</label><input id="o-email" value="${esc(u.email||"")}" placeholder="vd: donvi@gmail.com"><div class="hint" style="margin-top:4px">Email <b>thật</b> để nhận thư nhắc việc/nhắc lịch. Khác với tài khoản đăng nhập ở trên.</div></div>
     <div class="field"><label>Webhook Discord (nhận thông báo văn bản mới — tùy chọn)</label><input id="o-webhook" value="${esc(u.webhook||"")}" placeholder="https://discord.com/api/webhooks/…"><div class="hint" style="margin-top:4px">Miễn phí: trong máy chủ Discord của đơn vị → Cài đặt kênh → Tích hợp → Webhook → Sao chép URL. Khi cấp trên phát hành văn bản cho đơn vị này, hệ thống tự nhắn vào kênh.</div></div>
     <button class="btn btn-primary" id="o-save" onclick="orgSave()">${isAdd?"＋ Tạo đơn vị & cấp tài khoản":"💾 Lưu thay đổi"}</button>
     ${!isAdd?memberSection(u):""}
@@ -2139,6 +2583,11 @@ async function orgSave(){
     if(!pu||(pid!==m.id&&!managedBy(pu,m.id))){toast("Đơn vị cha phải là bạn hoặc thuộc nhánh quản lý của bạn.");return}
     const user=g("o-user").toLowerCase().replace(/\s+/g,""),pass=g("o-pass");
     if(!user){toast("Nhập tài khoản đăng nhập cho đơn vị mới.");return}
+    if(user.includes("@")){
+      const goi=user.split("@")[0].replace(/[^a-z0-9._-]/g,"");
+      toast("Tài khoản đăng nhập KHÔNG phải email. Hãy nhập tên ngắn"+(goi?" (vd: "+goi+")":"")+"; email thật điền ở ô “Email liên hệ”.");
+      return;
+    }
     if(!/^[a-z0-9._-]+$/.test(user)){toast("Tài khoản chỉ gồm chữ thường không dấu, số, dấu chấm/gạch.");return}
     if(DB.units.some(x=>x.user===user)){toast("Tài khoản “"+user+"” đã được dùng cho đơn vị khác.");return}
     if(!pass||pass.length<6){toast("Mật khẩu ban đầu tối thiểu 6 ký tự.");return}
@@ -2723,17 +3172,57 @@ function viewSystem(){
     </div>`:""}
     <div class="hint" style="margin-top:8px">Không có khóa, mọi tính năng khác vẫn hoạt động bình thường — AI là mô-đun gắn thêm, đúng kiến trúc plugin. Nội dung gửi tới AI gồm trích yếu/nội dung văn bản bạn đang thao tác; cân nhắc với văn bản nhạy cảm.</div>
   </div></div>`;
+  const c=driveCfg(),dOn=driveOn();
+  const driveCard=`<div class="card drv-card"><div class="card-h"><h3>☁️ Google Drive — tự động lưu tệp lớn</h3>
+    <div class="spacer"></div><span class="pill ${dOn?"pill-ok":"pill-off"}">${dOn?"ĐANG BẬT":"CHƯA BẬT"}</span></div><div class="card-b small">
+    <p style="margin-bottom:10px">Trước đây tệp vượt <b>${FILE_LIMIT_KB}KB</b> chỉ được lưu tên: cán bộ phải tự mở Drive → tải lên → lấy liên kết chia sẻ → dán lại vào phần mềm. Bật chức năng này, phần mềm sẽ làm thay <b>toàn bộ 4 bước đó</b>:</p>
+    <ol class="drv-steps">
+      <li>Tự tạo cây thư mục trên Drive của đơn vị: <code>${esc(driveRootName())}/${new Date().getFullYear()}/&lt;Loại văn bản&gt;/</code></li>
+      <li>Tự tải tệp lên đúng thư mục theo <b>loại văn bản đang soạn</b> (có thanh tiến độ)</li>
+      <li>Tự đặt quyền chia sẻ <b>“Bất kỳ ai có liên kết — Xem”</b> để nơi nhận mở được ngay</li>
+      <li>Tự gắn liên kết vào văn bản trước khi phát hành</li>
+    </ol>
+    ${dOn&&c.account?`<div class="drv-acc">✅ Đã kết nối: <b>${esc(c.account)}</b> <span class="muted">· token chỉ lưu trong phiên làm việc của máy này</span></div>`:""}
+    <div class="form-grid" style="margin-top:12px">
+      <div class="field"><label>OAuth Client ID (Google Cloud)</label>
+        <input id="drv-client" value="${esc(c.clientId||"")}" placeholder="…apps.googleusercontent.com"></div>
+      <div class="field"><label>Thư mục gốc trên Drive</label>
+        <input id="drv-root" value="${esc(c.rootName||"DoanOffice - Văn bản đi")}" placeholder="DoanOffice - Văn bản đi"></div>
+    </div>
+    <div class="form-grid">
+      <div class="field"><label>Ngưỡng tự đưa lên Drive (KB)</label>
+        <input id="drv-thr" type="number" min="50" step="50" value="${c.thresholdKB||FILE_LIMIT_KB}">
+        <div class="hint">Tệp lớn hơn mức này sẽ đi lên Drive thay vì nhúng vào văn bản.</div></div>
+      <div class="field"><label>Chế độ</label>
+        <label class="sw-row"><input type="checkbox" id="drv-auto" ${c.auto!==false?"checked":""}> Tự động tải lên ngay khi chọn tệp lớn</label>
+        <div class="hint">Bỏ chọn nếu muốn tự bấm nút “☁ Đưa lên Drive” cho từng tệp.</div></div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+      <button class="btn btn-primary btn-sm" onclick="driveConnect()">${dOn?"🔄 Lưu & kết nối lại":"🔗 Kết nối Google Drive"}</button>
+      <button class="btn btn-ghost btn-sm" onclick="driveMakeTree()">📁 Tạo sẵn cây thư mục</button>
+      ${dOn?`<button class="btn btn-danger btn-sm" onclick="driveDisconnect()">Ngắt kết nối</button>`:""}
+      <button class="btn btn-gold btn-sm" onclick="openHelp('drive')">▶ Hướng dẫn lấy Client ID</button>
+    </div>
+    <div class="small" id="drv-out" style="margin-top:9px"></div>
+    <div class="hint" style="margin-top:10px">Phần mềm chỉ xin quyền <code>drive.file</code> — <b>chỉ đọc/ghi được đúng những tệp do phần mềm tạo ra</b>, không đụng tới tài liệu riêng khác trong Drive của bạn. Client ID và token lưu tại máy này, không đẩy lên Firestore.</div>
+  </div></div>`;
   return `
   <div class="page-head"><div><div class="eyebrow">Quản trị</div><h2>Dữ liệu & sao lưu</h2></div></div>
   <div class="detail-grid">
+  ${driveCard}
   ${storeCard}
   ${aiCard}
   <div class="card"><div class="card-h"><h3>Triển khai thật (miễn phí 100%)</h3></div><div class="card-b small">
     <p style="margin-bottom:8px">Bản demo này mô phỏng máy chủ bằng bộ nhớ trình duyệt. Khi triển khai cho nhiều đơn vị dùng chung, giữ nguyên giao diện và thay lớp lưu trữ:</p>
     <p style="margin-bottom:6px">① <b>GitHub Pages / Cloudflare Pages</b> — phát hành trang web tĩnh, miễn phí, có HTTPS.</p>
     <p style="margin-bottom:6px">② <b>Firebase Auth + Firestore (gói Spark)</b> — tài khoản đăng nhập từng cơ sở Đoàn và cơ sở dữ liệu văn bản dùng chung, đồng bộ thời gian thực.</p>
-    <p style="margin-bottom:6px">③ <b>Google Drive API</b> — lưu tệp PDF/Word đính kèm (15GB miễn phí mỗi tài khoản đơn vị).</p>
+    <p style="margin-bottom:6px">③ <b>Google Drive API</b> — lưu tệp PDF/Word đính kèm (15GB miễn phí mỗi tài khoản đơn vị). <b style="color:var(--ok)">Đã tích hợp sẵn ở 4.3</b>: cấu hình ngay tại thẻ ☁️ Google Drive phía trên.</p>
     <p>④ Bộ nhớ cục bộ (IndexedDB) vẫn giữ vai trò cache để làm việc offline, tự đồng bộ khi có mạng.</p>
+  </div></div>
+  <div class="card"><div class="card-h"><h3>Mới ở 4.3 · Tự đưa tệp lớn lên Google Drive</h3></div><div class="card-b small">
+    <p style="margin-bottom:6px">⑧ <b>Drive Bridge</b> — thay vì báo "chỉ lưu tên" rồi bắt cán bộ tự tải lên Drive, lấy liên kết chia sẻ và dán lại, phần mềm nay <b>tự tạo thư mục theo năm và loại văn bản, tự tải tệp lên, tự mở quyền xem và tự gắn liên kết</b> vào văn bản trước khi phát hành. Mỗi đơn vị chỉ cấu hình một lần tài khoản Drive của mình.</p>
+    <p style="margin-bottom:6px">⑨ <b>Giao diện tệp đính kèm mới</b> — mỗi tệp là một thẻ riêng có biểu tượng phân biệt (📎 lưu kèm · ☁️ trên Drive · ⚠️ quá khổ chưa xử lý), thanh tiến độ tải lên theo thời gian thực, nút thử lại khi lỗi mạng.</p>
+    <p style="margin-bottom:10px">⑩ <b>Biểu mẫu gọn hơn</b> — ô dán liên kết thủ công thu vào mục "nâng cao"; băng trạng thái Drive hiển thị ngay trên khung chọn tệp để cán bộ biết tệp lớn sẽ đi về đâu.</p>
   </div></div>
   <div class="card"><div class="card-h"><h3>Mới ở 4.2 · Mẫu báo cáo · Nhắc lịch · Tự tổng hợp tháng→quý→năm</h3></div><div class="card-b small">
     <p style="margin-bottom:6px">⑤ <b>Mẫu báo cáo</b> — cơ sở chọn mẫu chuẩn (theo Công văn 76-CV/ĐTN) hoặc tạo mẫu riêng, điền nội dung, tự lấy số liệu từ <b>Báo cáo định kỳ</b>, rồi <b>xuất Word đúng thể thức</b> và/hoặc <b>gửi bản điện tử lên cấp trên</b> (thành văn bản đi loại Báo cáo).</p>
@@ -3875,13 +4364,13 @@ function pushReminderDiscord(id){
 function openHelp(tab){S.help=tab||"intro";S.bell=false;render()}
 function closeHelp(){S.help=null;render()}
 function helpGo(v){S.help=null;nav(v)}
-const HELP_TABS={intro:"Giới thiệu",start:"Bắt đầu nhanh",taikhoan:"Tài khoản & mật khẩu",vanban:"Văn bản",baocao:"Báo cáo & tổng hợp",maunhac:"Mẫu & Nhắc lịch",nhactudong:"Cài nhắc tự động",khac:"Tiện ích khác",faq:"Hỏi–đáp"};
+const HELP_TABS={intro:"Giới thiệu",start:"Bắt đầu nhanh",taikhoan:"Tài khoản & mật khẩu",vanban:"Văn bản",baocao:"Báo cáo & tổng hợp",maunhac:"Mẫu & Nhắc lịch",nhactudong:"Cài nhắc tự động",drive:"Kết nối Google Drive",khac:"Tiện ích khác",faq:"Hỏi–đáp"};
 function helpModalHtml(){
   return `<div class="hm-back" onclick="if(event.target===this)closeHelp()">
     <div class="hm">
       <div class="hm-top">
         <div class="stardot">★</div>
-        <div><h3>DoanOffice — Giới thiệu & Hướng dẫn sử dụng</h3><div class="sub">Hệ thống điều hành văn bản & báo cáo cho tổ chức Đoàn · phiên bản 4.2</div></div>
+        <div><h3>DoanOffice — Giới thiệu & Hướng dẫn sử dụng</h3><div class="sub">Hệ thống điều hành văn bản & báo cáo cho tổ chức Đoàn · phiên bản 4.3</div></div>
         <button class="hm-x" onclick="closeHelp()" title="Đóng">✕</button>
       </div>
       <div class="hm-tabs">
@@ -3897,9 +4386,60 @@ function helpContent(tab){
   if(tab==="baocao")return helpBaocao();
   if(tab==="maunhac")return helpMaunhac();
   if(tab==="nhactudong")return helpNhacTuDong();
+  if(tab==="drive")return helpDrive();
   if(tab==="khac")return helpKhac();
   if(tab==="faq")return helpFaq();
   return helpIntro();
+}
+function helpDrive(){
+  const c=driveCfg();
+  return `
+  <p class="lead">Bật chức năng này <b>một lần cho mỗi đơn vị</b>, sau đó mọi tệp đính kèm lớn hơn ${FILE_LIMIT_KB}KB sẽ <b>tự lên Google Drive của đơn vị, tự xếp vào thư mục theo loại văn bản, tự mở quyền xem và tự gắn liên kết</b> vào văn bản. Cán bộ soạn thảo không phải mở Drive, không phải copy liên kết, không phải dán đúng định dạng nữa.</p>
+
+  <h4>Vì sao phải làm bước cấu hình này?</h4>
+  <p>Google chỉ cho phép một trang web ghi vào Drive của bạn khi chính bạn cấp quyền. “Client ID” là giấy phép Google cấp cho bản DoanOffice đang chạy tại địa chỉ của đơn vị. Lấy miễn phí, làm một lần, khoảng 5–7 phút.</p>
+
+  <h4>Các bước lấy OAuth Client ID (miễn phí)</h4>
+  <ol class="hm-steps">
+    <li>Vào <b>console.cloud.google.com</b> → đăng nhập bằng chính tài khoản Google mà đơn vị dùng để lưu văn bản.</li>
+    <li>Tạo dự án mới, đặt tên ví dụ <i>DoanOffice</i>.</li>
+    <li>Menu <b>APIs &amp; Services → Library</b> → tìm <b>Google Drive API</b> → bấm <b>Enable</b>.</li>
+    <li><b>APIs &amp; Services → OAuth consent screen</b>: chọn <b>External</b>, điền tên ứng dụng và email hỗ trợ. Ở mục <b>Test users</b>, thêm địa chỉ Gmail của các cán bộ sẽ dùng phần mềm (nếu để chế độ Testing).</li>
+    <li><b>Credentials → Create Credentials → OAuth client ID</b> → chọn <b>Web application</b>.</li>
+    <li>Ở ô <b>Authorized JavaScript origins</b>, thêm đúng địa chỉ đang mở phần mềm — hiện tại là:
+      <div class="hm-code">${esc(location.origin)}</div>
+      (Nếu chạy từ tệp trên máy, hãy đưa phần mềm lên GitHub Pages/Cloudflare Pages rồi dùng địa chỉ đó.)</li>
+    <li>Bấm <b>Create</b> → Google hiện chuỗi kết thúc bằng <code>.apps.googleusercontent.com</code>. Sao chép chuỗi này.</li>
+    <li>Quay lại phần mềm: <b>Dữ liệu &amp; sao lưu → Google Drive</b>, dán vào ô <b>OAuth Client ID</b>, bấm <b>Kết nối Google Drive</b>, chọn tài khoản và bấm <b>Cho phép</b>.</li>
+  </ol>
+
+  <h4>Cấu trúc thư mục phần mềm tự tạo</h4>
+  <div class="hm-code">${esc(driveRootName())}/
+   └── ${new Date().getFullYear()}/
+        ├── Công văn (CV)/
+        ├── Kế hoạch (KH)/
+        ├── Báo cáo (BC)/
+        ├── Thông báo (TB)/
+        └── … (đủ 11 loại văn bản)</div>
+  <p>Thư mục được tạo <b>đúng theo loại văn bản đang soạn</b>, tự động, không cần đặt tay. Muốn nhìn thấy đủ cây thư mục ngay từ đầu, bấm <b>📁 Tạo sẵn cây thư mục</b>.</p>
+
+  <h4>Quyền riêng tư &amp; an toàn</h4>
+  <ul class="hm-ul">
+    <li>Phần mềm chỉ xin quyền <code>drive.file</code> — <b>chỉ thấy và ghi được những tệp do chính nó tạo ra</b>. Tài liệu riêng khác trong Drive của bạn phần mềm không đọc được.</li>
+    <li>Client ID và mã truy cập nằm trong trình duyệt của máy đang dùng; mã truy cập hết hạn theo phiên làm việc, <b>không đẩy lên Firestore</b>.</li>
+    <li>Tệp tải lên được đặt “Bất kỳ ai có liên kết — Xem” để nơi nhận mở được ngay. Nếu tổ chức chặn chia sẻ ra ngoài, tệp vẫn lên Drive nhưng chỉ người trong tổ chức mở được.</li>
+    <li>Muốn thu hồi: bấm <b>Ngắt kết nối</b>, hoặc vào <b>myaccount.google.com → Bảo mật → Ứng dụng của bên thứ ba</b>.</li>
+  </ul>
+
+  <h4>Gặp trục trặc?</h4>
+  <ul class="hm-ul">
+    <li><b>“redirect_uri_mismatch” / “origin không hợp lệ”</b> — địa chỉ ở ô Authorized JavaScript origins chưa khớp. Phải đúng <code>${esc(location.origin)}</code>, không thừa dấu “/” cuối.</li>
+    <li><b>“Access blocked / chưa được xác minh”</b> — thêm Gmail của cán bộ vào <b>Test users</b>, hoặc bấm “Nâng cao → Tiếp tục”.</li>
+    <li><b>Cửa sổ cấp quyền không hiện</b> — trình duyệt đang chặn pop-up; cho phép pop-up với địa chỉ này rồi thử lại.</li>
+    <li><b>Tệp lên Drive nhưng nơi nhận không mở được</b> — chính sách chia sẻ của tổ chức; mở thủ công quyền xem cho tệp đó, hoặc dùng tài khoản Gmail cá nhân của đơn vị.</li>
+  </ul>
+  ${c.account?`<p class="hm-ok">✅ Đơn vị này đã kết nối tài khoản <b>${esc(c.account)}</b>.</p>`:""}
+  <p style="margin-top:12px"><button class="btn btn-primary btn-sm" onclick="closeHelp();nav('hethong')">⚙ Mở màn hình cấu hình Google Drive</button></p>`;
 }
 function helpTaiKhoan(){
   const isCloud=MODE==="cloud";
@@ -3907,6 +4447,27 @@ function helpTaiKhoan(){
   <p class="lead">Mỗi đơn vị có <b>một tài khoản đăng nhập riêng</b>. Quyền quản trị kế thừa theo nhánh: cấp trên tạo, sửa, khóa/khôi phục và cấp lại mật khẩu cho mọi đơn vị cấp dưới trong nhánh của mình; mỗi đơn vị tự đổi mật khẩu của chính mình.</p>
 
   <div class="hm-tip" style="background:${isCloud?'var(--info-bg)':'var(--gold-soft)'}">Hệ thống của bạn đang chạy ở chế độ <b>${isCloud?"Đồng bộ Firestore (nhiều đơn vị dùng chung)":"Cục bộ (dữ liệu trên máy này)"}</b>. Phần áp dụng cho chế độ này được đánh dấu bên dưới.</div>
+
+  <h4>0. Phân biệt 3 khái niệm hay nhầm lẫn</h4>
+  <p><b>"Tài khoản đăng nhập phần mềm" và "tài khoản đăng nhập hệ thống" là MỘT</b> — chính là tên bạn gõ ở màn đăng nhập (vd <span class="hm-kbd">tinhdoan</span>, <span class="hm-kbd">hd.caolanh</span>). Thứ hai mới là <b>tài khoản Firebase</b> dùng để xác thực mật khẩu. Hai thứ này gắn với nhau bằng một công thức cố định:</p>
+  <div style="background:var(--doan-ink);color:#e6edf5;padding:12px 14px;border-radius:9px;font-size:.8rem;margin:8px 0;font-family:ui-monospace,monospace">tài khoản Firebase = &lt;tên đăng nhập&gt;@${esc(typeof LOGIN_DOMAIN!=="undefined"?LOGIN_DOMAIN:"doan-office.app")}</div>
+  <p>Ví dụ: gõ đăng nhập <span class="hm-kbd">cdcsbvps</span> → phần mềm tự dịch thành <span class="hm-kbd">cdcsbvps@${esc(typeof LOGIN_DOMAIN!=="undefined"?LOGIN_DOMAIN:"doan-office.app")}</span> để xác thực. Phần <b>@${esc(typeof LOGIN_DOMAIN!=="undefined"?LOGIN_DOMAIN:"doan-office.app")}</b> chỉ là hậu tố kỹ thuật, <b>không phải email thật</b>, không ai gửi/nhận thư ở đó.</p>
+  <p>Thứ ba là <b>Email liên hệ</b> — hoàn toàn tách biệt:</p>
+  <div class="tbl-wrap" style="margin:8px 0"><table><thead><tr><th>Loại</th><th>Dùng để</th><th>Ví dụ</th><th>Lưu ở</th></tr></thead><tbody>
+    <tr><td><b>Tên đăng nhập</b></td><td>Gõ ở màn đăng nhập</td><td><code>cdcsbvps</code></td><td>Firestore · trường <code>user</code></td></tr>
+    <tr><td><b>Định danh Firebase</b></td><td>Xác thực mật khẩu</td><td><code>cdcsbvps@${esc(typeof LOGIN_DOMAIN!=="undefined"?LOGIN_DOMAIN:"doan-office.app")}</code></td><td>Firebase Authentication</td></tr>
+    <tr><td><b>Email liên hệ</b></td><td>Nhận thư nhắc việc/nhắc lịch</td><td><code>donvi@gmail.com</code></td><td>Firestore · trường <code>email</code></td></tr>
+  </tbody></table></div>
+  <div class="hm-tip" style="border-left:3px solid var(--danger);background:#fff1f2">⚠ <b>Sai lầm thường gặp:</b> dùng <b>email thật (Gmail)</b> làm tài khoản đăng nhập, hoặc tạo tay user trên Firebase bằng địa chỉ Gmail. Khi đó đơn vị <b>sẽ không đăng nhập được</b>, vì phần mềm đi tìm <code>&lt;user&gt;@${esc(typeof LOGIN_DOMAIN!=="undefined"?LOGIN_DOMAIN:"doan-office.app")}</code> nhưng trên Firebase lại là địa chỉ Gmail → không khớp.</div>
+
+  <h5>Nguyên tắc vàng khi tạo tài khoản</h5>
+  <ol>
+    <li><b>Luôn tạo qua phần mềm</b> (Sơ đồ tổ chức → ＋ Thêm đơn vị cấp dưới). Phần mềm tự tạo user Firebase đúng chuẩn — an toàn nhất, tránh mọi nhầm lẫn. <b>Không tạo tay trên Firebase Console.</b></li>
+    <li>Nếu buộc phải tạo tay: ô Email trên Firebase <b>phải là</b> <code>&lt;tên đăng nhập&gt;@${esc(typeof LOGIN_DOMAIN!=="undefined"?LOGIN_DOMAIN:"doan-office.app")}</code>, và tên đó phải trùng trường <code>user</code> của đơn vị trong Firestore.</li>
+    <li><b>Email Gmail thật</b> chỉ điền vào ô <b>"Email liên hệ"</b> trong app — không bao giờ đưa lên Firebase Authentication.</li>
+  </ol>
+  <p><b>Cách kiểm tra nhanh:</b> vào <b>Sơ đồ tổ chức → Kiểm tra cấu hình thông báo</b>. Bảng này hiện định danh Firebase của từng đơn vị và cảnh báo đỏ nếu có tài khoản sai chuẩn.</p>
+  <p><b>Khắc phục khi đã lỡ tạo sai:</b> Firebase Console → Authentication → xóa user sai (vd <code>abc@gmail.com</code>) → tạo lại đúng dạng <code>&lt;user&gt;@${esc(typeof LOGIN_DOMAIN!=="undefined"?LOGIN_DOMAIN:"doan-office.app")}</code>. Hoặc đơn giản hơn: xóa đơn vị trong app rồi tạo lại bằng ＋ Thêm đơn vị để phần mềm làm đúng.</p>
 
   <h4>1. Tài khoản ban đầu</h4>
   <div class="hm-role"><b>Chế độ cục bộ (demo, tập huấn)</b> — có sẵn 7 tài khoản mẫu (Tỉnh đoàn, Huyện/Thành đoàn, Đoàn xã/phường…), <b>mật khẩu chung là <span class="hm-kbd">123456</span></b>. Màn đăng nhập có nút bấm vào nhanh. Chỉ dùng để dùng thử — <b>không dùng mật khẩu này cho hệ thống thật</b>.</div>
@@ -4211,7 +4772,7 @@ function helpFaq(){
    Các hệ thống khác / connector tương lai (iOffice tỉnh, Zalo bot…)
    truy cập qua window.DoanOffice — không đụng vào lõi. */
 window.DoanOffice={
-  version:"4.0",
+  version:"4.3",
   unit:()=>DB&&DB.session?{...me()}:null,
   docs:()=>DB?JSON.parse(JSON.stringify(searchCorpus())):[],
   targets:()=>DB?JSON.parse(JSON.stringify([...myTargets(),...myAssignedTargets()])):[],
